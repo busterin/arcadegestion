@@ -178,6 +178,7 @@ document.addEventListener("DOMContentLoaded", () => {
     opponentId: null,
     opponentProfile: null,
     isSpawnHost: false,
+    spawnWatchdogTimer: null,
     heartbeatTimer: null,
     matchId: null
   };
@@ -729,6 +730,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function finalizeVersusMatch(opponentId, opponentProfile) {
+    if (!opponentId || typeof opponentId !== "string" || opponentId === versus.clientId) return;
     if (!versus.matching) return;
     clearMatchmakingState();
     hideModal(matchmakingModal);
@@ -751,6 +753,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (msg.type === "vs_match_found") {
       if (!versus.matching || msg.to !== versus.clientId || versus.opponentId) return;
+      if (!msg.opponentId || msg.opponentId === versus.clientId) return;
       finalizeVersusMatch(msg.opponentId, msg.opponentProfile);
       return;
     }
@@ -876,6 +879,35 @@ document.addEventListener("DOMContentLoaded", () => {
     clearInterval(gameClockTimer);
     gameClockTimer = null;
     gameRunning = false;
+    if (versus.spawnWatchdogTimer) {
+      clearInterval(versus.spawnWatchdogTimer);
+      versus.spawnWatchdogTimer = null;
+    }
+  }
+
+  function startVersusSpawnWatchdog() {
+    if (versus.spawnWatchdogTimer) clearInterval(versus.spawnWatchdogTimer);
+    if (currentMode !== "versus") return;
+
+    let checks = 0;
+    versus.spawnWatchdogTimer = setInterval(() => {
+      if (!gameRunning || currentMode !== "versus") {
+        clearInterval(versus.spawnWatchdogTimer);
+        versus.spawnWatchdogTimer = null;
+        return;
+      }
+
+      if (activePoints.size > 0 || completedMissionIds.size > 0) {
+        checks = 0;
+        return;
+      }
+
+      checks += 1;
+      if (!versus.isSpawnHost && checks >= 4) {
+        versus.isSpawnHost = true;
+        scheduleNextSpawn();
+      }
+    }, 1500);
   }
 
   function startGameClock() {
@@ -926,6 +958,9 @@ document.addEventListener("DOMContentLoaded", () => {
     startLifeTicker();
     if (currentMode === "arcade" || versus.isSpawnHost) {
       scheduleNextSpawn();
+    }
+    if (currentMode === "versus") {
+      startVersusSpawnWatchdog();
     }
   }
 
