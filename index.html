@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Gestión de recursos (Prototipo)</title>
+<link href="style.css" rel="stylesheet"/>
+</head>
+<body>
+<div class="app">
+<!-- INTRO -->
+<section class="intro intro-bg" id="introScreen">
+<div class="intro-content">
+<div class="intro-title">FANTASY GESTION</div>
+<div class="intro-actions">
+<button class="btn intro-btn" id="introStoryBtn" type="button">HISTORIA</button>
+<button class="btn intro-btn" id="introStartBtn" type="button">ARCADE</button>
+</div>
+</div>
+</section>
+<!-- SELECTOR AVATAR (solo arcade) -->
+<section class="start hidden" id="startScreen">
+<div class="start-card">
+<div class="start-title">Elige tu avatar</div>
+<div class="start-subtitle">Usa las flechas para cambiar y pulsa Comenzar.</div>
+<div class="carousel">
+<button aria-label="Anterior" class="carousel-btn" id="prevAvatarBtn" type="button">‹</button>
+<div class="carousel-center">
+<img alt="Buster" class="carousel-img" id="avatarPreviewImg" src="images/buster1.PNG"/>
+<div class="carousel-name" id="avatarPreviewName">Buster</div>
+</div>
+<button aria-label="Siguiente" class="carousel-btn" id="nextAvatarBtn" type="button">›</button>
+</div>
+<div aria-hidden="true" class="carousel-dots">
+<span class="dot-indicator active" id="dot0"></span>
+<span class="dot-indicator" id="dot1"></span>
+</div>
+<button class="btn start-btn" id="startBtn" type="button">Comenzar</button>
+</div>
+</section>
+<!-- SELECCIÓN EQUIPO (6) -->
+<section class="start hidden" id="teamScreen">
+<div class="start-card">
+<div class="start-title">Selecciona 6 personajes. Estos serán los disponibles para superar las misiones.</div>
+<div class="team-top">
+<div class="team-counter"><b>Seleccionados</b>: <span id="teamCount">0</span>/6</div>
+<div class="hint" id="teamHint">Elige 6 personajes para continuar.</div>
+</div>
+<div class="team-grid" id="teamGrid"></div>
+<div class="modal-actions end" style="margin-top:12px;">
+<button class="btn" disabled="" id="teamConfirmBtn" type="button">Confirmar</button>
+</div>
+</div>
+</section>
+<!-- HISTORIA: PUEBLO (pantalla previa) -->
+<section class="game hidden" id="storyTownScreen">
+<header class="topbar">
+<div class="brand">
+<div class="dot"></div>
+<div>
+<div class="title">Historia</div>
+<div class="subtitle">Muévete por el pueblo</div>
+</div>
+</div>
+<div class="hud">
+<button class="btn" id="storyContinueBtn" type="button">CONTINUAR</button>
+</div>
+</header>
+<main class="stage">
+<div class="town-viewport" id="townViewport"><div class="town-world" id="townWorld"><div aria-label="Pueblo" class="town-map" id="townMap">
+<!-- Casas -->
+<!-- Personaje (sprite sheet) -->
+<div aria-label="Personaje" class="town-player face-down" id="townPlayer"></div><div aria-label="Aldeana" class="town-npc" id="npcAldeana" role="img" style='left:20%; top:32%; background-image:url("images2/Aldeana.PNG");'></div><div aria-label="Aldeano" class="town-npc" id="npcAldeano" role="img" style='left:86%; top:78%; background-image:url("images2/Aldeano.PNG");'></div><div aria-label="Guardia" class="town-npc" id="npcGuardia" role="img" style='left:18%; top:90%; background-image:url("images2/Guardia.PNG");'></div><div aria-label="Mercenario" class="town-npc" id="npcMercenario" role="img" style='left:36%; top:74%; background-image:url("images2/Mercenario.PNG");'><div class="npc-talk-icon"></div></div><div aria-label="Sacerdotisa" class="town-npc" id="npcSacerdotisa" role="img" style='left:72%; top:30%; background-image:url("images2/Sacerdotisa.PNG");'></div><div aria-label="Vendedora" class="town-npc" id="npcVendedora" role="img" style='left:64%; top:86%; background-image:url("images2/Vendedora.PNG");'></div>
+<img alt="puerta" class="town-house puerta" src="images2/Puertapueblo.PNG"/><img alt="casa2a" class="town-house casa2a" src="images2/Casa2.PNG"/><img alt="casa2b" class="town-house casa2b" src="images2/Casa2.PNG"/><img alt="iglesia" class="town-house iglesia" src="images2/Iglesia.PNG"/><img alt="taberna" class="town-house taberna" src="images2/Taberna.PNG"/><img alt="pozo" class="town-house pozo" src="images2/Pozo.PNG"/><img alt="puesto" class="town-house puesto" src="images2/Puesto.PNG"/></div></div></div>
+</main>
+</section>
+<!-- JUEGO -->
+<div class="game hidden" id="gameRoot">
+<header class="topbar">
+<div class="brand">
+<div class="dot"></div>
+<div>
+<div class="title">Gestión de recursos</div>
+<div class="subtitle">Toca los puntos rojos cuando aparezcan</div>
+</div>
+</div>
+<div class="hud">
+<div class="hud-card">
+<div class="hud-label">Misiones</div>
+<div class="hud-value" id="progress">0</div>
+</div>
+</div>
+</header>
+<main class="stage">
+<div aria-label="Mapa del juego" class="map" id="map">
+<img alt="Personaje seleccionado" class="buster-img" id="playerImg" src="images/buster1.PNG"/>
+</div>
+</main>
+<!-- Equipo (6) debajo del mapa -->
+<div aria-label="Equipo seleccionado" class="team-bar" id="teamBar"></div>
+</div>
+</div>
+<!-- MODAL MISIÓN -->
+<div aria-hidden="true" class="modal" id="missionModal">
+<div aria-labelledby="missionTitle" aria-modal="true" class="modal-card" role="dialog">
+<div class="modal-head">
+<div>
+<div class="modal-title" id="missionTitle">Misión</div>
+<!-- Imagen misión -->
+<img alt="Misión" class="mission-img" id="missionImg" src="images/mision.png"/>
+<div class="modal-text" id="missionText">Texto de misión</div>
+</div>
+<button aria-label="Cerrar" class="icon-btn" id="closeModalBtn" type="button">✕</button>
+</div>
+<div class="divider"></div>
+<div class="section">
+<div class="section-title">Elige 1 o 2 personajes</div>
+<div class="grid" id="charactersGrid"></div>
+<div class="hint" id="pickHint">Selecciona al menos 1 personaje.</div>
+</div>
+<div class="divider"></div>
+<div class="modal-actions end">
+<button class="btn" id="confirmBtn" type="button">Confirmar</button>
+</div>
+</div>
+</div>
+<!-- MODAL RULETA -->
+<div aria-hidden="true" class="modal" id="rouletteModal">
+<div aria-labelledby="rouletteTitle" aria-modal="true" class="modal-card roulette-card" role="dialog">
+<div class="modal-head">
+<div>
+<div class="modal-title" id="rouletteTitle">Resolviendo misión…</div>
+<div class="modal-text" id="rouletteSub">La ruleta decidirá el resultado según tu probabilidad.</div>
+</div>
+</div>
+<div class="divider"></div>
+<div class="roulette-wrap">
+<div class="roulette">
+<div class="roulette-pointer">▼</div>
+<div class="roulette-wheel" id="rouletteWheel"></div>
+</div>
+<div class="roulette-outcome" id="rouletteOutcome"></div>
+</div>
+<div class="divider"></div>
+<div class="modal-actions">
+<button class="btn" disabled="" id="rouletteOkBtn" type="button">Continuar</button>
+</div>
+</div>
+</div>
+<!-- MODAL FINAL -->
+<div aria-hidden="true" class="modal" id="finalModal">
+<div aria-labelledby="finalTitle" aria-modal="true" class="modal-card" role="dialog">
+<div class="modal-head">
+<div>
+<div class="modal-title" id="finalTitle">Fin de la partida</div>
+<div class="modal-text">¡Tiempo!</div>
+</div>
+</div>
+<div class="divider"></div>
+<div class="final-score">
+<div class="final-label">Puntuación final</div>
+<div class="final-value" id="finalScore">0</div>
+</div>
+<div class="divider"></div>
+<div class="modal-actions">
+<button class="btn" id="playAgainBtn" type="button">Jugar otra vez</button>
+</div>
+</div>
+</div>
+<!-- POPUP INFO CARTA -->
+<div aria-hidden="true" class="modal" id="cardInfoModal">
+<div aria-labelledby="cardInfoTitle" aria-modal="true" class="modal-card modal-card-small" role="dialog">
+<div class="modal-head">
+<div>
+<div class="modal-title" id="cardInfoTitle">Carta</div>
+<!-- Imagen ampliada -->
+<img alt="" class="cardinfo-img" id="cardInfoImg" src=""/>
+<div class="modal-text" id="cardInfoText">Prueba</div>
+</div>
+<button aria-label="Cerrar" class="icon-btn" id="closeCardInfoBtn" type="button">✕</button>
+</div>
+</div>
+</div>
+<!-- HABILIDAD ESPECIAL -->
+<div aria-hidden="true" class="modal" id="specialModal">
+<div aria-labelledby="specialTitle" aria-modal="true" class="modal-card modal-card-small" role="dialog">
+<div class="modal-head">
+<div>
+<div class="modal-title" id="specialTitle">¿Quieres activar su habilidad especial?</div>
+<div class="modal-text">Pulsa sobre una misión y la completa automáticamente.</div>
+</div>
+<button aria-label="Cerrar" class="icon-btn" id="closeSpecialBtn" type="button">✕</button>
+</div>
+<div class="divider"></div>
+<div class="modal-actions end">
+<button class="btn btn-ghost" id="specialCancelBtn" type="button">Cancelar</button>
+<button class="btn" id="specialAcceptBtn" type="button">Activar</button>
+</div>
+</div>
+</div>
+<script src="script.js"></script>
+<div class="mercenario-dialog hidden" id="mercenarioDialog">Prueba</div></body>
+</html>
