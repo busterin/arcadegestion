@@ -1,7 +1,7 @@
 const path = require("path");
 const http = require("http");
 const express = require("express");
-const { WebSocketServer } = require("ws");
+const { WebSocketServer, WebSocket } = require("ws");
 
 const PORT = process.env.PORT || 3000;
 
@@ -17,7 +17,7 @@ const matches = new Map();
 
 function sendTo(clientId, payload) {
   const ws = clients.get(clientId);
-  if (!ws || ws.readyState !== ws.OPEN) return;
+  if (!ws || ws.readyState !== WebSocket.OPEN) return;
   ws.send(JSON.stringify(payload));
 }
 
@@ -52,7 +52,7 @@ function tryMatchPlayers() {
 
     const wsA = clients.get(a);
     const wsB = clients.get(b);
-    if (!wsA || !wsB || wsA.readyState !== wsA.OPEN || wsB.readyState !== wsB.OPEN) {
+    if (!wsA || !wsB || wsA.readyState !== WebSocket.OPEN || wsB.readyState !== WebSocket.OPEN) {
       continue;
     }
 
