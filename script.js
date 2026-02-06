@@ -97,8 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // DOM
   // -------------------------
   const introScreen = document.getElementById("introScreen");
-  const introStartBtn = document.getElementById("introStartBtn"); // ARCADE
-  const introStoryBtn = document.getElementById("introStoryBtn"); // HISTORIA
+  const introStartBtn = document.getElementById("introStartBtn");
 
   const startScreen = document.getElementById("startScreen");
   const startBtn = document.getElementById("startBtn");
@@ -116,20 +115,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const teamHint = document.getElementById("teamHint");
   const teamConfirmBtn = document.getElementById("teamConfirmBtn");
 
-  // ✅ HISTORIA: PUEBLO
-  const storyTownScreen = document.getElementById("storyTownScreen");
-  const townMap = document.getElementById("townMap");
-  const townPlayer = document.getElementById("townPlayer");
-  const townNpcs = Array.from(document.querySelectorAll("#townMap .town-npc"));
-  const townViewport = document.getElementById("townViewport");
-  const townWorld = document.getElementById("townWorld");
-  const storyContinueBtn = document.getElementById("storyContinueBtn");
-
   const gameRoot = document.getElementById("gameRoot");
   const mapEl = document.getElementById("map");
   const playerImg = document.getElementById("playerImg");
   const progressEl = document.getElementById("progress");
-  const missionsHudCard = progressEl?.closest(".hud-card"); // ✅ ocultar solo en HISTORIA
   const teamBar = document.getElementById("teamBar");
 
   const missionModal = document.getElementById("missionModal");
@@ -164,8 +153,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // -------------------------
   // Estado
   // -------------------------
-  let gameMode = "arcade"; // ✅ "arcade" | "story"
-
   let score = 0;
   let pendingMissions = [...MISSIONS];
   let activePoints = new Map();
@@ -321,7 +308,6 @@ document.addEventListener("DOMContentLoaded", () => {
     introScreen.classList.add("hidden");
     startScreen.classList.remove("hidden");
     teamScreen.classList.add("hidden");
-    storyTownScreen?.classList.add("hidden");
     gameRoot.classList.add("hidden");
   }
 
@@ -329,258 +315,6 @@ document.addEventListener("DOMContentLoaded", () => {
     startScreen.classList.add("hidden");
     teamScreen.classList.remove("hidden");
     renderTeamSelection();
-  }
-
-  // -------------------------
-  // HISTORIA: Pueblo (movimiento)
-  // -------------------------
-  let townActive = false;
-  let townX = 0;
-  let townY = 0;
-  let townTargetX = null;
-  let townTargetY = null;
-  let townRaf = null;
-
-  // ✅ Cámara pueblo
-  let townCamX = 0;
-  let townCamY = 0;
-    let townScale = 1.6; // debe coincidir con el scale CSS
-
-  const TOWN_SPEED_PX = 4.5;      // desktop (teclado) ✅ más rápido
-  const TOWN_SPEED_TOUCH = 3.0;   // móvil (tap)
-
-  // ✅ Orientación (3 imágenes sueltas en images2): down/up/side (left = flip del side).
-  // En tu imagen (izq->der): frente, (extra), perfil derecha, espalda.
-  let townFacing = "down";
-// ✅ Animación caminar (4 frames por dirección, PNG en images2)
-const TOWN_WALK_FRAMES = 4;
-const TOWN_WALK_FRAME_MS = 120; // velocidad de animación
-let townWalkFrame = 1;
-let townWalkLastAt = 0;
-let townIsWalking = false;
-
-function townSpriteKeyForFacing(dir){
-  if (dir === "up") return "up";
-  if (dir === "down") return "down";
-  return "side";
-}
-
-function applyTownSprite(){
-  if (!townPlayer) return;
-  const key = townSpriteKeyForFacing(townFacing);
-  townPlayer.style.backgroundImage = `url("images2/riskopueblo_${key}_${townWalkFrame}.png")`;
-}
-
-function setTownWalking(isWalking){
-  townIsWalking = !!isWalking;
-  if (!townPlayer) return;
-  // (sin bobbing) mantenemos solo frames
-  if (!townIsWalking){
-    townWalkFrame = 1;
-    townWalkLastAt = 0;
-    applyTownSprite();
-  } else {
-    // al empezar a andar, fuerza sprite actualizado
-    if (!townWalkLastAt) townWalkLastAt = performance.now();
-    applyTownSprite();
-  }
-}
-  function setTownFacing(dir){
-    if (!townPlayer) return;
-    if (dir === townFacing) return;
-    townFacing = dir;
-    applyTownSprite();
-
-    townPlayer.classList.remove("face-up","face-down","face-left","face-right");
-    if (dir === "up") townPlayer.classList.add("face-up");
-    else if (dir === "down") townPlayer.classList.add("face-down");
-    else if (dir === "left") townPlayer.classList.add("face-left");
-    else if (dir === "right") townPlayer.classList.add("face-right");
-  }
-
-  function clampTownToBounds(x, y){
-    if (!townMap || !townPlayer) return { x, y };
-    const r = townMap.getBoundingClientRect();
-    const p = townPlayer.getBoundingClientRect();
-    const halfW = p.width / 2;
-    const halfH = p.height / 2;
-
-    const cx = clamp(x, halfW, r.width - halfW);
-    const cy = clamp(y, halfH, r.height - halfH);
-    return { x: cx, y: cy };
-  }
-
-  function applyTownPos(){
-    if (!townPlayer) return;
-    townPlayer.style.left = `${townX}px`;
-    townPlayer.style.top  = `${townY}px`;
-  }
-
-
-  function updateTownCamera(){
-    if (!townViewport || !townWorld || !townMap) return;
-
-    const vpW = townViewport.clientWidth;
-    const vpH = townViewport.clientHeight;
-
-    const scale = townScale || 1;
-    const worldW = (townMap.offsetWidth || 1) * scale;
-    const worldH = (townMap.offsetHeight || 1) * scale;
-
-    // posición del jugador en coords escaladas
-    const px = townX * scale;
-    const py = townY * scale;
-
-    // deadzone (zona segura) para que la cámara solo se mueva al acercarse a bordes
-    const dzLeft = vpW * 0.35;
-    const dzRight = vpW * 0.65;
-    const dzTop = vpH * 0.35;
-    const dzBottom = vpH * 0.65;
-
-    // posición del jugador en pantalla con la cámara actual
-    let screenX = px + townCamX;
-    let screenY = py + townCamY;
-
-    let camX = townCamX;
-    let camY = townCamY;
-
-    if (screenX < dzLeft) camX += (dzLeft - screenX);
-    else if (screenX > dzRight) camX -= (screenX - dzRight);
-
-    if (screenY < dzTop) camY += (dzTop - screenY);
-    else if (screenY > dzBottom) camY -= (screenY - dzBottom);
-
-    // clamp para no ver fuera del mundo
-    const minX = vpW - worldW;
-    const minY = vpH - worldH;
-    camX = Math.min(0, Math.max(minX, camX));
-    camY = Math.min(0, Math.max(minY, camY));
-
-    townCamX = camX;
-    townCamY = camY;
-
-    townWorld.style.transform = `translate(${camX}px, ${camY}px)`;
-  }
-
-
-  function initTownPosition(){
-    if (!townMap || !townPlayer) return;
-    const w = townMap.offsetWidth || 1;
-    const h = townMap.offsetHeight || 1;
-    townX = w * 0.50;
-    townY = h * 0.72;
-    const cl = clampTownToBounds(townX, townY);
-    townX = cl.x; townY = cl.y;
-    townTargetX = null;
-    townTargetY = null;
-    setTownFacing("down");
-    townWalkFrame = 1;
-    applyTownSprite();
-    applyTownPos();
-        updateTownCamera();
-
-    setTownWalking(true);
-    townWalkFrame = (townWalkFrame % TOWN_WALK_FRAMES) + 1;
-    applyTownSprite();
-    clearTimeout(window.__townWalkT);
-    window.__townWalkT = setTimeout(()=>setTownWalking(false), 140);
-  }
-
-  function startTownLoop(){
-    stopTownLoop();
-    townActive = true;
-
-    const step = ()=>{
-      if (!townActive) return;
-
-      if (townTargetX != null && townTargetY != null){
-        const dx = townTargetX - townX;
-        const dy = townTargetY - townY;
-        const dist = Math.hypot(dx, dy);
-
-        const ax = Math.abs(dx);
-        const ay = Math.abs(dy);
-        const now = performance.now();
-        if (!townWalkLastAt) townWalkLastAt = now;
-        if (now - townWalkLastAt >= TOWN_WALK_FRAME_MS){
-          townWalkLastAt = now;
-          townWalkFrame = (townWalkFrame % TOWN_WALK_FRAMES) + 1;
-          applyTownSprite();
-        }
-
-        if (ax > ay){
-          setTownFacing(dx >= 0 ? "right" : "left");
-        } else {
-          setTownFacing(dy >= 0 ? "down" : "up");
-        }
-
-        if (dist < 2){
-          townX = townTargetX;
-          townY = townTargetY;
-          townTargetX = null;
-          townTargetY = null;
-        } else {
-          const v = TOWN_SPEED_TOUCH;
-          townX += (dx / dist) * v;
-          townY += (dy / dist) * v;
-        }
-
-        const cl = clampTownToBounds(townX, townY);
-        townX = cl.x; townY = cl.y;
-        applyTownPos();
-        updateTownCamera();
-
-    setTownWalking(true);
-    townWalkFrame = (townWalkFrame % TOWN_WALK_FRAMES) + 1;
-    applyTownSprite();
-    clearTimeout(window.__townWalkT);
-    window.__townWalkT = setTimeout(()=>setTownWalking(false), 140);
-      }
-
-      townRaf = requestAnimationFrame(step);
-    };
-
-    townRaf = requestAnimationFrame(step);
-  }
-
-  function stopTownLoop(){
-    townActive = false;
-    if (townRaf) cancelAnimationFrame(townRaf);
-    townRaf = null;
-  }
-
-  // ✅ HISTORIA: entra al pueblo (sin afectar ARCADE)
-  function startStoryMode(){
-    gameMode = "story";
-
-    // Avatar por defecto: Buster
-    const busterIdx = AVATARS.findIndex(a => a.name === "Buster");
-    if (busterIdx >= 0) avatarIndex = busterIdx;
-
-    // Equipo por defecto (incluye Maider, Celia, Castri) + 3 extras para completar 6
-    selectedTeamCardIds = new Set([
-      "card_maider",
-      "card_celia",
-      "card_castri",
-      "card_buster",
-      "card_dre",
-      "card_lorena"
-    ]);
-
-    introScreen.classList.add("hidden");
-    startScreen.classList.add("hidden");
-    teamScreen.classList.add("hidden");
-    gameRoot.classList.add("hidden");
-
-    storyTownScreen.classList.remove("hidden");
-    document.body.classList.add("story-town");
-
-    requestAnimationFrame(()=>{
-      initTownPosition();
-      applyTownPos();
-      updateTownCamera();
-      startTownLoop();
-    });
   }
 
   // -------------------------
@@ -811,16 +545,7 @@ function setTownWalking(isWalking){
   // -------------------------
   function startGame(){
     teamScreen.classList.add("hidden");
-    storyTownScreen?.classList.add("hidden");
     gameRoot.classList.remove("hidden");
-
-    // ✅ Fondo solo en HISTORIA
-    mapEl.classList.toggle("story-bg", gameMode === "story");
-
-    // ✅ Solo en HISTORIA ocultamos el contador de misiones
-    if (missionsHudCard){
-      missionsHudCard.style.display = (gameMode === "story") ? "none" : "";
-    }
 
     specialUsed = false;
     specialArmed = false;
@@ -1232,21 +957,14 @@ function setTownWalking(isWalking){
   // -------------------------
   // EVENTS
   // -------------------------
-  introStartBtn.addEventListener("click", ()=>{
-    gameMode = "arcade";
-    goToStartScreen();
-  });
-
-  introStoryBtn.addEventListener("click", startStoryMode);
+  introStartBtn.addEventListener("click", goToStartScreen);
 
   prevAvatarBtn.addEventListener("click", prevAvatar);
   nextAvatarBtn.addEventListener("click", nextAvatar);
 
   document.addEventListener("keydown", (e)=>{
-      if (e.key === "Escape") { hideMercenarioDialogSafe(); return; }
-if (!introScreen.classList.contains("hidden")){
+    if (!introScreen.classList.contains("hidden")){
       if (e.key === "Enter") {
-        gameMode = "arcade";
         goToStartScreen();
       }
       return;
@@ -1259,7 +977,6 @@ if (!introScreen.classList.contains("hidden")){
 
   // Avatar -> Team (ARCADE)
   startBtn.addEventListener("click", ()=>{
-    gameMode = "arcade";
     selectedTeamCardIds = new Set();
     teamConfirmBtn.disabled = true;
     teamCountEl.textContent = "0";
@@ -1271,66 +988,6 @@ if (!introScreen.classList.contains("hidden")){
   teamConfirmBtn.addEventListener("click", ()=>{
     if (selectedTeamCardIds.size !== 6) return;
     if (!commitTeam()) return;
-    startGame();
-  });
-
-  // HISTORIA: tap/click para moverse
-  townMap?.addEventListener("pointerdown", (e)=>{
-    if (storyTownScreen.classList.contains("hidden")) return;
-    if (!townViewport) return;
-
-    const vp = townViewport.getBoundingClientRect();
-    const vx = e.clientX - vp.left;
-    const vy = e.clientY - vp.top;
-
-    const x = (vx - townCamX) / (townScale || 1);
-    const y = (vy - townCamY) / (townScale || 1);
-
-    const cl = clampTownToBounds(x, y);
-    townTargetX = cl.x;
-    townTargetY = cl.y;
-  });
-
-  // HISTORIA: teclado (PC)
-  document.addEventListener("keydown", (e)=>{
-    if (!storyTownScreen || storyTownScreen.classList.contains("hidden")) return;
-
-    townTargetX = null;
-    townTargetY = null;
-
-    let dx = 0, dy = 0;
-    if (e.key === "ArrowUp") dy = -TOWN_SPEED_PX;
-    if (e.key === "ArrowDown") dy = +TOWN_SPEED_PX;
-    if (e.key === "ArrowLeft") dx = -TOWN_SPEED_PX;
-    if (e.key === "ArrowRight") dx = +TOWN_SPEED_PX;
-    if (!dx && !dy) return;
-
-    e.preventDefault();
-
-    if (dx > 0) setTownFacing("right");
-    else if (dx < 0) setTownFacing("left");
-    else if (dy > 0) setTownFacing("down");
-    else if (dy < 0) setTownFacing("up");
-
-    townX += dx;
-    townY += dy;
-    const cl = clampTownToBounds(townX, townY);
-    townX = cl.x; townY = cl.y;
-    applyTownPos();
-
-    setTownWalking(true);
-    townWalkFrame = (townWalkFrame % TOWN_WALK_FRAMES) + 1;
-    applyTownSprite();
-    clearTimeout(window.__townWalkT);
-    window.__townWalkT = setTimeout(()=>setTownWalking(false), 140);
-  }, { passive:false });
-
-  // HISTORIA: continuar al juego (fortaleza + partida)
-  storyContinueBtn?.addEventListener("click", ()=>{
-    if (!commitTeam()) return;
-    stopTownLoop();
-    storyTownScreen.classList.add("hidden");
-    document.body.classList.remove("story-town");
     startGame();
   });
 
@@ -1352,13 +1009,6 @@ if (!introScreen.classList.contains("hidden")){
   playAgainBtn.addEventListener("click", ()=>{
     resetGame();
 
-    if (missionsHudCard) missionsHudCard.style.display = "";
-    mapEl.classList.remove("story-bg");
-
-    storyTownScreen.classList.add("hidden");
-    document.body.classList.remove("story-town");
-    stopTownLoop();
-
     gameRoot.classList.add("hidden");
     introScreen.classList.remove("hidden");
     startScreen.classList.add("hidden");
@@ -1368,101 +1018,10 @@ if (!introScreen.classList.contains("hidden")){
   });
 
   window.addEventListener("resize", ()=>{
-    syncTownNpcSizes();
     setAppHeightVar();
     if (!gameRoot.classList.contains("hidden")) computeNoSpawnRect();
-    if (!storyTownScreen.classList.contains("hidden")) initTownPosition();
   });
 
   // init
   renderAvatarCarousel(0);
-
-
-  // === Mercenario: dialogo seguro (NO bloquea botones) ===
-  try {
-    const storyTownScreen = document.getElementById("storyTownScreen");
-    const mercenarioNpc = document.getElementById("npcMercenario");
-    const mercenarioDialog = document.getElementById("mercenarioDialog");
-
-    function showMercenarioDialogSafe(){
-      if (!mercenarioDialog) return;
-
-      // Contenido del diálogo (texto + botón)
-      mercenarioDialog.innerHTML = `
-        <div class="merc-text">Evelyn, ¿estás lista para una nueva misión?</div>
-        <div class="modal-actions end" style="margin-top:10px;">
-          <button id="mercStartMissionBtn" class="btn" type="button">Comenzar misión</button>
-        </div>
-      `;
-
-      const btn = mercenarioDialog.querySelector("#mercStartMissionBtn");
-      if (btn){
-        btn.addEventListener("click", (e)=>{
-          e.preventDefault();
-          e.stopPropagation();
-
-          // Ir al juego (rejilla) en modo historia
-          try {
-            if (typeof commitTeam === "function") commitTeam();
-            if (typeof storyTownScreen !== "undefined" && storyTownScreen) storyTownScreen.classList.add("hidden");
-            if (typeof startGame === "function") startGame();
-          } catch (err) {
-            console.warn("Start mission failed:", err);
-          }
-        }, { once:true });
-      }
-
-      mercenarioDialog.classList.remove("hidden");
-    }
-
-    
-    function hideMercenarioDialogSafe(){
-      if (!mercenarioDialog) return;
-      mercenarioDialog.classList.add("hidden");
-    }
-if (mercenarioNpc) {
-      mercenarioNpc.addEventListener("pointerdown", (e)=>{
-        e.preventDefault();
-        e.stopPropagation();
-        showMercenarioDialogSafe();
-      });
-    }
-
-    document.addEventListener("keydown", (e)=>{
-      if (e.key !== "Enter") return;
-      if (!storyTownScreen || storyTownScreen.classList.contains("hidden")) return;
-      if (!mercenarioNpc || !window.townPlayer) return;
-
-      const m = mercenarioNpc.getBoundingClientRect();
-      const p = window.townPlayer.getBoundingClientRect();
-
-      const dx = (m.left + m.width/2) - (p.left + p.width/2);
-      const dy = (m.top + m.height/2) - (p.top + p.height/2);
-      const dist = Math.hypot(dx, dy);
-
-      if (dist <= 140) showMercenarioDialogSafe();
-    });
-  } catch (err) {
-    console.warn("Mercenario dialog skipped:", err);
-  }
-  
-    // Click/tap fuera del cuadro: cerrar (solo si está abierto)
-    document.addEventListener("pointerdown", (e)=>{
-      if (!mercenarioDialog || mercenarioDialog.classList.contains("hidden")) return;
-      if (e.target && mercenarioDialog.contains(e.target)) return;
-      hideMercenarioDialogSafe();
-    });
-
-  // === END Mercenario ===
-
 });
-
-  // === NPCs: igualar tamaño al personaje controlable ===
-  function syncTownNpcSizes(){
-    if (!townPlayer) return;
-    const h = getComputedStyle(townPlayer).height;
-    if (!h) return;
-    for (const el of townNpcs){
-      el.style.height = h;
-    }
-  }
