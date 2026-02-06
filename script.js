@@ -19,6 +19,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const VERSUS_WIN_TARGET = 8;
   const VERSUS_CHANNEL_NAME = "arcadegestion-versus-v1";
   const VERSUS_WS_PATH = "/versus";
+  const LOCAL_FALLBACK_ENABLED =
+    (typeof window !== "undefined" && window.ENABLE_LOCAL_MATCH_FALLBACK === true) ||
+    (typeof window !== "undefined" && window.localStorage?.getItem("enableLocalMatchFallback") === "1");
 
   const MISSIONS = [
     { id: "m1", title: "Taller Expres", internalTag: "Educacion", img: "images/mision.png", text: "Hay un grupo listo para empezar y falta ajustar la dinamica. Envia a alguien que domine actividades educativas y manejo de tiempos." },
@@ -526,6 +529,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function ensureBroadcastFallback() {
+    if (!LOCAL_FALLBACK_ENABLED) return;
     if (versus.channel || typeof BroadcastChannel === "undefined") return;
     versus.channel = new BroadcastChannel(VERSUS_CHANNEL_NAME);
     versus.channel.onmessage = (ev) => handleVersusMessage(ev.data);
@@ -673,11 +677,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function startVersusMatchmaking() {
     await ensureVersusTransport();
-    if (!versus.wsReady && !versus.channel) {
-      matchmakingText.textContent = "No se pudo iniciar el emparejamiento.";
-      showModal(matchmakingModal);
-      return;
-    }
 
     versus.matching = true;
     versus.opponentId = null;
@@ -687,12 +686,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const usingWs = versus.wsReady;
     matchmakingText.textContent = usingWs
       ? "Buscando rival online (movil, ordenador o tablet conectados ahora)."
-      : `Servidor online no disponible (${versus.wsLastTried[versus.wsLastTried.length - 1] || "sin endpoint WS"}). Emparejamiento local de respaldo.`;
+      : `Servidor online no disponible (${versus.wsLastTried[versus.wsLastTried.length - 1] || "sin endpoint WS"}). Reintentando online...`;
     showModal(matchmakingModal);
 
     const announce = () => {
       if (!versus.wsReady) {
         ensureVersusTransport();
+        if (!versus.wsReady) {
+          matchmakingText.textContent = `Servidor online no disponible (${versus.wsLastTried[versus.wsLastTried.length - 1] || "sin endpoint WS"}). Reintentando online...`;
+        }
+      } else {
+        matchmakingText.textContent = "Buscando rival online (movil, ordenador o tablet conectados ahora).";
       }
 
       versusSend({
@@ -735,7 +739,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (msg.type === "vs_looking") {
       if (!versus.matching || versus.opponentId) return;
       // Fallback local sin servidor: empareja solo dentro de la misma sesion/navegador.
-      if (versus.transport !== "bc") return;
+      if (!LOCAL_FALLBACK_ENABLED || versus.transport !== "bc") return;
       if (versus.clientId < msg.from) {
         versusSend({
           type: "vs_match_found",
