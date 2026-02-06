@@ -171,6 +171,7 @@ document.addEventListener("DOMContentLoaded", () => {
     wsReady: false,
     wsConnecting: false,
     wsAttempted: false,
+    wsLastTried: [],
     matching: false,
     opponentId: null,
     opponentProfile: null,
@@ -540,54 +541,40 @@ document.addEventListener("DOMContentLoaded", () => {
     return candidate;
   }
 
-  function getVersusWsUrl() {
+  function getVersusWsCandidates() {
+    const urls = [];
     const configured = getConfiguredWsUrl();
-    if (configured) return configured;
-    if (!window.location || !window.location.origin) return null;
-    if (window.location.protocol !== "http:" && window.location.protocol !== "https:") return null;
-    const wsProto = window.location.protocol === "https:" ? "wss:" : "ws:";
-    return `${wsProto}//${window.location.host}${VERSUS_WS_PATH}`;
+    if (configured) urls.push(configured);
+
+    if (window.location && (window.location.protocol === "http:" || window.location.protocol === "https:")) {
+      const wsProto = window.location.protocol === "https:" ? "wss:" : "ws:";
+      urls.push(`${wsProto}//${window.location.host}${VERSUS_WS_PATH}`);
+
+      const hostname = window.location.hostname;
+      const port = window.location.port || (window.location.protocol === "https:" ? "443" : "80");
+      if (hostname && port !== "3000") {
+        urls.push(`${wsProto}//${hostname}:3000${VERSUS_WS_PATH}`);
+      }
+    }
+
+    return [...new Set(urls)];
   }
 
-  function ensureVersusTransport() {
-    const wsUrl = getVersusWsUrl();
-    if (!wsUrl) {
-      ensureBroadcastFallback();
-      return Promise.resolve();
-    }
-
-    if (versus.wsReady) return Promise.resolve();
-    if (versus.wsConnecting) {
-      return new Promise((resolve) => {
-        const wait = setInterval(() => {
-          if (!versus.wsConnecting) {
-            clearInterval(wait);
-            resolve();
-          }
-        }, 50);
-      });
-    }
-
-    versus.wsConnecting = true;
-    versus.wsAttempted = true;
-
+  function connectVersusWebSocket(wsUrl, timeoutMs = 1800) {
     return new Promise((resolve) => {
-      const ws = new WebSocket(wsUrl);
       let settled = false;
+      const ws = new WebSocket(wsUrl);
 
-      const done = () => {
+      const finish = (ok) => {
         if (settled) return;
         settled = true;
-        versus.wsConnecting = false;
-        resolve();
+        resolve(ok);
       };
 
-      const fallback = () => {
-        if (!versus.wsReady) ensureBroadcastFallback();
-        done();
-      };
-
-      const timeout = setTimeout(fallback, 1800);
+      const timeout = setTimeout(() => {
+        try { ws.close(); } catch {}
+        finish(false);
+      }, timeoutMs);
 
       ws.addEventListener("open", () => {
         clearTimeout(timeout);
@@ -595,7 +582,7 @@ document.addEventListener("DOMContentLoaded", () => {
         versus.wsReady = true;
         versus.transport = "ws";
         ws.send(JSON.stringify({ type: "vs_register", from: versus.clientId }));
-        done();
+        finish(true);
       });
 
       ws.addEventListener("message", (ev) => {
@@ -609,10 +596,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
       ws.addEventListener("error", () => {
         clearTimeout(timeout);
-        fallback();
+        try { ws.close(); } catch {}
+        finish(false);
       });
 
       ws.addEventListener("close", () => {
+        if (!versus.ws || versus.ws !== ws) return;
         versus.wsReady = false;
         versus.ws = null;
         if (!versus.transport || versus.transport === "ws") {
@@ -620,6 +609,42 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
     });
+  }
+
+  async function ensureVersusTransport() {
+    const wsCandidates = getVersusWsCandidates();
+    if (!wsCandidates.length) {
+      ensureBroadcastFallback();
+      return;
+    }
+
+    if (versus.wsReady) return;
+    if (versus.wsConnecting) {
+      await new Promise((resolve) => {
+        const wait = setInterval(() => {
+          if (!versus.wsConnecting) {
+            clearInterval(wait);
+            resolve();
+          }
+        }, 50);
+      });
+      return;
+    }
+
+    versus.wsConnecting = true;
+    versus.wsAttempted = true;
+    versus.wsLastTried = [];
+
+    try {
+      for (const wsUrl of wsCandidates) {
+        versus.wsLastTried.push(wsUrl);
+        const ok = await connectVersusWebSocket(wsUrl);
+        if (ok) return;
+      }
+      ensureBroadcastFallback();
+    } finally {
+      versus.wsConnecting = false;
+    }
   }
 
   function versusSend(payload) {
@@ -653,7 +678,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const usingWs = versus.wsReady;
     matchmakingText.textContent = usingWs
       ? "Buscando rival online (movil, ordenador o tablet conectados ahora)."
-      : "Servidor online no disponible. Emparejamiento local de respaldo.";
+      : `Servidor online no disponible (${versus.wsLastTried[versus.wsLastTried.length - 1] || "sin endpoint WS"}). Emparejamiento local de respaldo.`;
     showModal(matchmakingModal);
 
     const announce = () => {
