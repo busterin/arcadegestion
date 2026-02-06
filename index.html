@@ -15,6 +15,7 @@
 <div class="intro-title">FANTASY GESTION</div>
 <div class="intro-actions">
 <button class="btn intro-btn" id="introStartBtn" type="button">ARCADE</button>
+<button class="btn intro-btn" id="introVersusBtn" type="button">VERSUS</button>
 </div>
 </div>
 </section>
@@ -67,6 +68,7 @@
 <div class="hud-label">Misiones</div>
 <div class="hud-value" id="progress">0</div>
 </div>
+<button class="btn btn-ghost hidden" id="rivalTeamBtn" type="button">Rival</button>
 </div>
 </header>
 <main class="stage">
@@ -143,6 +145,35 @@
 <div class="modal-actions">
 <button class="btn" id="playAgainBtn" type="button">Jugar otra vez</button>
 </div>
+</div>
+</div>
+<!-- MODAL EMPAREJAMIENTO -->
+<div aria-hidden="true" class="modal" id="matchmakingModal">
+<div aria-labelledby="matchmakingTitle" aria-modal="true" class="modal-card modal-card-small" role="dialog">
+<div class="modal-head">
+<div>
+<div class="modal-title" id="matchmakingTitle">Emparejando...</div>
+<div class="modal-text" id="matchmakingText">Buscando otro jugador conectado.</div>
+</div>
+</div>
+<div class="divider"></div>
+<div class="modal-actions end">
+<button class="btn btn-ghost" id="cancelMatchBtn" type="button">Cancelar</button>
+</div>
+</div>
+</div>
+<!-- MODAL EQUIPO RIVAL -->
+<div aria-hidden="true" class="modal" id="rivalTeamModal">
+<div aria-labelledby="rivalTeamTitle" aria-modal="true" class="modal-card modal-card-small" role="dialog">
+<div class="modal-head">
+<div>
+<div class="modal-title" id="rivalTeamTitle">Equipo rival</div>
+<div class="modal-text" id="rivalTeamText">Estos son los personajes de tu rival.</div>
+</div>
+<button aria-label="Cerrar" class="icon-btn" id="closeRivalTeamBtn" type="button">✕</button>
+</div>
+<div class="divider"></div>
+<div class="rival-team-grid" id="rivalTeamGrid"></div>
 </div>
 </div>
 <!-- POPUP INFO CARTA -->

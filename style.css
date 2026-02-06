@@ -242,6 +242,7 @@ img{ max-width:100%; height:auto; }
 .subtitle{ font-size:12px; color:var(--muted); margin-top:2px; }
 
 .hud{ display:flex; gap:10px; align-items:center; }
+.hud .btn{ white-space: nowrap; }
 
 .hud-card{
   background: rgba(201,163,50,.22);
@@ -589,6 +590,31 @@ img{ max-width:100%; height:auto; }
   box-shadow: 0 10px 26px rgba(58,208,255,.12);
 }
 
+.rival-team-grid{
+  display:grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.rival-item{
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  overflow: hidden;
+}
+.rival-item img{
+  width: 100%;
+  height: 100px;
+  object-fit: contain;
+  display:block;
+  background: rgba(0,0,0,.12);
+}
+.rival-item-name{
+  padding: 8px 9px;
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+}
+
 /* ---------- ANIMATIONS ---------- */
 @keyframes pulse{
   0%{ box-shadow: 0 0 0 0 rgba(255,59,59,.55); opacity:1; }
@@ -634,6 +660,7 @@ img{ max-width:100%; height:auto; }
   .stage{ padding-bottom: 10px; }
 
   .team-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .rival-team-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
   #teamScreen .start-card{
     max-height: calc(var(--appH) - 28px);
