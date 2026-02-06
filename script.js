@@ -19,6 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const VERSUS_WIN_TARGET = 8;
   const VERSUS_WS_PATH = "/versus";
   const DEFAULT_VERSUS_WS_URL = "wss://arcadegestion.onrender.com/versus";
+  const RECRUIT_STORAGE_KEY = "arcadegestion_recruits_v1";
 
   const MISSIONS = [
     { id: "m1", title: "Taller Expres", internalTag: "Educacion", img: "images/mision.png", text: "Hay un grupo listo para empezar y falta ajustar la dinamica. Envia a alguien que domine actividades educativas y manejo de tiempos." },
@@ -47,6 +48,12 @@ document.addEventListener("DOMContentLoaded", () => {
     { id: "c9", name: "Willard", tags: ["Produccion"] }
   ];
 
+  const RECRUITABLE_CHARACTERS = [
+    { id: "c4", name: "Friday", tags: ["Programacion"] },
+    { id: "c5", name: "Risko", tags: ["Programacion"] },
+    { id: "c6", name: "Pendergast", tags: ["Educacion"] }
+  ];
+
   const CARDS = [
     { id: "card_castri", name: "Albert", img: "images/Mistra.PNG", text: "Carta de apoyo: coordinacion y ejecucion con criterio." },
     { id: "card_maider", name: "Eliot", img: "images/Eliot.PNG", text: "Carta de apoyo: mirada de sala y ajuste fino." },
@@ -54,6 +61,12 @@ document.addEventListener("DOMContentLoaded", () => {
     { id: "card_lorena", name: "Jane", img: "images/Jane.PNG", text: "Carta de apoyo: mejora presentacion, orden y estetica." },
     { id: "card_alba", name: "Lisa", img: "images/Lisa.PNG", text: "Carta de apoyo: ejecucion rapida y organizada." },
     { id: "card_mariam", name: "Willard", img: "images/Willard.PNG", text: "Carta de apoyo: coordina y aterriza lo pendiente." }
+  ];
+
+  const RECRUITABLE_CARDS = [
+    { id: "card_friday", charId: "c4", name: "Friday", img: "images/Friday.PNG", text: "Carta de apoyo: programacion precisa y resolutiva." },
+    { id: "card_risko", charId: "c5", name: "Risko", img: "images/Risko.png", text: "Carta de apoyo: depura problemas tecnicos con calma." },
+    { id: "card_pendergast", charId: "c6", name: "Pendergast", img: "images/Pendergast.PNG", text: "Carta de apoyo: dinamiza equipos y formacion." }
   ];
 
   const AVATARS = [
@@ -64,6 +77,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const introScreen = document.getElementById("introScreen");
   const introStartBtn = document.getElementById("introStartBtn");
   const introVersusBtn = document.getElementById("introVersusBtn");
+  const introRecruitBtn = document.getElementById("introRecruitBtn");
+
+  const recruitScreen = document.getElementById("recruitScreen");
+  const recruitPackBtn = document.getElementById("recruitPackBtn");
+  const recruitResultText = document.getElementById("recruitResultText");
+  const recruitUnlockedText = document.getElementById("recruitUnlockedText");
+  const recruitBackBtn = document.getElementById("recruitBackBtn");
 
   const startScreen = document.getElementById("startScreen");
   const startBtn = document.getElementById("startBtn");
@@ -160,6 +180,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let avatarIndex = 0;
   let specialUsed = false;
   let specialArmed = false;
+  let recruitingInProgress = false;
+  let unlockedRecruitCharIds = new Set(loadUnlockedRecruitCharIds());
 
   const versus = {
     clientId: `p_${Math.random().toString(36).slice(2, 10)}`,
@@ -181,6 +203,90 @@ document.addEventListener("DOMContentLoaded", () => {
   const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
   const rand = (min, max) => Math.random() * (max - min) + min;
   const randInt = (min, max) => Math.floor(rand(min, max + 1));
+
+  function loadUnlockedRecruitCharIds() {
+    try {
+      const raw = window.localStorage?.getItem(RECRUIT_STORAGE_KEY);
+      const parsed = raw ? JSON.parse(raw) : [];
+      const valid = new Set(RECRUITABLE_CHARACTERS.map((c) => c.id));
+      return Array.isArray(parsed) ? parsed.filter((id) => valid.has(id)) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function persistUnlockedRecruitCharIds() {
+    try {
+      window.localStorage?.setItem(RECRUIT_STORAGE_KEY, JSON.stringify([...unlockedRecruitCharIds]));
+    } catch {
+      // ignore storage errors
+    }
+  }
+
+  function getSelectableCharacters() {
+    return [
+      ...CHARACTERS,
+      ...RECRUITABLE_CHARACTERS.filter((ch) => unlockedRecruitCharIds.has(ch.id))
+    ];
+  }
+
+  function getSelectableCards() {
+    return [
+      ...CARDS,
+      ...RECRUITABLE_CARDS.filter((card) => unlockedRecruitCharIds.has(card.charId))
+    ];
+  }
+
+  function renderRecruitUnlockedState() {
+    const unlockedNames = RECRUITABLE_CHARACTERS
+      .filter((ch) => unlockedRecruitCharIds.has(ch.id))
+      .map((ch) => ch.name);
+    recruitUnlockedText.textContent = unlockedNames.length
+      ? `Desbloqueados: ${unlockedNames.join(", ")}`
+      : "Desbloqueados: ninguno";
+  }
+
+  function goToRecruitScreen() {
+    introScreen.classList.add("hidden");
+    startScreen.classList.add("hidden");
+    teamScreen.classList.add("hidden");
+    gameRoot.classList.add("hidden");
+    recruitScreen.classList.remove("hidden");
+    renderRecruitUnlockedState();
+  }
+
+  function recruitRandomCharacter() {
+    if (recruitingInProgress) return;
+    const locked = RECRUITABLE_CHARACTERS.filter((ch) => !unlockedRecruitCharIds.has(ch.id));
+
+    if (!locked.length) {
+      recruitResultText.textContent = "Ya tienes desbloqueados a Friday, Risko y Pendergast.";
+      renderRecruitUnlockedState();
+      return;
+    }
+
+    recruitingInProgress = true;
+    recruitPackBtn.classList.add("spinning");
+    recruitPackBtn.disabled = true;
+
+    let tick = 0;
+    const rollTimer = setInterval(() => {
+      const candidate = locked[randInt(0, locked.length - 1)];
+      recruitResultText.textContent = `Girando ruleta... ${candidate.name}`;
+      tick += 1;
+      if (tick >= 10) {
+        clearInterval(rollTimer);
+        const winner = locked[randInt(0, locked.length - 1)];
+        unlockedRecruitCharIds.add(winner.id);
+        persistUnlockedRecruitCharIds();
+        renderRecruitUnlockedState();
+        recruitResultText.textContent = `Te ha tocado: ${winner.name}. Ya esta disponible en Arcade y Versus.`;
+        recruitPackBtn.classList.remove("spinning");
+        recruitPackBtn.disabled = false;
+        recruitingInProgress = false;
+      }
+    }, 140);
+  }
 
   function showModal(el) {
     el.classList.add("show");
@@ -232,6 +338,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function setIntroVisible() {
     introScreen.classList.remove("hidden");
+    recruitScreen.classList.add("hidden");
     startScreen.classList.add("hidden");
     teamScreen.classList.add("hidden");
     gameRoot.classList.add("hidden");
@@ -240,6 +347,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function goToStartScreen(mode) {
     selectedMode = mode;
     introScreen.classList.add("hidden");
+    recruitScreen.classList.add("hidden");
     startScreen.classList.remove("hidden");
     teamScreen.classList.add("hidden");
     gameRoot.classList.add("hidden");
@@ -292,7 +400,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderTeamSelection() {
     teamGrid.innerHTML = "";
-    const cardsSorted = [...CARDS].sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
+    const cardsSorted = getSelectableCards().sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
 
     cardsSorted.forEach((cardData) => {
       const btn = document.createElement("button");
@@ -321,11 +429,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function commitTeam() {
-    const selectedCards = [...selectedTeamCardIds].map((id) => CARDS.find((c) => c.id === id)).filter(Boolean);
+    const allCards = getSelectableCards();
+    const allCharacters = getSelectableCharacters();
+    const selectedCards = [...selectedTeamCardIds].map((id) => allCards.find((c) => c.id === id)).filter(Boolean);
     const selectedNames = new Set(selectedCards.map((c) => c.name));
 
     availableCards = selectedCards;
-    availableCharacters = CHARACTERS.filter((ch) => selectedNames.has(ch.name));
+    availableCharacters = allCharacters.filter((ch) => selectedNames.has(ch.name));
 
     return availableCards.length === 6 && availableCharacters.length === 6;
   }
@@ -511,7 +621,8 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderRivalTeam() {
     rivalTeamGrid.innerHTML = "";
     const ids = versus.opponentProfile?.teamCardIds || [];
-    const cards = ids.map((id) => CARDS.find((c) => c.id === id)).filter(Boolean);
+    const allCards = [...CARDS, ...RECRUITABLE_CARDS];
+    const cards = ids.map((id) => allCards.find((c) => c.id === id)).filter(Boolean);
 
     cards.forEach((card) => {
       const el = document.createElement("div");
@@ -1460,6 +1571,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   introStartBtn.addEventListener("click", () => goToStartScreen("arcade"));
   introVersusBtn.addEventListener("click", () => goToStartScreen("versus"));
+  introRecruitBtn.addEventListener("click", goToRecruitScreen);
+
+  recruitPackBtn?.addEventListener("click", recruitRandomCharacter);
+  recruitBackBtn?.addEventListener("click", setIntroVisible);
 
   prevAvatarBtn.addEventListener("click", prevAvatar);
   nextAvatarBtn.addEventListener("click", nextAvatar);
@@ -1547,6 +1662,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   renderAvatarCarousel(0);
+  renderRecruitUnlockedState();
   updateHud();
   ensureVersusTransport();
 });
