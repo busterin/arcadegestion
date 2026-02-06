@@ -302,9 +302,8 @@ document.addEventListener("DOMContentLoaded", () => {
     teamScreen.classList.add("hidden");
     gameRoot.classList.add("hidden");
     recruitScreen.classList.remove("hidden");
+    recruitReveal?.classList.add("hidden");
     renderRecruitUnlockedState();
-    const lastName = loadLastRecruitedName();
-    if (lastName) setRecruitRevealByName(lastName);
   }
 
   function recruitRandomCharacter() {
