@@ -776,6 +776,19 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    if (msg.type === "vs_sync_request") {
+      if (currentMode !== "versus" || msg.from !== versus.opponentId) return;
+      if (!versus.isSpawnHost) return;
+      notifyVersusSyncSnapshot();
+      return;
+    }
+
+    if (msg.type === "vs_sync_snapshot") {
+      if (currentMode !== "versus" || msg.from !== versus.opponentId) return;
+      applyVersusSyncSnapshot(msg.points);
+      return;
+    }
+
     if (msg.type === "vs_match_end") {
       if (currentMode !== "versus" || msg.from !== versus.opponentId) return;
       if (gameRunning) finishVersusGame(false, "Tu rival llego antes a 8 misiones.");
@@ -822,6 +835,51 @@ document.addEventListener("DOMContentLoaded", () => {
       missionId,
       ts: Date.now()
     });
+  }
+
+  function notifyVersusSyncRequest() {
+    if (currentMode !== "versus" || !versus.opponentId) return;
+    versusSend({
+      type: "vs_sync_request",
+      from: versus.clientId,
+      to: versus.opponentId,
+      ts: Date.now()
+    });
+  }
+
+  function notifyVersusSyncSnapshot() {
+    if (currentMode !== "versus" || !versus.opponentId) return;
+    const points = [];
+    for (const [missionId, st] of activePoints.entries()) {
+      if (!st || !st.pointEl) continue;
+      if (completedMissionIds.has(missionId)) continue;
+      points.push({ missionId, xPct: st.xPct, yPct: st.yPct });
+    }
+    versusSend({
+      type: "vs_sync_snapshot",
+      from: versus.clientId,
+      to: versus.opponentId,
+      points,
+      ts: Date.now()
+    });
+  }
+
+  function applyVersusSyncSnapshot(points) {
+    if (!Array.isArray(points)) return;
+    const wanted = new Set(points.map((p) => p.missionId));
+
+    for (const [missionId] of activePoints.entries()) {
+      if (!wanted.has(missionId) && !completedMissionIds.has(missionId)) {
+        removePoint(missionId);
+      }
+    }
+
+    for (const p of points) {
+      if (!p || !p.missionId) continue;
+      if (completedMissionIds.has(p.missionId)) continue;
+      if (activePoints.has(p.missionId)) continue;
+      applyRemoteMissionSpawn(p.missionId, p.xPct, p.yPct);
+    }
   }
 
   function applyRemoteMissionSpawn(missionId, xPct, yPct) {
@@ -904,8 +962,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       checks += 1;
       if (!versus.isSpawnHost && checks >= 4) {
-        versus.isSpawnHost = true;
-        scheduleNextSpawn();
+        notifyVersusSyncRequest();
       }
     }, 1500);
   }
@@ -961,6 +1018,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (currentMode === "versus") {
       startVersusSpawnWatchdog();
+      if (!versus.isSpawnHost) notifyVersusSyncRequest();
     }
   }
 
@@ -992,6 +1050,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const state = {
       mission,
       pointEl: point,
+      xPct,
+      yPct,
       remainingMs: MISSION_LIFETIME_MS,
       lastTickAt: performance.now(),
       phase: "spawned",
@@ -1113,6 +1173,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const spawn = createMissionPoint(mission);
         if (currentMode === "versus" && versus.isSpawnHost && spawn) {
           notifyVersusMissionSpawn(mission.id, spawn.xPct, spawn.yPct);
+          notifyVersusSyncSnapshot();
         }
       }
       scheduleNextSpawn();

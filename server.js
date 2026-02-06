@@ -131,7 +131,9 @@ wss.on("connection", (ws) => {
       msg.type === "vs_mission_resolved" ||
       msg.type === "vs_match_end" ||
       msg.type === "vs_spawn_mission" ||
-      msg.type === "vs_mission_claimed"
+      msg.type === "vs_mission_claimed" ||
+      msg.type === "vs_sync_request" ||
+      msg.type === "vs_sync_snapshot"
     ) {
       relayToOpponent(ws.clientId, msg);
       return;
