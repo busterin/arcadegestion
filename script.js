@@ -17,11 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const SCORE_LOSE = 0;
 
   const VERSUS_WIN_TARGET = 8;
-  const VERSUS_CHANNEL_NAME = "arcadegestion-versus-v1";
   const VERSUS_WS_PATH = "/versus";
-  const LOCAL_FALLBACK_ENABLED =
-    (typeof window !== "undefined" && window.ENABLE_LOCAL_MATCH_FALLBACK === true) ||
-    (typeof window !== "undefined" && window.localStorage?.getItem("enableLocalMatchFallback") === "1");
 
   const MISSIONS = [
     { id: "m1", title: "Taller Expres", internalTag: "Educacion", img: "images/mision.png", text: "Hay un grupo listo para empezar y falta ajustar la dinamica. Envia a alguien que domine actividades educativas y manejo de tiempos." },
@@ -169,7 +165,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const versus = {
     clientId: `p_${Math.random().toString(36).slice(2, 10)}`,
     transport: null,
-    channel: null,
     ws: null,
     wsReady: false,
     wsConnecting: false,
@@ -528,14 +523,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  function ensureBroadcastFallback() {
-    if (!LOCAL_FALLBACK_ENABLED) return;
-    if (versus.channel || typeof BroadcastChannel === "undefined") return;
-    versus.channel = new BroadcastChannel(VERSUS_CHANNEL_NAME);
-    versus.channel.onmessage = (ev) => handleVersusMessage(ev.data);
-    if (!versus.transport) versus.transport = "bc";
-  }
-
   function getConfiguredWsUrl() {
     const globalUrl = typeof window !== "undefined" ? window.VERSUS_WS_URL : null;
     const localUrl = typeof window !== "undefined" ? window.localStorage?.getItem("versusWsUrl") : null;
@@ -617,8 +604,11 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!versus.ws || versus.ws !== ws) return;
         versus.wsReady = false;
         versus.ws = null;
-        if (!versus.transport || versus.transport === "ws") {
-          ensureBroadcastFallback();
+        if (versus.transport === "ws") {
+          versus.transport = null;
+        }
+        if (versus.matching) {
+          matchmakingText.textContent = `Servidor online no disponible (${versus.wsLastTried[versus.wsLastTried.length - 1] || "sin endpoint WS"}). Reintentando online...`;
         }
       });
     });
@@ -627,7 +617,6 @@ document.addEventListener("DOMContentLoaded", () => {
   async function ensureVersusTransport() {
     const wsCandidates = getVersusWsCandidates();
     if (!wsCandidates.length) {
-      ensureBroadcastFallback();
       return;
     }
 
@@ -654,7 +643,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const ok = await connectVersusWebSocket(wsUrl);
         if (ok) return;
       }
-      ensureBroadcastFallback();
     } finally {
       versus.wsConnecting = false;
     }
@@ -663,9 +651,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function versusSend(payload) {
     if (versus.wsReady && versus.ws) {
       versus.ws.send(JSON.stringify(payload));
-      return;
     }
-    if (versus.channel) versus.channel.postMessage(payload);
   }
 
   function clearMatchmakingState() {
@@ -733,24 +719,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (msg.type === "vs_match_found") {
       if (!versus.matching || msg.to !== versus.clientId || versus.opponentId) return;
       finalizeVersusMatch(msg.opponentId, msg.opponentProfile);
-      return;
-    }
-
-    if (msg.type === "vs_looking") {
-      if (!versus.matching || versus.opponentId) return;
-      // Fallback local sin servidor: empareja solo dentro de la misma sesion/navegador.
-      if (!LOCAL_FALLBACK_ENABLED || versus.transport !== "bc") return;
-      if (versus.clientId < msg.from) {
-        versusSend({
-          type: "vs_match_found",
-          from: versus.clientId,
-          to: msg.from,
-          opponentId: versus.clientId,
-          opponentProfile: getLocalProfile(),
-          ts: Date.now()
-        });
-        finalizeVersusMatch(msg.from, msg.profile);
-      }
       return;
     }
 
