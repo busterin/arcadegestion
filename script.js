@@ -238,6 +238,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderRecruitUnlockedState() {
+    if (!recruitUnlockedText) return;
     const unlockedNames = RECRUITABLE_CHARACTERS
       .filter((ch) => unlockedRecruitCharIds.has(ch.id))
       .map((ch) => ch.name);
@@ -247,6 +248,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function goToRecruitScreen() {
+    if (!recruitScreen) return;
     introScreen.classList.add("hidden");
     startScreen.classList.add("hidden");
     teamScreen.classList.add("hidden");
@@ -256,6 +258,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function recruitRandomCharacter() {
+    if (!recruitPackBtn || !recruitResultText) return;
     if (recruitingInProgress) return;
     const locked = RECRUITABLE_CHARACTERS.filter((ch) => !unlockedRecruitCharIds.has(ch.id));
 
@@ -338,7 +341,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function setIntroVisible() {
     introScreen.classList.remove("hidden");
-    recruitScreen.classList.add("hidden");
+    recruitScreen?.classList.add("hidden");
     startScreen.classList.add("hidden");
     teamScreen.classList.add("hidden");
     gameRoot.classList.add("hidden");
@@ -347,7 +350,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function goToStartScreen(mode) {
     selectedMode = mode;
     introScreen.classList.add("hidden");
-    recruitScreen.classList.add("hidden");
+    recruitScreen?.classList.add("hidden");
     startScreen.classList.remove("hidden");
     teamScreen.classList.add("hidden");
     gameRoot.classList.add("hidden");
@@ -1569,12 +1572,20 @@ document.addEventListener("DOMContentLoaded", () => {
     startGame();
   }
 
-  introStartBtn.addEventListener("click", () => goToStartScreen("arcade"));
-  introVersusBtn.addEventListener("click", () => goToStartScreen("versus"));
-  introRecruitBtn.addEventListener("click", goToRecruitScreen);
+  introStartBtn?.addEventListener("click", () => goToStartScreen("arcade"));
+  introVersusBtn?.addEventListener("click", () => goToStartScreen("versus"));
+  introRecruitBtn?.addEventListener("click", goToRecruitScreen);
 
   recruitPackBtn?.addEventListener("click", recruitRandomCharacter);
   recruitBackBtn?.addEventListener("click", setIntroVisible);
+
+  document.addEventListener("click", (e) => {
+    const target = e.target;
+    if (!(target instanceof Element)) return;
+    if (target.id === "introRecruitBtn") goToRecruitScreen();
+    if (target.id === "recruitPackBtn") recruitRandomCharacter();
+    if (target.id === "recruitBackBtn") setIntroVisible();
+  });
 
   prevAvatarBtn.addEventListener("click", prevAvatar);
   nextAvatarBtn.addEventListener("click", nextAvatar);
