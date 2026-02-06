@@ -283,7 +283,7 @@ img{ max-width:100%; height:auto; }
   position:absolute;
   left:4px;
   bottom:4px;
-  width: 300px;
+  width: 230px;
   z-index: 2;
   cursor:pointer;
   pointer-events:auto;
@@ -303,6 +303,19 @@ img{ max-width:100%; height:auto; }
     drop-shadow(0 0 14px rgba(85,214,255,.65))
     drop-shadow(0 0 26px rgba(85,214,255,.35))
     drop-shadow(0 14px 22px rgba(0,0,0,.45));
+}
+
+.rival-img{
+  position:absolute;
+  right:4px;
+  bottom:4px;
+  width: 230px;
+  z-index: 2;
+  pointer-events:none;
+  user-select:none;
+  transform: scaleX(-1);
+  opacity: .95;
+  filter: drop-shadow(0 14px 22px rgba(0,0,0,.45));
 }
 @keyframes specialGlow{
   0%{ transform: translateY(0) scale(1); }
@@ -645,7 +658,8 @@ img{ max-width:100%; height:auto; }
   .intro-title{ font-size: clamp(40px, 9vw, 70px); }
 
   .grid{ grid-template-columns: 1fr; }
-  .buster-img{ width: 260px; }
+  .buster-img{ width: 190px; }
+  .rival-img{ width: 190px; }
 
   .carousel{ grid-template-columns: 48px 1fr 48px; }
   .carousel-btn{ width:48px; height:48px; border-radius: 14px; font-size: 30px; }

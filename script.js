@@ -90,6 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const gameRoot = document.getElementById("gameRoot");
   const mapEl = document.getElementById("map");
   const playerImg = document.getElementById("playerImg");
+  const rivalImg = document.getElementById("rivalImg");
   const progressEl = document.getElementById("progress");
   const hudLabelEl = document.querySelector(".hud-label");
   const teamBar = document.getElementById("teamBar");
@@ -143,6 +144,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let pendingMissions = [...MISSIONS];
   let activePoints = new Map();
   let completedMissionIds = new Set();
+  let remoteClaimedMissionIds = new Set();
+  let remoteResolvedMissionIds = new Set();
   let lockedCharIds = new Set();
 
   let currentMissionId = null;
@@ -174,6 +177,7 @@ document.addEventListener("DOMContentLoaded", () => {
     matching: false,
     opponentId: null,
     opponentProfile: null,
+    isSpawnHost: false,
     heartbeatTimer: null,
     matchId: null
   };
@@ -524,6 +528,19 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  function setRivalAvatarUI() {
+    if (!rivalImg) return;
+    if (currentMode !== "versus" || !versus.opponentProfile?.avatarKey) {
+      rivalImg.classList.add("hidden");
+      return;
+    }
+
+    const avatar = AVATARS.find((a) => a.key === versus.opponentProfile.avatarKey) || AVATARS[0];
+    rivalImg.src = avatar.src;
+    rivalImg.alt = avatar.alt || avatar.name;
+    rivalImg.classList.remove("hidden");
+  }
+
   function getConfiguredWsUrl() {
     const queryUrl = (() => {
       try {
@@ -719,11 +736,13 @@ document.addEventListener("DOMContentLoaded", () => {
     versus.opponentId = opponentId;
     versus.opponentProfile = opponentProfile || null;
     versus.matchId = [versus.clientId, opponentId].sort().join("_");
+    versus.isSpawnHost = versus.clientId < opponentId;
 
     currentMode = "versus";
     localWins = 0;
     rivalWins = 0;
     renderRivalTeam();
+    setRivalAvatarUI();
     startGame();
   }
 
@@ -739,6 +758,18 @@ document.addEventListener("DOMContentLoaded", () => {
     if (msg.type === "vs_mission_resolved") {
       if (currentMode !== "versus" || msg.from !== versus.opponentId) return;
       applyRemoteMissionResolution(msg.missionId, !!msg.success);
+      return;
+    }
+
+    if (msg.type === "vs_spawn_mission") {
+      if (currentMode !== "versus" || msg.from !== versus.opponentId) return;
+      applyRemoteMissionSpawn(msg.missionId, msg.xPct, msg.yPct);
+      return;
+    }
+
+    if (msg.type === "vs_mission_claimed") {
+      if (currentMode !== "versus" || msg.from !== versus.opponentId) return;
+      applyRemoteMissionClaim(msg.missionId);
       return;
     }
 
@@ -766,10 +797,60 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  function applyRemoteMissionResolution(missionId, success) {
+  function notifyVersusMissionSpawn(missionId, xPct, yPct) {
+    if (currentMode !== "versus" || !versus.opponentId) return;
+    versusSend({
+      type: "vs_spawn_mission",
+      from: versus.clientId,
+      to: versus.opponentId,
+      missionId,
+      xPct,
+      yPct,
+      ts: Date.now()
+    });
+  }
+
+  function notifyVersusMissionClaim(missionId) {
+    if (currentMode !== "versus" || !versus.opponentId) return;
+    versusSend({
+      type: "vs_mission_claimed",
+      from: versus.clientId,
+      to: versus.opponentId,
+      missionId,
+      ts: Date.now()
+    });
+  }
+
+  function applyRemoteMissionSpawn(missionId, xPct, yPct) {
+    if (!gameRunning || completedMissionIds.has(missionId) || activePoints.has(missionId)) return;
+    const mission = MISSIONS.find((m) => m.id === missionId);
+    if (!mission) return;
+    pendingMissions = pendingMissions.filter((m) => m.id !== missionId);
+    createMissionPoint(mission, { xPct, yPct });
+  }
+
+  function applyRemoteMissionClaim(missionId) {
     if (completedMissionIds.has(missionId)) return;
+    remoteClaimedMissionIds.add(missionId);
+    pendingMissions = pendingMissions.filter((m) => m.id !== missionId);
+
+    if (currentMissionId === missionId && missionModal.classList.contains("show")) {
+      hideModal(missionModal);
+      currentMissionId = null;
+      selectedCharIds = new Set();
+      if (!isAnyModalOpen()) setGlobalPause(false);
+    }
+
+    releaseCharsForMission(missionId);
+    removePoint(missionId);
+  }
+
+  function applyRemoteMissionResolution(missionId, success) {
+    if (remoteResolvedMissionIds.has(missionId)) return;
+    remoteResolvedMissionIds.add(missionId);
 
     completedMissionIds.add(missionId);
+    remoteClaimedMissionIds.delete(missionId);
     pendingMissions = pendingMissions.filter((m) => m.id !== missionId);
 
     if (currentMissionId === missionId && missionModal.classList.contains("show")) {
@@ -834,6 +915,7 @@ document.addEventListener("DOMContentLoaded", () => {
     else playerImg.addEventListener("load", refreshNoSpawn, { once: true });
 
     renderTeamBar();
+    setRivalAvatarUI();
     updateHud();
 
     gameRunning = true;
@@ -842,10 +924,12 @@ document.addEventListener("DOMContentLoaded", () => {
     else clearInterval(gameClockTimer);
 
     startLifeTicker();
-    scheduleNextSpawn();
+    if (currentMode === "arcade" || versus.isSpawnHost) {
+      scheduleNextSpawn();
+    }
   }
 
-  function createMissionPoint(mission) {
+  function createMissionPoint(mission, options = {}) {
     const point = document.createElement("div");
     point.className = "point";
     point.setAttribute("role", "button");
@@ -853,15 +937,18 @@ document.addEventListener("DOMContentLoaded", () => {
     point.setAttribute("aria-label", `Mision: ${mission.title}`);
 
     const mapRect = mapEl.getBoundingClientRect();
-    let xPct = 50;
-    let yPct = 50;
-
-    for (let i = 0; i < 40; i++) {
-      xPct = rand(8, 92);
-      yPct = rand(10, 86);
-      const xPx = (xPct / 100) * mapRect.width;
-      const yPx = (yPct / 100) * mapRect.height;
-      if (!pointWouldOverlapNoSpawn(xPx, yPx)) break;
+    let xPct = options.xPct;
+    let yPct = options.yPct;
+    if (typeof xPct !== "number" || typeof yPct !== "number") {
+      xPct = 50;
+      yPct = 50;
+      for (let i = 0; i < 40; i++) {
+        xPct = rand(8, 92);
+        yPct = rand(10, 86);
+        const xPx = (xPct / 100) * mapRect.width;
+        const yPx = (yPct / 100) * mapRect.height;
+        if (!pointWouldOverlapNoSpawn(xPx, yPx)) break;
+      }
     }
 
     point.style.left = `${xPct}%`;
@@ -889,11 +976,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     mapEl.appendChild(point);
     activePoints.set(mission.id, state);
+    return { xPct, yPct };
   }
 
   function onPointClick(missionId) {
     const st = activePoints.get(missionId);
-    if (!st || completedMissionIds.has(missionId)) return;
+    if (!st || completedMissionIds.has(missionId) || remoteClaimedMissionIds.has(missionId)) return;
 
     if (specialArmed && !specialUsed) {
       specialUsed = true;
@@ -903,7 +991,12 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    if (st.phase === "spawned") return openMission(missionId);
+    if (st.phase === "spawned") {
+      if (currentMode === "versus") {
+        notifyVersusMissionClaim(missionId);
+      }
+      return openMission(missionId);
+    }
     if (st.phase === "ready") return openRouletteForMission(missionId);
   }
 
@@ -981,7 +1074,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const idx = randInt(0, pendingMissions.length - 1);
       const mission = pendingMissions.splice(idx, 1)[0];
-      if (mission && !completedMissionIds.has(mission.id)) createMissionPoint(mission);
+      if (mission && !completedMissionIds.has(mission.id)) {
+        const spawn = createMissionPoint(mission);
+        if (currentMode === "versus" && versus.isSpawnHost && spawn) {
+          notifyVersusMissionSpawn(mission.id, spawn.xPct, spawn.yPct);
+        }
+      }
       scheduleNextSpawn();
     }, randInt(SPAWN_MIN_DELAY_MS, SPAWN_MAX_DELAY_MS));
   }
@@ -1264,6 +1362,8 @@ document.addEventListener("DOMContentLoaded", () => {
     pendingMissions = [...MISSIONS];
     activePoints = new Map();
     completedMissionIds = new Set();
+    remoteClaimedMissionIds = new Set();
+    remoteResolvedMissionIds = new Set();
     lockedCharIds = new Set();
 
     currentMissionId = null;
@@ -1281,7 +1381,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     versus.opponentId = null;
     versus.opponentProfile = null;
+    versus.isSpawnHost = false;
     versus.matchId = null;
+    if (rivalImg) rivalImg.classList.add("hidden");
 
     updateHud();
     setGlobalPause(false);

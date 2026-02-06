@@ -127,7 +127,12 @@ wss.on("connection", (ws) => {
       return;
     }
 
-    if (msg.type === "vs_mission_resolved" || msg.type === "vs_match_end") {
+    if (
+      msg.type === "vs_mission_resolved" ||
+      msg.type === "vs_match_end" ||
+      msg.type === "vs_spawn_mission" ||
+      msg.type === "vs_mission_claimed"
+    ) {
       relayToOpponent(ws.clientId, msg);
       return;
     }
