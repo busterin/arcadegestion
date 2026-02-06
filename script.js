@@ -277,6 +277,13 @@ document.addEventListener("DOMContentLoaded", () => {
     recruitReveal.classList.remove("hidden");
   }
 
+  function triggerRecruitRevealFx() {
+    if (!recruitReveal) return;
+    recruitReveal.classList.remove("reveal-burst");
+    void recruitReveal.offsetWidth;
+    recruitReveal.classList.add("reveal-burst");
+  }
+
   function renderRecruitUnlockedState() {
     if (!recruitUnlockedText) return;
     const unlockedNames = RECRUITABLE_CHARACTERS
@@ -320,7 +327,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const candidate = locked[randInt(0, locked.length - 1)];
       recruitResultText.textContent = `Girando ruleta... ${candidate.name}`;
       tick += 1;
-      if (tick >= 10) {
+      if (tick >= 16) {
         clearInterval(rollTimer);
         const winner = locked[randInt(0, locked.length - 1)];
         unlockedRecruitCharIds.add(winner.id);
@@ -330,11 +337,12 @@ document.addEventListener("DOMContentLoaded", () => {
         renderUserCollection();
         recruitResultText.textContent = `Te ha tocado: ${winner.name}. Ya esta disponible en Arcade y Versus.`;
         setRecruitRevealByName(winner.name);
+        triggerRecruitRevealFx();
         recruitPackBtn.classList.remove("spinning");
         recruitPackBtn.disabled = false;
         recruitingInProgress = false;
       }
-    }, 140);
+    }, 160);
   }
 
   function loadUserProfilePhoto() {
