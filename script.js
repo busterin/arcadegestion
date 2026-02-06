@@ -311,12 +311,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!recruitPackBtn || !recruitResultText) return;
     if (recruitingInProgress) return;
     const locked = RECRUITABLE_CHARACTERS.filter((ch) => !unlockedRecruitCharIds.has(ch.id));
-
-    if (!locked.length) {
-      recruitResultText.textContent = "Ya tienes desbloqueados a Friday, Risko y Pendergast.";
-      renderRecruitUnlockedState();
-      return;
-    }
+    const pool = locked.length ? locked : RECRUITABLE_CHARACTERS;
+    const awardingNew = locked.length > 0;
 
     recruitingInProgress = true;
     recruitPackBtn.classList.add("spinning");
@@ -324,18 +320,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let tick = 0;
     const rollTimer = setInterval(() => {
-      const candidate = locked[randInt(0, locked.length - 1)];
+      const candidate = pool[randInt(0, pool.length - 1)];
       recruitResultText.textContent = `Girando ruleta... ${candidate.name}`;
       tick += 1;
       if (tick >= 16) {
         clearInterval(rollTimer);
-        const winner = locked[randInt(0, locked.length - 1)];
-        unlockedRecruitCharIds.add(winner.id);
-        persistUnlockedRecruitCharIds();
+        const winner = pool[randInt(0, pool.length - 1)];
+        if (awardingNew) {
+          unlockedRecruitCharIds.add(winner.id);
+          persistUnlockedRecruitCharIds();
+        }
         persistLastRecruitedName(winner.name);
         renderRecruitUnlockedState();
         renderUserCollection();
-        recruitResultText.textContent = `Te ha tocado: ${winner.name}. Ya esta disponible en Arcade y Versus.`;
+        recruitResultText.textContent = awardingNew
+          ? `Te ha tocado: ${winner.name}. Ya esta disponible en Arcade y Versus.`
+          : `Te ha tocado: ${winner.name} (repetido). Ya tenias todos desbloqueados.`;
         setRecruitRevealByName(winner.name);
         triggerRecruitRevealFx();
         recruitPackBtn.classList.remove("spinning");
