@@ -582,6 +582,15 @@ document.addEventListener("DOMContentLoaded", () => {
         versus.wsReady = true;
         versus.transport = "ws";
         ws.send(JSON.stringify({ type: "vs_register", from: versus.clientId }));
+        if (versus.matching) {
+          matchmakingText.textContent = "Buscando rival online (movil, ordenador o tablet conectados ahora).";
+          ws.send(JSON.stringify({
+            type: "vs_looking",
+            from: versus.clientId,
+            profile: getLocalProfile(),
+            ts: Date.now()
+          }));
+        }
         finish(true);
       });
 
@@ -682,6 +691,10 @@ document.addEventListener("DOMContentLoaded", () => {
     showModal(matchmakingModal);
 
     const announce = () => {
+      if (!versus.wsReady) {
+        ensureVersusTransport();
+      }
+
       versusSend({
         type: "vs_looking",
         from: versus.clientId,
