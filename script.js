@@ -21,6 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const DEFAULT_VERSUS_WS_URL = "wss://arcadegestion.onrender.com/versus";
   const RECRUIT_STORAGE_KEY = "arcadegestion_recruits_v1";
   const RECRUIT_LAST_STORAGE_KEY = "arcadegestion_last_recruit_v1";
+  const USER_PROFILE_PHOTO_KEY = "arcadegestion_user_profile_photo_v1";
 
   const MISSIONS = [
     { id: "m1", title: "Taller Expres", internalTag: "Educacion", img: "images/mision.png", text: "Hay un grupo listo para empezar y falta ajustar la dinamica. Envia a alguien que domine actividades educativas y manejo de tiempos." },
@@ -79,6 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const introStartBtn = document.getElementById("introStartBtn");
   const introVersusBtn = document.getElementById("introVersusBtn");
   const introRecruitBtn = document.getElementById("introRecruitBtn");
+  const introUserBtn = document.getElementById("introUserBtn");
 
   const recruitScreen = document.getElementById("recruitScreen");
   const recruitPackBtn = document.getElementById("recruitPackBtn");
@@ -88,6 +90,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const recruitReveal = document.getElementById("recruitReveal");
   const recruitRevealImg = document.getElementById("recruitRevealImg");
   const recruitRevealName = document.getElementById("recruitRevealName");
+
+  const userScreen = document.getElementById("userScreen");
+  const userProfileImg = document.getElementById("userProfileImg");
+  const userPhotoInput = document.getElementById("userPhotoInput");
+  const userMainGrid = document.getElementById("userMainGrid");
+  const userSecondaryGrid = document.getElementById("userSecondaryGrid");
+  const userBackBtn = document.getElementById("userBackBtn");
 
   const startScreen = document.getElementById("startScreen");
   const startBtn = document.getElementById("startBtn");
@@ -281,6 +290,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function goToRecruitScreen() {
     if (!recruitScreen) return;
     introScreen.classList.add("hidden");
+    userScreen?.classList.add("hidden");
     startScreen.classList.add("hidden");
     teamScreen.classList.add("hidden");
     gameRoot.classList.add("hidden");
@@ -317,6 +327,7 @@ document.addEventListener("DOMContentLoaded", () => {
         persistUnlockedRecruitCharIds();
         persistLastRecruitedName(winner.name);
         renderRecruitUnlockedState();
+        renderUserCollection();
         recruitResultText.textContent = `Te ha tocado: ${winner.name}. Ya esta disponible en Arcade y Versus.`;
         setRecruitRevealByName(winner.name);
         recruitPackBtn.classList.remove("spinning");
@@ -324,6 +335,83 @@ document.addEventListener("DOMContentLoaded", () => {
         recruitingInProgress = false;
       }
     }, 140);
+  }
+
+  function loadUserProfilePhoto() {
+    try {
+      const raw = window.localStorage?.getItem(USER_PROFILE_PHOTO_KEY);
+      return raw ? String(raw) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function persistUserProfilePhoto(dataUrl) {
+    try {
+      window.localStorage?.setItem(USER_PROFILE_PHOTO_KEY, dataUrl);
+    } catch {
+      // ignore storage errors
+    }
+  }
+
+  function setUserProfilePhoto(dataUrl) {
+    if (!userProfileImg || !dataUrl) return;
+    userProfileImg.src = dataUrl;
+  }
+
+  function renderUserCollection() {
+    if (!userMainGrid || !userSecondaryGrid) return;
+    userMainGrid.innerHTML = "";
+    userSecondaryGrid.innerHTML = "";
+
+    const mainCharacters = [...AVATARS].sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
+    const secondaryCards = getSelectableCards().sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
+
+    mainCharacters.forEach((ch) => {
+      const item = document.createElement("div");
+      item.className = "user-char";
+      item.innerHTML = `
+        <img src="${ch.src}" alt="${ch.name}" />
+        <div class="user-char-name">${ch.name}</div>
+      `;
+      userMainGrid.appendChild(item);
+    });
+
+    secondaryCards.forEach((card) => {
+      const item = document.createElement("div");
+      item.className = "user-char";
+      item.innerHTML = `
+        <img src="${card.img}" alt="${card.name}" />
+        <div class="user-char-name">${card.name}</div>
+      `;
+      userSecondaryGrid.appendChild(item);
+    });
+  }
+
+  function goToUserScreen() {
+    if (!userScreen) return;
+    introScreen.classList.add("hidden");
+    recruitScreen?.classList.add("hidden");
+    startScreen.classList.add("hidden");
+    teamScreen.classList.add("hidden");
+    gameRoot.classList.add("hidden");
+    userScreen.classList.remove("hidden");
+    renderUserCollection();
+  }
+
+  function onUserPhotoSelected(event) {
+    const file = event?.target?.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = typeof reader.result === "string" ? reader.result : null;
+      if (!dataUrl) return;
+      setUserProfilePhoto(dataUrl);
+      persistUserProfilePhoto(dataUrl);
+    };
+    reader.readAsDataURL(file);
   }
 
   function showModal(el) {
@@ -377,6 +465,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function setIntroVisible() {
     introScreen.classList.remove("hidden");
     recruitScreen?.classList.add("hidden");
+    userScreen?.classList.add("hidden");
     startScreen.classList.add("hidden");
     teamScreen.classList.add("hidden");
     gameRoot.classList.add("hidden");
@@ -386,6 +475,7 @@ document.addEventListener("DOMContentLoaded", () => {
     selectedMode = mode;
     introScreen.classList.add("hidden");
     recruitScreen?.classList.add("hidden");
+    userScreen?.classList.add("hidden");
     startScreen.classList.remove("hidden");
     teamScreen.classList.add("hidden");
     gameRoot.classList.add("hidden");
@@ -1610,16 +1700,21 @@ document.addEventListener("DOMContentLoaded", () => {
   introStartBtn?.addEventListener("click", () => goToStartScreen("arcade"));
   introVersusBtn?.addEventListener("click", () => goToStartScreen("versus"));
   introRecruitBtn?.addEventListener("click", goToRecruitScreen);
+  introUserBtn?.addEventListener("click", goToUserScreen);
 
   recruitPackBtn?.addEventListener("click", recruitRandomCharacter);
   recruitBackBtn?.addEventListener("click", setIntroVisible);
+  userBackBtn?.addEventListener("click", setIntroVisible);
+  userPhotoInput?.addEventListener("change", onUserPhotoSelected);
 
   document.addEventListener("click", (e) => {
     const target = e.target;
     if (!(target instanceof Element)) return;
     if (target.id === "introRecruitBtn") goToRecruitScreen();
+    if (target.id === "introUserBtn") goToUserScreen();
     if (target.id === "recruitPackBtn") recruitRandomCharacter();
     if (target.id === "recruitBackBtn") setIntroVisible();
+    if (target.id === "userBackBtn") setIntroVisible();
   });
 
   prevAvatarBtn.addEventListener("click", prevAvatar);
@@ -1708,6 +1803,8 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   renderAvatarCarousel(0);
+  const savedProfilePhoto = loadUserProfilePhoto();
+  if (savedProfilePhoto) setUserProfilePhoto(savedProfilePhoto);
   renderRecruitUnlockedState();
   updateHud();
   ensureVersusTransport();

@@ -17,6 +17,7 @@
 <button class="btn intro-btn" id="introStartBtn" type="button">ARCADE</button>
 <button class="btn intro-btn" id="introVersusBtn" type="button">VERSUS</button>
 <button class="btn intro-btn" id="introRecruitBtn" type="button">RECLUTAR</button>
+<button class="btn intro-btn" id="introUserBtn" type="button">USUARIO</button>
 </div>
 </div>
 </section>
@@ -39,6 +40,30 @@
 <div class="recruit-unlocked" id="recruitUnlockedText">Desbloqueados: ninguno</div>
 <div class="modal-actions end" style="margin-top:12px;">
 <button class="btn btn-ghost" id="recruitBackBtn" type="button">Volver al menu</button>
+</div>
+</div>
+</section>
+<!-- USUARIO -->
+<section class="start hidden" id="userScreen">
+<div class="start-card user-card">
+<div class="user-profile-top">
+<img alt="Foto de perfil" class="user-profile-img" id="userProfileImg" src="images/fortaleza.PNG"/>
+<div class="user-profile-actions">
+<div class="start-title">Usuario</div>
+<div class="start-subtitle">Selecciona una foto de perfil y revisa tus personajes desbloqueados.</div>
+<label class="btn btn-ghost user-upload-label" for="userPhotoInput">Elegir foto</label>
+<input accept="image/*" class="hidden" id="userPhotoInput" type="file"/>
+</div>
+</div>
+
+<div class="user-section-title">Principales</div>
+<div class="user-grid user-grid-main" id="userMainGrid"></div>
+
+<div class="user-section-title">Secundarios</div>
+<div class="user-grid user-grid-secondary" id="userSecondaryGrid"></div>
+
+<div class="modal-actions end" style="margin-top:12px;">
+<button class="btn btn-ghost" id="userBackBtn" type="button">Volver al menu</button>
 </div>
 </div>
 </section>
