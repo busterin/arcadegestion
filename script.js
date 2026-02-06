@@ -146,6 +146,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let completedMissionIds = new Set();
   let remoteClaimedMissionIds = new Set();
   let remoteResolvedMissionIds = new Set();
+  let queuedVersusEvents = [];
   let lockedCharIds = new Set();
 
   let currentMissionId = null;
@@ -751,6 +752,8 @@ document.addEventListener("DOMContentLoaded", () => {
   function handleVersusMessage(msg) {
     if (!msg || msg.from === versus.clientId) return;
 
+    if (msg.to && msg.to !== versus.clientId) return;
+
     if (msg.type === "vs_match_found") {
       if (!versus.matching || msg.to !== versus.clientId || versus.opponentId) return;
       if (!msg.opponentId || msg.opponentId === versus.clientId) return;
@@ -758,33 +761,53 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    if (!versus.opponentId && msg.from) {
+      versus.opponentId = msg.from;
+    }
+    if (versus.opponentId && msg.from !== versus.opponentId) return;
+
     if (msg.type === "vs_mission_resolved") {
-      if (currentMode !== "versus" || msg.from !== versus.opponentId) return;
+      if (currentMode !== "versus" || !gameRunning) {
+        queuedVersusEvents.push(msg);
+        return;
+      }
       applyRemoteMissionResolution(msg.missionId, !!msg.success);
       return;
     }
 
     if (msg.type === "vs_spawn_mission") {
-      if (currentMode !== "versus" || msg.from !== versus.opponentId) return;
+      if (currentMode !== "versus" || !gameRunning) {
+        queuedVersusEvents.push(msg);
+        return;
+      }
       applyRemoteMissionSpawn(msg.missionId, msg.xPct, msg.yPct);
       return;
     }
 
     if (msg.type === "vs_mission_claimed") {
-      if (currentMode !== "versus" || msg.from !== versus.opponentId) return;
+      if (currentMode !== "versus" || !gameRunning) {
+        queuedVersusEvents.push(msg);
+        return;
+      }
       applyRemoteMissionClaim(msg.missionId);
       return;
     }
 
     if (msg.type === "vs_sync_request") {
-      if (currentMode !== "versus" || msg.from !== versus.opponentId) return;
+      if (currentMode !== "versus" || !gameRunning) {
+        queuedVersusEvents.push(msg);
+        return;
+      }
       if (!versus.isSpawnHost) return;
       notifyVersusSyncSnapshot();
       return;
     }
 
     if (msg.type === "vs_sync_snapshot") {
-      if (currentMode !== "versus" || msg.from !== versus.opponentId) return;
+      if (currentMode !== "versus" || !gameRunning) {
+        queuedVersusEvents.push(msg);
+        return;
+      }
       applyVersusSyncSnapshot(msg.points);
       return;
     }
@@ -1019,6 +1042,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (currentMode === "versus") {
       startVersusSpawnWatchdog();
       if (!versus.isSpawnHost) notifyVersusSyncRequest();
+      if (queuedVersusEvents.length) {
+        const queued = [...queuedVersusEvents];
+        queuedVersusEvents = [];
+        queued.forEach((ev) => handleVersusMessage(ev));
+      }
     }
   }
 
@@ -1460,6 +1488,7 @@ document.addEventListener("DOMContentLoaded", () => {
     completedMissionIds = new Set();
     remoteClaimedMissionIds = new Set();
     remoteResolvedMissionIds = new Set();
+    queuedVersusEvents = [];
     lockedCharIds = new Set();
 
     currentMissionId = null;
