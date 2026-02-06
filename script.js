@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const VERSUS_WIN_TARGET = 8;
   const VERSUS_CHANNEL_NAME = "arcadegestion-versus-v1";
+  const VERSUS_WS_PATH = "/versus";
 
   const MISSIONS = [
     { id: "m1", title: "Taller Expres", internalTag: "Educacion", img: "images/mision.png", text: "Hay un grupo listo para empezar y falta ajustar la dinamica. Envia a alguien que domine actividades educativas y manejo de tiempos." },
@@ -164,11 +165,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const versus = {
     clientId: `p_${Math.random().toString(36).slice(2, 10)}`,
+    transport: null,
     channel: null,
+    ws: null,
+    wsReady: false,
+    wsConnecting: false,
+    wsAttempted: false,
     matching: false,
     opponentId: null,
     opponentProfile: null,
-    currentInviteTo: null,
     heartbeatTimer: null,
     matchId: null
   };
@@ -519,29 +524,113 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  function ensureVersusChannel() {
+  function ensureBroadcastFallback() {
     if (versus.channel || typeof BroadcastChannel === "undefined") return;
     versus.channel = new BroadcastChannel(VERSUS_CHANNEL_NAME);
     versus.channel.onmessage = (ev) => handleVersusMessage(ev.data);
+    if (!versus.transport) versus.transport = "bc";
+  }
+
+  function getVersusWsUrl() {
+    if (!window.location || !window.location.origin) return null;
+    if (window.location.protocol !== "http:" && window.location.protocol !== "https:") return null;
+    const wsProto = window.location.protocol === "https:" ? "wss:" : "ws:";
+    return `${wsProto}//${window.location.host}${VERSUS_WS_PATH}`;
+  }
+
+  function ensureVersusTransport() {
+    const wsUrl = getVersusWsUrl();
+    if (!wsUrl) {
+      ensureBroadcastFallback();
+      return Promise.resolve();
+    }
+
+    if (versus.wsReady) return Promise.resolve();
+    if (versus.wsConnecting) {
+      return new Promise((resolve) => {
+        const wait = setInterval(() => {
+          if (!versus.wsConnecting) {
+            clearInterval(wait);
+            resolve();
+          }
+        }, 50);
+      });
+    }
+
+    versus.wsConnecting = true;
+    versus.wsAttempted = true;
+
+    return new Promise((resolve) => {
+      const ws = new WebSocket(wsUrl);
+      let settled = false;
+
+      const done = () => {
+        if (settled) return;
+        settled = true;
+        versus.wsConnecting = false;
+        resolve();
+      };
+
+      const fallback = () => {
+        if (!versus.wsReady) ensureBroadcastFallback();
+        done();
+      };
+
+      const timeout = setTimeout(fallback, 1800);
+
+      ws.addEventListener("open", () => {
+        clearTimeout(timeout);
+        versus.ws = ws;
+        versus.wsReady = true;
+        versus.transport = "ws";
+        ws.send(JSON.stringify({ type: "vs_register", from: versus.clientId }));
+        done();
+      });
+
+      ws.addEventListener("message", (ev) => {
+        try {
+          const data = JSON.parse(ev.data);
+          handleVersusMessage(data);
+        } catch {
+          // ignore malformed payloads
+        }
+      });
+
+      ws.addEventListener("error", () => {
+        clearTimeout(timeout);
+        fallback();
+      });
+
+      ws.addEventListener("close", () => {
+        versus.wsReady = false;
+        versus.ws = null;
+        if (!versus.transport || versus.transport === "ws") {
+          ensureBroadcastFallback();
+        }
+      });
+    });
   }
 
   function versusSend(payload) {
-    if (!versus.channel) return;
-    versus.channel.postMessage(payload);
+    if (versus.wsReady && versus.ws) {
+      versus.ws.send(JSON.stringify(payload));
+      return;
+    }
+    if (versus.channel) versus.channel.postMessage(payload);
   }
 
   function clearMatchmakingState() {
     versus.matching = false;
-    versus.currentInviteTo = null;
     if (versus.heartbeatTimer) clearInterval(versus.heartbeatTimer);
     versus.heartbeatTimer = null;
+    versusSend({ type: "vs_cancel", from: versus.clientId, ts: Date.now() });
   }
 
-  function startVersusMatchmaking() {
-    ensureVersusChannel();
-    if (!versus.channel) {
-      currentMode = "arcade";
-      startGame();
+  async function startVersusMatchmaking() {
+    await ensureVersusTransport();
+    if (!versus.wsReady && !versus.channel) {
+      matchmakingText.textContent = "No se pudo iniciar el emparejamiento.";
+      showModal(matchmakingModal);
       return;
     }
 
@@ -549,7 +638,11 @@ document.addEventListener("DOMContentLoaded", () => {
     versus.opponentId = null;
     versus.opponentProfile = null;
     versus.matchId = null;
-    matchmakingText.textContent = "Buscando otro jugador conectado.";
+
+    const usingWs = versus.wsReady;
+    matchmakingText.textContent = usingWs
+      ? "Buscando otro jugador conectado..."
+      : "Buscando jugador en esta misma sesion local...";
     showModal(matchmakingModal);
 
     const announce = () => {
@@ -584,37 +677,27 @@ document.addEventListener("DOMContentLoaded", () => {
   function handleVersusMessage(msg) {
     if (!msg || msg.from === versus.clientId) return;
 
+    if (msg.type === "vs_match_found") {
+      if (!versus.matching || msg.to !== versus.clientId || versus.opponentId) return;
+      finalizeVersusMatch(msg.opponentId, msg.opponentProfile);
+      return;
+    }
+
     if (msg.type === "vs_looking") {
       if (!versus.matching || versus.opponentId) return;
-      if (versus.clientId < msg.from && versus.currentInviteTo !== msg.from) {
-        versus.currentInviteTo = msg.from;
+      // Fallback local sin servidor: empareja solo dentro de la misma sesion/navegador.
+      if (versus.transport !== "bc") return;
+      if (versus.clientId < msg.from) {
         versusSend({
-          type: "vs_invite",
+          type: "vs_match_found",
           from: versus.clientId,
           to: msg.from,
-          profile: getLocalProfile(),
+          opponentId: versus.clientId,
+          opponentProfile: getLocalProfile(),
           ts: Date.now()
         });
+        finalizeVersusMatch(msg.from, msg.profile);
       }
-      return;
-    }
-
-    if (msg.type === "vs_invite") {
-      if (!versus.matching || msg.to !== versus.clientId || versus.opponentId) return;
-      versusSend({
-        type: "vs_accept",
-        from: versus.clientId,
-        to: msg.from,
-        profile: getLocalProfile(),
-        ts: Date.now()
-      });
-      finalizeVersusMatch(msg.from, msg.profile);
-      return;
-    }
-
-    if (msg.type === "vs_accept") {
-      if (!versus.matching || msg.to !== versus.clientId || versus.opponentId) return;
-      finalizeVersusMatch(msg.from, msg.profile);
       return;
     }
 
@@ -1272,5 +1355,5 @@ document.addEventListener("DOMContentLoaded", () => {
 
   renderAvatarCarousel(0);
   updateHud();
-  ensureVersusChannel();
+  ensureVersusTransport();
 });
