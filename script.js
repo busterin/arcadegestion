@@ -1,0 +1,1468 @@
+document.addEventListener("DOMContentLoaded", () => {
+  /* ✅ FIX: altura real en móviles (evita corte abajo) */
+  function setAppHeightVar() {
+    const h = window.innerHeight;
+    document.documentElement.style.setProperty("--appH", `${h}px`);
+  }
+  setAppHeightVar();
+  window.addEventListener("resize", setAppHeightVar);
+  window.addEventListener("orientationchange", setAppHeightVar);
+
+  // -------------------------
+  // ✅ DURACIÓN DE PARTIDA (oculta)
+  // -------------------------
+  const GAME_DURATION_MS = 5 * 60 * 1000; // 5 minutos
+  let gameEndAt = null;
+  let gameClockTimer = null;
+
+  // ✅ nunca más de 10 puntos activos a la vez
+  const MAX_ACTIVE_POINTS = 10;
+
+  // -------------------------
+  // ✅ MISIONES (15 total) + imagen provisional
+  // -------------------------
+  const MISSIONS = [
+    // EDUCACIÓN (3)
+    { id: "m1", title: "Taller Exprés", internalTag: "Educación", img: "images/mision.png", text: "Hay un grupo listo para empezar y falta ajustar la dinámica. Envía a alguien que domine actividades educativas y manejo de tiempos." },
+    { id: "m2", title: "Guía de Actividad", internalTag: "Educación", img: "images/mision.png", text: "Necesitamos una mini-guía clara para que cualquiera pueda dirigir la sesión. Envía a quien sepa convertir ideas en instrucciones sencillas." },
+    { id: "m3", title: "Plan de Aula", internalTag: "Educación", img: "images/mision.png", text: "Han cambiado el perfil del público a última hora. Envía a alguien que sepa adaptar contenidos y mantener a la gente enganchada." },
+
+    // PICOFINO (3)
+    { id: "m4", title: "Incidencia de Operativa", internalTag: "Picofino", img: "images/mision.png", text: "Se ha bloqueado una tarea del día a día y hay que desbloquearla sin montar lío. Envía a quien conozca bien cómo se mueve Picofino." },
+    { id: "m5", title: "Pedido Descuadrado", internalTag: "Picofino", img: "images/mision.png", text: "Un pedido no cuadra con lo esperado y el equipo necesita una mano para reordenar prioridades y resolverlo rápido." },
+    { id: "m6", title: "Turno Improvisado", internalTag: "Picofino", img: "images/mision.png", text: "Falta gente en un turno clave. Envía a quien sepa reorganizar recursos y apagar fuegos sin que se note." },
+
+    // PRODUCCIÓN (3)
+    { id: "m7", title: "Montaje a Contrarreloj", internalTag: "Producción", img: "images/mision.png", text: "Hay que montar algo rápido y bien, cuidando detalles y materiales. Envía a quien sepa de logística, montaje y ejecución." },
+    { id: "m8", title: "Materiales Perdidos", internalTag: "Producción", img: "images/mision.png", text: "Falta material y nadie sabe dónde está. Envía a quien tenga control de inventario y sepa coordinar búsquedas sin caos." },
+    { id: "m9", title: "Plan B de Producción", internalTag: "Producción", img: "images/mision.png", text: "El plan inicial se ha caído. Necesitamos a alguien que replantee el paso a paso y saque la tarea adelante con recursos limitados." },
+
+    // MUSEOS (1)
+    { id: "m10", title: "Ajuste de Sala", internalTag: "Museos", img: "images/mision.png", text: "La sala necesita un cambio fino: recorrido, cartelas y flujo de personas. Envía a quien sepa de exposición y criterios de museo." },
+
+    // PROGRAMACIÓN (5)
+    { id: "m11", title: "Bug Fantasma", internalTag: "Programación", img: "images/mision.png", text: "Algo falla solo a veces y nadie logra reproducirlo. Envía a quien sepa investigar errores raros y aislar la causa." },
+    { id: "m12", title: "Integración Rápida", internalTag: "Programación", img: "images/mision.png", text: "Hay que conectar dos piezas que no se hablan bien. Envía a quien se maneje con integraciones y soluciones limpias." },
+    { id: "m13", title: "Optimizar Carga", internalTag: "Programación", img: "images/mision.png", text: "En móviles tarda demasiado en cargar. Envía a quien sepa mejorar rendimiento sin romper nada." },
+    { id: "m14", title: "Botón Rebelde", internalTag: "Programación", img: "images/mision.png", text: "Un botón deja de responder en ciertos casos. Envía a quien tenga mano con eventos, estados y depuración." },
+    { id: "m15", title: "Refactor Discreto", internalTag: "Programación", img: "images/mision.png", text: "Hay código que funciona pero es un lío. Envía a quien sepa ordenar y dejarlo mantenible sin cambiar el comportamiento." }
+  ];
+
+  // -------------------------
+  // ✅ PERSONAJES (múltiples etiquetas)
+  // -------------------------
+  const CHARACTERS = [
+    { id: "c1",  name: "Albert",  tags: ["Producción", "Museos"] },
+    { id: "c2",  name: "Eliot",  tags: ["Museos", "Producción"] },
+    { id: "c3",  name: "Camus",   tags: ["Picofino"] },
+    { id: "c4",  name: "Risko",  tags: ["Educación"] },
+    { id: "c5",  name: "Pendergast",     tags: ["Programación"] },
+
+    { id: "c6",  name: "Friday",   tags: ["Producción"] },
+    { id: "c7",  name: "Jane",  tags: ["Diseño"] },
+    { id: "c8",  name: "Lisa",    tags: ["Producción"] },
+    { id: "c9",  name: "Willard", tags: ["Producción"] },
+    ];
+
+  // ✅ Cartas (todas) - Buster cambiado a Guerrera.png
+  const CARDS = [
+    { id: "card_buster", name: "Risko",  img: "images/Risko.png",  text: "Carta de apoyo: aporta claridad y estructura." },
+    { id: "card_castri", name: "Albert",  img: "images/Mistra.PNG",   text: "Carta de apoyo: coordinación y ejecución con criterio." },
+    { id: "card_maider", name: "Eliot",  img: "images/Eliot.PNG",   text: "Carta de apoyo: mirada de sala y ajuste fino." },
+    { id: "card_celia",  name: "Camus",   img: "images/Camus.PNG",    text: "Carta de apoyo: resuelve operativa con rapidez." },
+    { id: "card_dre",    name: "Pendergast",     img: "images/Pendergast.PNG",      text: "Carta de apoyo: detecta fallos y los arregla." },
+
+    { id: "card_genio",  name: "Friday",   img: "images/Friday.PNG",    text: "Carta de apoyo: saca tareas adelante con recursos limitados." },
+    { id: "card_lorena", name: "Jane",  img: "images/Jane.PNG",   text: "Carta de apoyo: mejora presentación, orden y estética." },
+    { id: "card_alba",   name: "Lisa",    img: "images/Lisa.PNG",     text: "Carta de apoyo: ejecución rápida y organizada." },
+    { id: "card_mariam", name: "Willard", img: "images/Willard.PNG",   text: "Carta de apoyo: coordina y aterriza lo pendiente." },
+    ];
+
+  // -------------------------
+  // Tiempos
+  // -------------------------
+  const MISSION_LIFETIME_MS = 2 * 60 * 1000; // rojo antes de perderse
+  const EXECUTION_TIME_MS   = 30 * 1000;     // ✅ 30s en amarillo
+
+  const MATCH_ADD = 0.8;
+  const NO_MATCH_ADD = 0.1;
+
+  const SCORE_WIN = 1;
+  const SCORE_LOSE = 0;
+
+  const SPAWN_MIN_DELAY_MS = 900;
+  const SPAWN_MAX_DELAY_MS = 3800;
+
+  // -------------------------
+  // DOM
+  // -------------------------
+  const introScreen = document.getElementById("introScreen");
+  const introStartBtn = document.getElementById("introStartBtn"); // ARCADE
+  const introStoryBtn = document.getElementById("introStoryBtn"); // HISTORIA
+
+  const startScreen = document.getElementById("startScreen");
+  const startBtn = document.getElementById("startBtn");
+
+  const prevAvatarBtn = document.getElementById("prevAvatarBtn");
+  const nextAvatarBtn = document.getElementById("nextAvatarBtn");
+  const avatarPreviewImg = document.getElementById("avatarPreviewImg");
+  const avatarPreviewName = document.getElementById("avatarPreviewName");
+  const dot0 = document.getElementById("dot0");
+  const dot1 = document.getElementById("dot1");
+
+  const teamScreen = document.getElementById("teamScreen");
+  const teamGrid = document.getElementById("teamGrid");
+  const teamCountEl = document.getElementById("teamCount");
+  const teamHint = document.getElementById("teamHint");
+  const teamConfirmBtn = document.getElementById("teamConfirmBtn");
+
+  // ✅ HISTORIA: PUEBLO
+  const storyTownScreen = document.getElementById("storyTownScreen");
+  const townMap = document.getElementById("townMap");
+  const townPlayer = document.getElementById("townPlayer");
+  const townNpcs = Array.from(document.querySelectorAll("#townMap .town-npc"));
+  const townViewport = document.getElementById("townViewport");
+  const townWorld = document.getElementById("townWorld");
+  const storyContinueBtn = document.getElementById("storyContinueBtn");
+
+  const gameRoot = document.getElementById("gameRoot");
+  const mapEl = document.getElementById("map");
+  const playerImg = document.getElementById("playerImg");
+  const progressEl = document.getElementById("progress");
+  const missionsHudCard = progressEl?.closest(".hud-card"); // ✅ ocultar solo en HISTORIA
+  const teamBar = document.getElementById("teamBar");
+
+  const missionModal = document.getElementById("missionModal");
+  const missionTitleEl = document.getElementById("missionTitle");
+  const missionImgEl = document.getElementById("missionImg");
+  const missionTextEl = document.getElementById("missionText");
+  const closeModalBtn = document.getElementById("closeModalBtn");
+  const charactersGrid = document.getElementById("charactersGrid");
+  const pickHint = document.getElementById("pickHint");
+  const confirmBtn = document.getElementById("confirmBtn");
+
+  const rouletteModal = document.getElementById("rouletteModal");
+  const rouletteWheel = document.getElementById("rouletteWheel");
+  const rouletteOutcome = document.getElementById("rouletteOutcome");
+  const rouletteOkBtn = document.getElementById("rouletteOkBtn");
+
+  const finalModal = document.getElementById("finalModal");
+  const finalScoreEl = document.getElementById("finalScore");
+  const playAgainBtn = document.getElementById("playAgainBtn");
+
+  const cardInfoModal = document.getElementById("cardInfoModal");
+  const cardInfoTitle = document.getElementById("cardInfoTitle");
+  const cardInfoText = document.getElementById("cardInfoText");
+  const cardInfoImg = document.getElementById("cardInfoImg");
+  const closeCardInfoBtn = document.getElementById("closeCardInfoBtn");
+
+  const specialModal = document.getElementById("specialModal");
+  const closeSpecialBtn = document.getElementById("closeSpecialBtn");
+  const specialCancelBtn = document.getElementById("specialCancelBtn");
+  const specialAcceptBtn = document.getElementById("specialAcceptBtn");
+
+  // -------------------------
+  // Estado
+  // -------------------------
+  let gameMode = "arcade"; // ✅ "arcade" | "story"
+
+  let score = 0;
+  let pendingMissions = [...MISSIONS];
+  let activePoints = new Map();
+  let completedMissionIds = new Set();
+  let lockedCharIds = new Set();
+
+  let currentMissionId = null;
+  let selectedCharIds = new Set();
+
+  let lifeTicker = null;
+  let spawnTimer = null;
+  let noSpawnRect = null;
+
+  // ✅ Equipo (6)
+  let selectedTeamCardIds = new Set();
+  let availableCharacters = [];
+  let availableCards = [];
+
+  // Avatares (mapa)
+  const AVATARS = [
+  { key: "evelyn", name: "Evelyn", src: "images/Evelyn.PNG", alt: "Evelyn" },
+    { key: "castri", name: "Albert", src: "images/Albert.PNG", alt: "Castri" },
+].sort((a, b) => {
+    if (a.key === "evelyn") return -1;
+    if (b.key === "evelyn") return 1;
+    return a.name.localeCompare(b.name, "es", { sensitivity: "base" });
+  });
+
+  let avatarIndex = 0;
+  let specialUsed = false;
+  let specialArmed = false;
+
+  const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+  const rand = (min, max) => Math.random() * (max - min) + min;
+  const randInt = (min, max) => Math.floor(rand(min, max + 1));
+
+  function setScore(delta){ score += delta; }
+  function setProgress(){ progressEl.textContent = String(completedMissionIds.size); }
+
+  function showModal(el){ el.classList.add("show"); el.setAttribute("aria-hidden","false"); }
+  function hideModal(el){ el.classList.remove("show"); el.setAttribute("aria-hidden","true"); }
+
+  function isAnyModalOpen() {
+    return (
+      missionModal.classList.contains("show") ||
+      rouletteModal.classList.contains("show") ||
+      finalModal.classList.contains("show") ||
+      cardInfoModal.classList.contains("show") ||
+      specialModal.classList.contains("show")
+    );
+  }
+
+  function setGlobalPause(paused){
+    const now = performance.now();
+    for (const st of activePoints.values()){
+      st.isPaused = paused;
+      st.lastTickAt = now;
+    }
+  }
+
+  function setSpecialArmedUI(isArmed){
+    playerImg.classList.toggle("special-armed", !!isArmed);
+  }
+
+  function normalizeTag(tag){
+    const t = String(tag || "").trim().toLowerCase();
+    if (t === "museos" || t === "museo") return "Museos";
+    if (t === "educación" || t === "educacion") return "Educación";
+    if (t === "producción" || t === "produccion") return "Producción";
+    if (t === "picofino") return "Picofino";
+    if (t === "programación" || t === "programacion") return "Programación";
+    if (t === "diseño" || t === "diseno") return "Diseño";
+    return tag;
+  }
+
+  function computeChance(mission, chosenIds){
+    const missionTag = normalizeTag(mission.internalTag);
+    let p = 0;
+
+    for (const cid of chosenIds){
+      const ch = availableCharacters.find(c => c.id === cid);
+      if (!ch) continue;
+
+      const tags = Array.isArray(ch.tags) ? ch.tags : [ch.tags];
+      const match = tags.map(normalizeTag).includes(missionTag);
+      p += match ? 0.8 : 0.1;
+    }
+    return clamp(p, 0, 1);
+  }
+
+  function computeNoSpawnRect(){
+    const mapRect = mapEl.getBoundingClientRect();
+    const imgRect = playerImg.getBoundingClientRect();
+    if (!mapRect.width || !imgRect.width) return;
+
+    const margin = 14;
+    noSpawnRect = {
+      left: (imgRect.left - mapRect.left) - margin,
+      top: (imgRect.top - mapRect.top) - margin,
+      right: (imgRect.right - mapRect.left) + margin,
+      bottom: (imgRect.bottom - mapRect.top) + margin
+    };
+  }
+
+  function pointWouldOverlapNoSpawn(xPx, yPx){
+    if (!noSpawnRect) return false;
+    const r = 14;
+    const left = xPx - r, right = xPx + r, top = yPx - r, bottom = yPx + r;
+    return !(right < noSpawnRect.left || left > noSpawnRect.right || bottom < noSpawnRect.top || top > noSpawnRect.bottom);
+  }
+
+  // -------------------------
+  // ✅ Barra inferior (6) - disponibilidad (descolorido si ocupado)
+  // -------------------------
+  function updateTeamBarAvailability(){
+    if (!teamBar) return;
+    const items = teamBar.querySelectorAll(".teambar-item");
+    items.forEach((item)=>{
+      const cid = item.getAttribute("data-char-id");
+      const busy = cid && lockedCharIds.has(cid);
+      item.classList.toggle("busy", !!busy);
+    });
+  }
+
+  function renderTeamBar(){
+    if (!teamBar) return;
+    teamBar.innerHTML = "";
+
+    if (!Array.isArray(availableCards) || availableCards.length !== 6) return;
+
+    const ordered = [...availableCards].sort((a,b)=>a.name.localeCompare(b.name,"es",{sensitivity:"base"}));
+
+    ordered.forEach(cardData=>{
+      const ch = availableCharacters.find(x => x.name === cardData.name);
+
+      const item = document.createElement("button");
+      item.type = "button";
+      item.className = "teambar-item";
+      if (ch?.id) item.setAttribute("data-char-id", ch.id);
+
+      item.innerHTML = `<img class="teambar-img" src="${cardData.img}" alt="${cardData.name}" />`;
+      item.addEventListener("click", ()=>openCardInfo(cardData));
+      teamBar.appendChild(item);
+    });
+
+    updateTeamBarAvailability();
+  }
+
+  // -------------------------
+  // Pantallas
+  // -------------------------
+  function goToStartScreen(){
+    introScreen.classList.add("hidden");
+    startScreen.classList.remove("hidden");
+    teamScreen.classList.add("hidden");
+    storyTownScreen?.classList.add("hidden");
+    gameRoot.classList.add("hidden");
+  }
+
+  function goToTeamScreen(){
+    startScreen.classList.add("hidden");
+    teamScreen.classList.remove("hidden");
+    renderTeamSelection();
+  }
+
+  // -------------------------
+  // HISTORIA: Pueblo (movimiento)
+  // -------------------------
+  let townActive = false;
+  let townX = 0;
+  let townY = 0;
+  let townTargetX = null;
+  let townTargetY = null;
+  let townRaf = null;
+
+  // ✅ Cámara pueblo
+  let townCamX = 0;
+  let townCamY = 0;
+    let townScale = 1.6; // debe coincidir con el scale CSS
+
+  const TOWN_SPEED_PX = 4.5;      // desktop (teclado) ✅ más rápido
+  const TOWN_SPEED_TOUCH = 3.0;   // móvil (tap)
+
+  // ✅ Orientación (3 imágenes sueltas en images2): down/up/side (left = flip del side).
+  // En tu imagen (izq->der): frente, (extra), perfil derecha, espalda.
+  let townFacing = "down";
+// ✅ Animación caminar (4 frames por dirección, PNG en images2)
+const TOWN_WALK_FRAMES = 4;
+const TOWN_WALK_FRAME_MS = 120; // velocidad de animación
+let townWalkFrame = 1;
+let townWalkLastAt = 0;
+let townIsWalking = false;
+
+function townSpriteKeyForFacing(dir){
+  if (dir === "up") return "up";
+  if (dir === "down") return "down";
+  return "side";
+}
+
+function applyTownSprite(){
+  if (!townPlayer) return;
+  const key = townSpriteKeyForFacing(townFacing);
+  townPlayer.style.backgroundImage = `url("images2/riskopueblo_${key}_${townWalkFrame}.png")`;
+}
+
+function setTownWalking(isWalking){
+  townIsWalking = !!isWalking;
+  if (!townPlayer) return;
+  // (sin bobbing) mantenemos solo frames
+  if (!townIsWalking){
+    townWalkFrame = 1;
+    townWalkLastAt = 0;
+    applyTownSprite();
+  } else {
+    // al empezar a andar, fuerza sprite actualizado
+    if (!townWalkLastAt) townWalkLastAt = performance.now();
+    applyTownSprite();
+  }
+}
+  function setTownFacing(dir){
+    if (!townPlayer) return;
+    if (dir === townFacing) return;
+    townFacing = dir;
+    applyTownSprite();
+
+    townPlayer.classList.remove("face-up","face-down","face-left","face-right");
+    if (dir === "up") townPlayer.classList.add("face-up");
+    else if (dir === "down") townPlayer.classList.add("face-down");
+    else if (dir === "left") townPlayer.classList.add("face-left");
+    else if (dir === "right") townPlayer.classList.add("face-right");
+  }
+
+  function clampTownToBounds(x, y){
+    if (!townMap || !townPlayer) return { x, y };
+    const r = townMap.getBoundingClientRect();
+    const p = townPlayer.getBoundingClientRect();
+    const halfW = p.width / 2;
+    const halfH = p.height / 2;
+
+    const cx = clamp(x, halfW, r.width - halfW);
+    const cy = clamp(y, halfH, r.height - halfH);
+    return { x: cx, y: cy };
+  }
+
+  function applyTownPos(){
+    if (!townPlayer) return;
+    townPlayer.style.left = `${townX}px`;
+    townPlayer.style.top  = `${townY}px`;
+  }
+
+
+  function updateTownCamera(){
+    if (!townViewport || !townWorld || !townMap) return;
+
+    const vpW = townViewport.clientWidth;
+    const vpH = townViewport.clientHeight;
+
+    const scale = townScale || 1;
+    const worldW = (townMap.offsetWidth || 1) * scale;
+    const worldH = (townMap.offsetHeight || 1) * scale;
+
+    // posición del jugador en coords escaladas
+    const px = townX * scale;
+    const py = townY * scale;
+
+    // deadzone (zona segura) para que la cámara solo se mueva al acercarse a bordes
+    const dzLeft = vpW * 0.35;
+    const dzRight = vpW * 0.65;
+    const dzTop = vpH * 0.35;
+    const dzBottom = vpH * 0.65;
+
+    // posición del jugador en pantalla con la cámara actual
+    let screenX = px + townCamX;
+    let screenY = py + townCamY;
+
+    let camX = townCamX;
+    let camY = townCamY;
+
+    if (screenX < dzLeft) camX += (dzLeft - screenX);
+    else if (screenX > dzRight) camX -= (screenX - dzRight);
+
+    if (screenY < dzTop) camY += (dzTop - screenY);
+    else if (screenY > dzBottom) camY -= (screenY - dzBottom);
+
+    // clamp para no ver fuera del mundo
+    const minX = vpW - worldW;
+    const minY = vpH - worldH;
+    camX = Math.min(0, Math.max(minX, camX));
+    camY = Math.min(0, Math.max(minY, camY));
+
+    townCamX = camX;
+    townCamY = camY;
+
+    townWorld.style.transform = `translate(${camX}px, ${camY}px)`;
+  }
+
+
+  function initTownPosition(){
+    if (!townMap || !townPlayer) return;
+    const w = townMap.offsetWidth || 1;
+    const h = townMap.offsetHeight || 1;
+    townX = w * 0.50;
+    townY = h * 0.72;
+    const cl = clampTownToBounds(townX, townY);
+    townX = cl.x; townY = cl.y;
+    townTargetX = null;
+    townTargetY = null;
+    setTownFacing("down");
+    townWalkFrame = 1;
+    applyTownSprite();
+    applyTownPos();
+        updateTownCamera();
+
+    setTownWalking(true);
+    townWalkFrame = (townWalkFrame % TOWN_WALK_FRAMES) + 1;
+    applyTownSprite();
+    clearTimeout(window.__townWalkT);
+    window.__townWalkT = setTimeout(()=>setTownWalking(false), 140);
+  }
+
+  function startTownLoop(){
+    stopTownLoop();
+    townActive = true;
+
+    const step = ()=>{
+      if (!townActive) return;
+
+      if (townTargetX != null && townTargetY != null){
+        const dx = townTargetX - townX;
+        const dy = townTargetY - townY;
+        const dist = Math.hypot(dx, dy);
+
+        const ax = Math.abs(dx);
+        const ay = Math.abs(dy);
+        const now = performance.now();
+        if (!townWalkLastAt) townWalkLastAt = now;
+        if (now - townWalkLastAt >= TOWN_WALK_FRAME_MS){
+          townWalkLastAt = now;
+          townWalkFrame = (townWalkFrame % TOWN_WALK_FRAMES) + 1;
+          applyTownSprite();
+        }
+
+        if (ax > ay){
+          setTownFacing(dx >= 0 ? "right" : "left");
+        } else {
+          setTownFacing(dy >= 0 ? "down" : "up");
+        }
+
+        if (dist < 2){
+          townX = townTargetX;
+          townY = townTargetY;
+          townTargetX = null;
+          townTargetY = null;
+        } else {
+          const v = TOWN_SPEED_TOUCH;
+          townX += (dx / dist) * v;
+          townY += (dy / dist) * v;
+        }
+
+        const cl = clampTownToBounds(townX, townY);
+        townX = cl.x; townY = cl.y;
+        applyTownPos();
+        updateTownCamera();
+
+    setTownWalking(true);
+    townWalkFrame = (townWalkFrame % TOWN_WALK_FRAMES) + 1;
+    applyTownSprite();
+    clearTimeout(window.__townWalkT);
+    window.__townWalkT = setTimeout(()=>setTownWalking(false), 140);
+      }
+
+      townRaf = requestAnimationFrame(step);
+    };
+
+    townRaf = requestAnimationFrame(step);
+  }
+
+  function stopTownLoop(){
+    townActive = false;
+    if (townRaf) cancelAnimationFrame(townRaf);
+    townRaf = null;
+  }
+
+  // ✅ HISTORIA: entra al pueblo (sin afectar ARCADE)
+  function startStoryMode(){
+    gameMode = "story";
+
+    // Avatar por defecto: Buster
+    const busterIdx = AVATARS.findIndex(a => a.name === "Buster");
+    if (busterIdx >= 0) avatarIndex = busterIdx;
+
+    // Equipo por defecto (incluye Maider, Celia, Castri) + 3 extras para completar 6
+    selectedTeamCardIds = new Set([
+      "card_maider",
+      "card_celia",
+      "card_castri",
+      "card_buster",
+      "card_dre",
+      "card_lorena"
+    ]);
+
+    introScreen.classList.add("hidden");
+    startScreen.classList.add("hidden");
+    teamScreen.classList.add("hidden");
+    gameRoot.classList.add("hidden");
+
+    storyTownScreen.classList.remove("hidden");
+    document.body.classList.add("story-town");
+
+    requestAnimationFrame(()=>{
+      initTownPosition();
+      applyTownPos();
+      updateTownCamera();
+      startTownLoop();
+    });
+  }
+
+  // -------------------------
+  // Avatar carousel
+  // -------------------------
+  function animateCarousel(direction){
+    const dx = direction > 0 ? 24 : -24;
+    avatarPreviewImg.animate(
+      [{ transform: `translateX(${dx}px)`, opacity: 0 }, { transform: "translateX(0px)", opacity: 1 }],
+      { duration: 220, easing: "cubic-bezier(.2,.8,.2,1)" }
+    );
+    avatarPreviewName.animate(
+      [{ transform: `translateX(${dx}px)`, opacity: 0 }, { transform: "translateX(0px)", opacity: 1 }],
+      { duration: 220, easing: "cubic-bezier(.2,.8,.2,1)" }
+    );
+  }
+
+  function renderAvatarCarousel(direction=0){
+    const a = AVATARS[avatarIndex];
+    avatarPreviewImg.src = a.src;
+    avatarPreviewImg.alt = a.alt;
+    avatarPreviewName.textContent = a.name;
+    dot0?.classList.toggle("active", avatarIndex === 0);
+    dot1?.classList.toggle("active", avatarIndex === 1);
+    if (direction !== 0) animateCarousel(direction);
+  }
+
+  function prevAvatar(){
+    avatarIndex = (avatarIndex - 1 + AVATARS.length) % AVATARS.length;
+    renderAvatarCarousel(-1);
+  }
+  function nextAvatar(){
+    avatarIndex = (avatarIndex + 1) % AVATARS.length;
+    renderAvatarCarousel(+1);
+  }
+
+  // -------------------------
+  // Equipo (6)
+  // -------------------------
+  function updateTeamUI(){
+    const n = selectedTeamCardIds.size;
+    teamCountEl.textContent = String(n);
+    teamConfirmBtn.disabled = n !== 6;
+
+    if (n < 6) teamHint.textContent = "Elige 6 personajes para continuar.";
+    else teamHint.textContent = "Perfecto. Pulsa Confirmar para empezar.";
+  }
+
+  function renderTeamSelection(){
+    teamGrid.innerHTML = "";
+
+    const cardsSorted = [...CARDS].sort((a,b)=>a.name.localeCompare(b.name,"es",{sensitivity:"base"}));
+
+    cardsSorted.forEach(cardData=>{
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "team-card" + (selectedTeamCardIds.has(cardData.id) ? " selected" : "");
+      btn.innerHTML = `
+        <img src="${cardData.img}" alt="${cardData.name}" />
+        <div class="team-card-name">
+          <span class="pill">${selectedTeamCardIds.has(cardData.id) ? "Elegido" : "Elegir"}</span>
+        </div>
+      `;
+
+      btn.addEventListener("click", ()=>{
+        const isSelected = selectedTeamCardIds.has(cardData.id);
+        if (isSelected){
+          selectedTeamCardIds.delete(cardData.id);
+        } else {
+          if (selectedTeamCardIds.size >= 6) return;
+          selectedTeamCardIds.add(cardData.id);
+        }
+        renderTeamSelection();
+        updateTeamUI();
+      });
+
+      teamGrid.appendChild(btn);
+    });
+
+    updateTeamUI();
+  }
+
+  function commitTeam(){
+    const selectedCards = [...selectedTeamCardIds]
+      .map(id => CARDS.find(c => c.id === id))
+      .filter(Boolean);
+
+    const selectedNames = new Set(selectedCards.map(c => c.name));
+
+    availableCards = selectedCards;
+    availableCharacters = CHARACTERS.filter(ch => selectedNames.has(ch.name));
+
+    if (availableCards.length !== 6 || availableCharacters.length !== 6) return false;
+    return true;
+  }
+
+  // -------------------------
+  // Normalización tamaño sprite mapa
+  // -------------------------
+  const spriteBoxCache = new Map();
+  let referenceVisibleHeightPx = null;
+
+  async function getSpriteBox(src){
+    if (spriteBoxCache.has(src)) return spriteBoxCache.get(src);
+
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = src;
+
+    await new Promise((res, rej)=>{
+      img.onload = () => res();
+      img.onerror = () => rej(new Error("No se pudo cargar " + src));
+    });
+
+    const hasPngAlpha = /\.png$/i.test(src) || /\.webp$/i.test(src);
+    if (!hasPngAlpha){
+      const out = { w: img.naturalWidth, h: img.naturalHeight, boxH: img.naturalHeight, boxW: img.naturalWidth };
+      spriteBoxCache.set(src, out);
+      return out;
+    }
+
+    const canvas = document.createElement("canvas");
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    ctx.drawImage(img, 0, 0);
+
+    const { data, width, height } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+    let minX = width, minY = height, maxX = -1, maxY = -1;
+    const A_TH = 16;
+
+    for (let y=0; y<height; y++){
+      const row = y * width * 4;
+      for (let x=0; x<width; x++){
+        const a = data[row + x*4 + 3];
+        if (a > A_TH){
+          if (x < minX) minX = x;
+          if (y < minY) minY = y;
+          if (x > maxX) maxX = x;
+          if (y > maxY) maxY = y;
+        }
+      }
+    }
+
+    if (maxX < 0 || maxY < 0){
+      const out = { w: img.naturalWidth, h: img.naturalHeight, boxH: img.naturalHeight, boxW: img.naturalWidth };
+      spriteBoxCache.set(src, out);
+      return out;
+    }
+
+    const boxW = (maxX - minX + 1);
+    const boxH = (maxY - minY + 1);
+
+    const out = { w: img.naturalWidth, h: img.naturalHeight, boxH, boxW };
+    spriteBoxCache.set(src, out);
+    return out;
+  }
+
+  async function applyNormalizedMapSizeFor(src){
+    const baseWidthPx = parseFloat(getComputedStyle(playerImg).width) || 120;
+    const box = await getSpriteBox(src);
+
+    const visibleHeight = box.boxH * (baseWidthPx / box.w);
+
+    if (referenceVisibleHeightPx == null){
+      referenceVisibleHeightPx = visibleHeight;
+      playerImg.style.width = "";
+      return;
+    }
+
+    const neededWidth = referenceVisibleHeightPx * (box.w / box.boxH);
+    const clamped = Math.max(baseWidthPx * 0.75, Math.min(neededWidth, baseWidthPx * 1.8));
+    playerImg.style.width = `${clamped}px`;
+  }
+
+  async function applySelectedAvatarToMap(){
+    const a = AVATARS[avatarIndex];
+    playerImg.src = a.src;
+    playerImg.alt = a.alt;
+
+
+    playerImg.style.width = "";
+
+    if (playerImg.complete){
+      await applyNormalizedMapSizeFor(a.src);
+      computeNoSpawnRect();
+    } else {
+      playerImg.addEventListener("load", async ()=>{
+        await applyNormalizedMapSizeFor(a.src);
+        computeNoSpawnRect();
+      }, { once:true });
+    }
+  }
+
+  // -------------------------
+  // Reloj oculto
+  // -------------------------
+  function startGameClock(){
+    clearInterval(gameClockTimer);
+    gameEndAt = performance.now() + GAME_DURATION_MS;
+
+    gameClockTimer = setInterval(()=>{
+      const now = performance.now();
+      if (now >= gameEndAt) endGameByTime();
+    }, 250);
+  }
+
+  function endGameByTime(){
+    clearInterval(gameClockTimer);
+    gameClockTimer = null;
+
+    clearInterval(lifeTicker);
+    clearTimeout(spawnTimer);
+
+    rouletteOkBtn.disabled = true;
+
+    hideModal(missionModal);
+    hideModal(rouletteModal);
+    hideModal(cardInfoModal);
+    hideModal(specialModal);
+
+    finishGame();
+  }
+
+  // -------------------------
+  // Juego
+  // -------------------------
+  function startGame(){
+    teamScreen.classList.add("hidden");
+    storyTownScreen?.classList.add("hidden");
+    gameRoot.classList.remove("hidden");
+
+    // ✅ Fondo solo en HISTORIA
+    mapEl.classList.toggle("story-bg", gameMode === "story");
+
+    // ✅ Solo en HISTORIA ocultamos el contador de misiones
+    if (missionsHudCard){
+      missionsHudCard.style.display = (gameMode === "story") ? "none" : "";
+    }
+
+    specialUsed = false;
+    specialArmed = false;
+    setSpecialArmedUI(false);
+
+    applySelectedAvatarToMap();
+
+    const refreshNoSpawn = () => computeNoSpawnRect();
+    if (playerImg.complete) refreshNoSpawn();
+    else playerImg.addEventListener("load", refreshNoSpawn, { once:true });
+
+    renderTeamBar();
+    setProgress();
+
+    startGameClock();
+    startLifeTicker();
+    scheduleNextSpawn();
+  }
+
+  function createMissionPoint(mission){
+    const point = document.createElement("div");
+    point.className = "point";
+    point.setAttribute("role","button");
+    point.setAttribute("tabindex","0");
+    point.setAttribute("aria-label", `Misión: ${mission.title}`);
+
+    const mapRect = mapEl.getBoundingClientRect();
+
+    let xPct = 50, yPct = 50;
+    for (let i=0;i<40;i++){
+      xPct = rand(8,92);
+      yPct = rand(10,86);
+      const xPx = (xPct/100) * mapRect.width;
+      const yPx = (yPct/100) * mapRect.height;
+      if (!pointWouldOverlapNoSpawn(xPx, yPx)) break;
+    }
+
+    point.style.left = `${xPct}%`;
+    point.style.top  = `${yPct}%`;
+
+    const state = {
+      mission,
+      pointEl: point,
+      remainingMs: MISSION_LIFETIME_MS,
+      lastTickAt: performance.now(),
+      phase: "spawned",
+      isPaused: false,
+      assignedCharIds: new Set(),
+      chance: null,
+      execRemainingMs: null
+    };
+
+    point.addEventListener("click", ()=>onPointClick(mission.id));
+    point.addEventListener("keydown",(e)=>{
+      if (e.key==="Enter" || e.key===" "){
+        e.preventDefault();
+        onPointClick(mission.id);
+      }
+    });
+
+    mapEl.appendChild(point);
+    activePoints.set(mission.id, state);
+  }
+
+  function onPointClick(missionId){
+    const st = activePoints.get(missionId);
+    if (!st) return;
+    if (completedMissionIds.has(missionId)) return;
+
+    if (specialArmed && !specialUsed){
+      specialUsed = true;
+      specialArmed = false;
+      setSpecialArmedUI(false);
+      openForcedWinRoulette(missionId);
+      return;
+    }
+
+    if (st.phase === "spawned") return openMission(missionId);
+    if (st.phase === "executing") return;
+    if (st.phase === "ready") return openRouletteForMission(missionId);
+  }
+
+  function removePoint(missionId){
+    const st = activePoints.get(missionId);
+    if (!st) return;
+    st.pointEl?.parentNode?.removeChild(st.pointEl);
+    activePoints.delete(missionId);
+  }
+
+  function releaseCharsForMission(missionId){
+    const st = activePoints.get(missionId);
+    if (!st) return;
+    for (const cid of (st.assignedCharIds || [])) lockedCharIds.delete(cid);
+    updateTeamBarAvailability();
+  }
+
+  function failMission(missionId){
+    if (completedMissionIds.has(missionId)) return;
+    completedMissionIds.add(missionId);
+    setProgress();
+    setScore(SCORE_LOSE);
+    releaseCharsForMission(missionId);
+    removePoint(missionId);
+  }
+
+  function winMission(missionId){
+    if (completedMissionIds.has(missionId)) return;
+    completedMissionIds.add(missionId);
+    setProgress();
+    setScore(SCORE_WIN);
+    releaseCharsForMission(missionId);
+    removePoint(missionId);
+  }
+
+  function scheduleNextSpawn(){
+    clearTimeout(spawnTimer);
+    if (gameClockTimer === null) return;
+
+    if (activePoints.size >= MAX_ACTIVE_POINTS){
+      spawnTimer = setTimeout(()=>scheduleNextSpawn(), 800);
+      return;
+    }
+
+    if (pendingMissions.length === 0) pendingMissions = [...MISSIONS];
+
+    spawnTimer = setTimeout(()=>{
+      if (gameClockTimer === null) return;
+      if (activePoints.size >= MAX_ACTIVE_POINTS){ scheduleNextSpawn(); return; }
+
+      const idx = randInt(0, pendingMissions.length - 1);
+      const mission = pendingMissions.splice(idx, 1)[0];
+      createMissionPoint(mission);
+      scheduleNextSpawn();
+    }, randInt(SPAWN_MIN_DELAY_MS, SPAWN_MAX_DELAY_MS));
+  }
+
+  function startLifeTicker(){
+    clearInterval(lifeTicker);
+
+    lifeTicker = setInterval(()=>{
+      const now = performance.now();
+
+      for (const [mid, st] of activePoints.entries()){
+        if (st.isPaused){ st.lastTickAt = now; continue; }
+        const dt = now - st.lastTickAt;
+        st.lastTickAt = now;
+
+        if (st.phase === "spawned"){
+          st.remainingMs -= dt;
+          if (st.remainingMs <= 0) failMission(mid);
+          continue;
+        }
+
+        if (st.phase === "executing"){
+          st.execRemainingMs -= dt;
+          if (st.execRemainingMs <= 0){
+            st.phase = "ready";
+            st.execRemainingMs = 0;
+            st.pointEl.classList.remove("assigned");
+            st.pointEl.classList.add("ready");
+          }
+        }
+      }
+    }, 200);
+  }
+
+  function openMission(missionId){
+    const st = activePoints.get(missionId);
+    if (!st) return;
+
+    setGlobalPause(true);
+    currentMissionId = missionId;
+    selectedCharIds = new Set();
+
+    missionTitleEl.textContent = st.mission.title;
+    if (missionImgEl){
+      missionImgEl.src = st.mission.img || "images/mision.png";
+      missionImgEl.alt = st.mission.title || "Misión";
+    }
+    missionTextEl.textContent  = st.mission.text;
+
+    pickHint.textContent = "Selecciona al menos 1 personaje (máximo 2).";
+    pickHint.style.opacity = "1";
+
+    renderCharacters();
+    showModal(missionModal);
+  }
+
+  function closeMissionModal(){
+    hideModal(missionModal);
+    currentMissionId = null;
+    selectedCharIds = new Set();
+    if (!isAnyModalOpen()) setGlobalPause(false);
+  }
+
+  function renderCharacters(){
+    charactersGrid.innerHTML = "";
+
+    availableCharacters.forEach(ch=>{
+      const locked = lockedCharIds.has(ch.id);
+      const card = document.createElement("div");
+      card.className = "char" + (locked ? " locked" : "");
+      card.innerHTML = `
+        <div><div class="name">${ch.name}</div></div>
+        <div class="pill">${locked ? "Ocupado" : "Elegir"}</div>
+      `;
+      card.addEventListener("click", ()=>{
+        if (locked){
+          pickHint.textContent = "Ese personaje está ocupado en otra misión.";
+          pickHint.style.opacity = "1";
+          return;
+        }
+        toggleCharacter(ch.id, card);
+      });
+      charactersGrid.appendChild(card);
+    });
+  }
+
+  function toggleCharacter(charId, cardEl){
+    if (selectedCharIds.has(charId)){
+      selectedCharIds.delete(charId);
+      cardEl.classList.remove("selected");
+      cardEl.querySelector(".pill").textContent = "Elegir";
+    } else {
+      if (selectedCharIds.size >= 2){
+        pickHint.textContent = "Máximo 2 personajes por misión.";
+        pickHint.style.opacity = "1";
+        return;
+      }
+      selectedCharIds.add(charId);
+      cardEl.classList.add("selected");
+      cardEl.querySelector(".pill").textContent = "Elegido";
+    }
+  }
+
+  function confirmMission(){
+    const st = currentMissionId ? activePoints.get(currentMissionId) : null;
+    if (!st) return;
+
+    if (selectedCharIds.size < 1){
+      pickHint.textContent = "Debes seleccionar al menos 1 personaje.";
+      pickHint.style.opacity = "1";
+      return;
+    }
+
+    st.assignedCharIds = new Set(selectedCharIds);
+    st.chance = computeChance(st.mission, st.assignedCharIds);
+
+    for (const cid of st.assignedCharIds) lockedCharIds.add(cid);
+    updateTeamBarAvailability();
+
+    st.phase = "executing";
+    st.execRemainingMs = EXECUTION_TIME_MS;
+    st.lastTickAt = performance.now();
+    st.pointEl.classList.add("assigned");
+    st.pointEl.classList.remove("ready");
+
+    hideModal(missionModal);
+    currentMissionId = null;
+    selectedCharIds = new Set();
+    if (!isAnyModalOpen()) setGlobalPause(false);
+  }
+
+  function spinRoulette(chance, onDone, forcedWin=null){
+    rouletteOutcome.textContent = "";
+    rouletteOkBtn.disabled = true;
+
+    const greenPct = clamp(chance, 0.01, 1) * 100;
+    rouletteWheel.style.background = `conic-gradient(from 0deg,
+      rgba(46,229,157,.85) 0 ${greenPct}%,
+      rgba(255,59,59,.85) ${greenPct}% 100%)`;
+
+    const turns = randInt(4,7);
+    const finalDeg = turns * 360 + randInt(0,359);
+
+    rouletteWheel.animate(
+      [{ transform:"rotate(0deg)" }, { transform:`rotate(${finalDeg}deg)` }],
+      { duration:1400, easing:"cubic-bezier(.2,.8,.2,1)", fill:"forwards" }
+    );
+
+    setTimeout(()=>{
+      const win = (forcedWin === null) ? (Math.random() < chance) : forcedWin;
+      rouletteOutcome.textContent = win ? "✅ ¡Éxito!" : "❌ Fallo";
+      rouletteOutcome.style.color = win ? "var(--ok)" : "var(--danger)";
+      rouletteOkBtn.disabled = false;
+      onDone(win);
+    }, 1500);
+  }
+
+  function openRouletteForMission(missionId){
+    const st = activePoints.get(missionId);
+    if (!st || st.phase !== "ready") return;
+
+    setGlobalPause(true);
+    showModal(rouletteModal);
+
+    spinRoulette(st.chance ?? 0.10, (win)=>{
+      rouletteOkBtn.onclick = ()=>{
+        hideModal(rouletteModal);
+        win ? winMission(missionId) : failMission(missionId);
+        rouletteOkBtn.disabled = true;
+        if (!isAnyModalOpen()) setGlobalPause(false);
+      };
+    });
+  }
+
+  function openForcedWinRoulette(missionId){
+    const st = activePoints.get(missionId);
+    if (!st) return;
+
+    setGlobalPause(true);
+    showModal(rouletteModal);
+
+    spinRoulette(1, ()=>{
+      rouletteOkBtn.onclick = ()=>{
+        hideModal(rouletteModal);
+        winMission(missionId);
+        rouletteOkBtn.disabled = true;
+        if (!isAnyModalOpen()) setGlobalPause(false);
+      };
+    }, true);
+  }
+
+  function openCardInfo(cardData){
+    setGlobalPause(true);
+    cardInfoTitle.textContent = cardData.name;
+    cardInfoText.textContent = cardData.text;
+
+    if (cardInfoImg){
+      cardInfoImg.src = cardData.img;
+      cardInfoImg.alt = cardData.name;
+    }
+
+    showModal(cardInfoModal);
+  }
+
+  function closeCardInfo(){
+    hideModal(cardInfoModal);
+    if (!isAnyModalOpen()) setGlobalPause(false);
+  }
+
+  function openSpecialModal(){
+    if (specialUsed) return;
+    setGlobalPause(true);
+    showModal(specialModal);
+  }
+
+  function cancelSpecial(){
+    specialArmed = false;
+    setSpecialArmedUI(false);
+    hideModal(specialModal);
+    if (!isAnyModalOpen()) setGlobalPause(false);
+  }
+
+  function acceptSpecial(){
+    if (specialUsed) return;
+    specialArmed = true;
+    setSpecialArmedUI(true);
+    hideModal(specialModal);
+    if (!isAnyModalOpen()) setGlobalPause(false);
+  }
+
+  function finishGame(){
+    clearInterval(lifeTicker);
+    clearTimeout(spawnTimer);
+    clearInterval(gameClockTimer);
+    gameClockTimer = null;
+
+    finalScoreEl.textContent = String(score);
+    setGlobalPause(true);
+    showModal(finalModal);
+  }
+
+  function resetGame(){
+    hideModal(missionModal);
+    hideModal(rouletteModal);
+    hideModal(finalModal);
+    hideModal(cardInfoModal);
+    hideModal(specialModal);
+
+    clearInterval(lifeTicker);
+    clearTimeout(spawnTimer);
+    clearInterval(gameClockTimer);
+    gameClockTimer = null;
+
+    for (const st of activePoints.values()){
+      st.pointEl?.parentNode?.removeChild(st.pointEl);
+    }
+
+    score = 0;
+    pendingMissions = [...MISSIONS];
+    activePoints = new Map();
+    completedMissionIds = new Set();
+    lockedCharIds = new Set();
+
+    currentMissionId = null;
+    selectedCharIds = new Set();
+
+    specialUsed = false;
+    specialArmed = false;
+    setSpecialArmedUI(false);
+
+    if (teamBar) teamBar.innerHTML = "";
+
+    setProgress();
+    setGlobalPause(false);
+  }
+
+  // -------------------------
+  // EVENTS
+  // -------------------------
+  introStartBtn.addEventListener("click", ()=>{
+    gameMode = "arcade";
+    goToStartScreen();
+  });
+
+  introStoryBtn.addEventListener("click", startStoryMode);
+
+  prevAvatarBtn.addEventListener("click", prevAvatar);
+  nextAvatarBtn.addEventListener("click", nextAvatar);
+
+  document.addEventListener("keydown", (e)=>{
+      if (e.key === "Escape") { hideMercenarioDialogSafe(); return; }
+if (!introScreen.classList.contains("hidden")){
+      if (e.key === "Enter") {
+        gameMode = "arcade";
+        goToStartScreen();
+      }
+      return;
+    }
+    if (!startScreen.classList.contains("hidden")){
+      if (e.key === "ArrowLeft") prevAvatar();
+      if (e.key === "ArrowRight") nextAvatar();
+    }
+  });
+
+  // Avatar -> Team (ARCADE)
+  startBtn.addEventListener("click", ()=>{
+    gameMode = "arcade";
+    selectedTeamCardIds = new Set();
+    teamConfirmBtn.disabled = true;
+    teamCountEl.textContent = "0";
+    teamHint.textContent = "Elige 6 personajes para continuar.";
+    goToTeamScreen();
+  });
+
+  // Confirm team -> Start game
+  teamConfirmBtn.addEventListener("click", ()=>{
+    if (selectedTeamCardIds.size !== 6) return;
+    if (!commitTeam()) return;
+    startGame();
+  });
+
+  // HISTORIA: tap/click para moverse
+  townMap?.addEventListener("pointerdown", (e)=>{
+    if (storyTownScreen.classList.contains("hidden")) return;
+    if (!townViewport) return;
+
+    const vp = townViewport.getBoundingClientRect();
+    const vx = e.clientX - vp.left;
+    const vy = e.clientY - vp.top;
+
+    const x = (vx - townCamX) / (townScale || 1);
+    const y = (vy - townCamY) / (townScale || 1);
+
+    const cl = clampTownToBounds(x, y);
+    townTargetX = cl.x;
+    townTargetY = cl.y;
+  });
+
+  // HISTORIA: teclado (PC)
+  document.addEventListener("keydown", (e)=>{
+    if (!storyTownScreen || storyTownScreen.classList.contains("hidden")) return;
+
+    townTargetX = null;
+    townTargetY = null;
+
+    let dx = 0, dy = 0;
+    if (e.key === "ArrowUp") dy = -TOWN_SPEED_PX;
+    if (e.key === "ArrowDown") dy = +TOWN_SPEED_PX;
+    if (e.key === "ArrowLeft") dx = -TOWN_SPEED_PX;
+    if (e.key === "ArrowRight") dx = +TOWN_SPEED_PX;
+    if (!dx && !dy) return;
+
+    e.preventDefault();
+
+    if (dx > 0) setTownFacing("right");
+    else if (dx < 0) setTownFacing("left");
+    else if (dy > 0) setTownFacing("down");
+    else if (dy < 0) setTownFacing("up");
+
+    townX += dx;
+    townY += dy;
+    const cl = clampTownToBounds(townX, townY);
+    townX = cl.x; townY = cl.y;
+    applyTownPos();
+
+    setTownWalking(true);
+    townWalkFrame = (townWalkFrame % TOWN_WALK_FRAMES) + 1;
+    applyTownSprite();
+    clearTimeout(window.__townWalkT);
+    window.__townWalkT = setTimeout(()=>setTownWalking(false), 140);
+  }, { passive:false });
+
+  // HISTORIA: continuar al juego (fortaleza + partida)
+  storyContinueBtn?.addEventListener("click", ()=>{
+    if (!commitTeam()) return;
+    stopTownLoop();
+    storyTownScreen.classList.add("hidden");
+    document.body.classList.remove("story-town");
+    startGame();
+  });
+
+  // Habilidad avatar
+  playerImg.addEventListener("click", openSpecialModal);
+
+  closeModalBtn.addEventListener("click", closeMissionModal);
+  missionModal.addEventListener("click", (e)=>{ if (e.target === missionModal) closeMissionModal(); });
+  confirmBtn.addEventListener("click", confirmMission);
+
+  closeCardInfoBtn.addEventListener("click", closeCardInfo);
+  cardInfoModal.addEventListener("click", (e)=>{ if (e.target === cardInfoModal) closeCardInfo(); });
+
+  closeSpecialBtn.addEventListener("click", cancelSpecial);
+  specialCancelBtn.addEventListener("click", cancelSpecial);
+  specialAcceptBtn.addEventListener("click", acceptSpecial);
+  specialModal.addEventListener("click", (e)=>{ if (e.target === specialModal) cancelSpecial(); });
+
+  playAgainBtn.addEventListener("click", ()=>{
+    resetGame();
+
+    if (missionsHudCard) missionsHudCard.style.display = "";
+    mapEl.classList.remove("story-bg");
+
+    storyTownScreen.classList.add("hidden");
+    document.body.classList.remove("story-town");
+    stopTownLoop();
+
+    gameRoot.classList.add("hidden");
+    introScreen.classList.remove("hidden");
+    startScreen.classList.add("hidden");
+    teamScreen.classList.add("hidden");
+    avatarIndex = 0;
+    renderAvatarCarousel(0);
+  });
+
+  window.addEventListener("resize", ()=>{
+    syncTownNpcSizes();
+    setAppHeightVar();
+    if (!gameRoot.classList.contains("hidden")) computeNoSpawnRect();
+    if (!storyTownScreen.classList.contains("hidden")) initTownPosition();
+  });
+
+  // init
+  renderAvatarCarousel(0);
+
+
+  // === Mercenario: dialogo seguro (NO bloquea botones) ===
+  try {
+    const storyTownScreen = document.getElementById("storyTownScreen");
+    const mercenarioNpc = document.getElementById("npcMercenario");
+    const mercenarioDialog = document.getElementById("mercenarioDialog");
+
+    function showMercenarioDialogSafe(){
+      if (!mercenarioDialog) return;
+
+      // Contenido del diálogo (texto + botón)
+      mercenarioDialog.innerHTML = `
+        <div class="merc-text">Evelyn, ¿estás lista para una nueva misión?</div>
+        <div class="modal-actions end" style="margin-top:10px;">
+          <button id="mercStartMissionBtn" class="btn" type="button">Comenzar misión</button>
+        </div>
+      `;
+
+      const btn = mercenarioDialog.querySelector("#mercStartMissionBtn");
+      if (btn){
+        btn.addEventListener("click", (e)=>{
+          e.preventDefault();
+          e.stopPropagation();
+
+          // Ir al juego (rejilla) en modo historia
+          try {
+            if (typeof commitTeam === "function") commitTeam();
+            if (typeof storyTownScreen !== "undefined" && storyTownScreen) storyTownScreen.classList.add("hidden");
+            if (typeof startGame === "function") startGame();
+          } catch (err) {
+            console.warn("Start mission failed:", err);
+          }
+        }, { once:true });
+      }
+
+      mercenarioDialog.classList.remove("hidden");
+    }
+
+    
+    function hideMercenarioDialogSafe(){
+      if (!mercenarioDialog) return;
+      mercenarioDialog.classList.add("hidden");
+    }
+if (mercenarioNpc) {
+      mercenarioNpc.addEventListener("pointerdown", (e)=>{
+        e.preventDefault();
+        e.stopPropagation();
+        showMercenarioDialogSafe();
+      });
+    }
+
+    document.addEventListener("keydown", (e)=>{
+      if (e.key !== "Enter") return;
+      if (!storyTownScreen || storyTownScreen.classList.contains("hidden")) return;
+      if (!mercenarioNpc || !window.townPlayer) return;
+
+      const m = mercenarioNpc.getBoundingClientRect();
+      const p = window.townPlayer.getBoundingClientRect();
+
+      const dx = (m.left + m.width/2) - (p.left + p.width/2);
+      const dy = (m.top + m.height/2) - (p.top + p.height/2);
+      const dist = Math.hypot(dx, dy);
+
+      if (dist <= 140) showMercenarioDialogSafe();
+    });
+  } catch (err) {
+    console.warn("Mercenario dialog skipped:", err);
+  }
+  
+    // Click/tap fuera del cuadro: cerrar (solo si está abierto)
+    document.addEventListener("pointerdown", (e)=>{
+      if (!mercenarioDialog || mercenarioDialog.classList.contains("hidden")) return;
+      if (e.target && mercenarioDialog.contains(e.target)) return;
+      hideMercenarioDialogSafe();
+    });
+
+  // === END Mercenario ===
+
+});
+
+  // === NPCs: igualar tamaño al personaje controlable ===
+  function syncTownNpcSizes(){
+    if (!townPlayer) return;
+    const h = getComputedStyle(townPlayer).height;
+    if (!h) return;
+    for (const el of townNpcs){
+      el.style.height = h;
+    }
+  }
