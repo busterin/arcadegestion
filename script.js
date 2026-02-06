@@ -20,6 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const VERSUS_WS_PATH = "/versus";
   const DEFAULT_VERSUS_WS_URL = "wss://arcadegestion.onrender.com/versus";
   const RECRUIT_STORAGE_KEY = "arcadegestion_recruits_v1";
+  const RECRUIT_LAST_STORAGE_KEY = "arcadegestion_last_recruit_v1";
 
   const MISSIONS = [
     { id: "m1", title: "Taller Expres", internalTag: "Educacion", img: "images/mision.png", text: "Hay un grupo listo para empezar y falta ajustar la dinamica. Envia a alguien que domine actividades educativas y manejo de tiempos." },
@@ -84,6 +85,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const recruitResultText = document.getElementById("recruitResultText");
   const recruitUnlockedText = document.getElementById("recruitUnlockedText");
   const recruitBackBtn = document.getElementById("recruitBackBtn");
+  const recruitReveal = document.getElementById("recruitReveal");
+  const recruitRevealImg = document.getElementById("recruitRevealImg");
+  const recruitRevealName = document.getElementById("recruitRevealName");
 
   const startScreen = document.getElementById("startScreen");
   const startBtn = document.getElementById("startBtn");
@@ -223,6 +227,23 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function loadLastRecruitedName() {
+    try {
+      const raw = window.localStorage?.getItem(RECRUIT_LAST_STORAGE_KEY);
+      return raw ? String(raw) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function persistLastRecruitedName(name) {
+    try {
+      window.localStorage?.setItem(RECRUIT_LAST_STORAGE_KEY, name);
+    } catch {
+      // ignore storage errors
+    }
+  }
+
   function getSelectableCharacters() {
     return [
       ...CHARACTERS,
@@ -235,6 +256,16 @@ document.addEventListener("DOMContentLoaded", () => {
       ...CARDS,
       ...RECRUITABLE_CARDS.filter((card) => unlockedRecruitCharIds.has(card.charId))
     ];
+  }
+
+  function setRecruitRevealByName(name) {
+    if (!recruitReveal || !recruitRevealImg || !recruitRevealName || !name) return;
+    const card = RECRUITABLE_CARDS.find((c) => c.name === name);
+    if (!card) return;
+    recruitRevealImg.src = card.img;
+    recruitRevealImg.alt = card.name;
+    recruitRevealName.textContent = card.name;
+    recruitReveal.classList.remove("hidden");
   }
 
   function renderRecruitUnlockedState() {
@@ -255,6 +286,8 @@ document.addEventListener("DOMContentLoaded", () => {
     gameRoot.classList.add("hidden");
     recruitScreen.classList.remove("hidden");
     renderRecruitUnlockedState();
+    const lastName = loadLastRecruitedName();
+    if (lastName) setRecruitRevealByName(lastName);
   }
 
   function recruitRandomCharacter() {
@@ -282,8 +315,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const winner = locked[randInt(0, locked.length - 1)];
         unlockedRecruitCharIds.add(winner.id);
         persistUnlockedRecruitCharIds();
+        persistLastRecruitedName(winner.name);
         renderRecruitUnlockedState();
         recruitResultText.textContent = `Te ha tocado: ${winner.name}. Ya esta disponible en Arcade y Versus.`;
+        setRecruitRevealByName(winner.name);
         recruitPackBtn.classList.remove("spinning");
         recruitPackBtn.disabled = false;
         recruitingInProgress = false;

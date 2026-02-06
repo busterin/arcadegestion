@@ -116,8 +116,16 @@ img{ max-width:100%; height:auto; }
   width: min(620px, 100%);
 }
 
+.recruit-zone{
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
 .recruit-pack{
-  margin-top: 18px;
   width: min(260px, 100%);
   height: 170px;
   border-radius: 18px;
@@ -174,6 +182,27 @@ img{ max-width:100%; height:auto; }
   min-height: 18px;
   font-size: 13px;
   color: var(--muted);
+}
+
+.recruit-reveal{
+  width: 138px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.07);
+  overflow: hidden;
+  box-shadow: 0 10px 22px rgba(0,0,0,.2);
+}
+.recruit-reveal-img{
+  width: 100%;
+  height: 128px;
+  object-fit: contain;
+  display: block;
+  background: rgba(0,0,0,.16);
+}
+.recruit-reveal-name{
+  padding: 8px 10px;
+  font-weight: 900;
+  font-size: 13px;
 }
 
 /* ---------- START SCREEN ---------- */
