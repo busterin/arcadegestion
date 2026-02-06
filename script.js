@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const VERSUS_WIN_TARGET = 8;
   const VERSUS_WS_PATH = "/versus";
+  const DEFAULT_VERSUS_WS_URL = "wss://arcadegestion.onrender.com/versus";
 
   const MISSIONS = [
     { id: "m1", title: "Taller Expres", internalTag: "Educacion", img: "images/mision.png", text: "Hay un grupo listo para empezar y falta ajustar la dinamica. Envia a alguien que domine actividades educativas y manejo de tiempos." },
@@ -524,9 +525,22 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function getConfiguredWsUrl() {
+    const queryUrl = (() => {
+      try {
+        const raw = new URLSearchParams(window.location.search).get("ws");
+        return raw ? decodeURIComponent(raw).trim() : null;
+      } catch {
+        return null;
+      }
+    })();
+    if (queryUrl && /^wss?:\/\//i.test(queryUrl)) {
+      try { window.localStorage?.setItem("versusWsUrl", queryUrl); } catch {}
+      return queryUrl;
+    }
+
     const globalUrl = typeof window !== "undefined" ? window.VERSUS_WS_URL : null;
     const localUrl = typeof window !== "undefined" ? window.localStorage?.getItem("versusWsUrl") : null;
-    const candidate = (localUrl || globalUrl || "").trim();
+    const candidate = (localUrl || globalUrl || DEFAULT_VERSUS_WS_URL || "").trim();
     if (!candidate) return null;
     if (!/^wss?:\/\//i.test(candidate)) return null;
     return candidate;
