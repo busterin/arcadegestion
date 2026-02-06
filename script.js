@@ -775,42 +775,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    if (msg.type === "vs_spawn_mission") {
-      if (currentMode !== "versus" || !gameRunning) {
-        queuedVersusEvents.push(msg);
-        return;
-      }
-      applyRemoteMissionSpawn(msg.missionId, msg.xPct, msg.yPct);
-      return;
-    }
-
-    if (msg.type === "vs_mission_claimed") {
-      if (currentMode !== "versus" || !gameRunning) {
-        queuedVersusEvents.push(msg);
-        return;
-      }
-      applyRemoteMissionClaim(msg.missionId);
-      return;
-    }
-
-    if (msg.type === "vs_sync_request") {
-      if (currentMode !== "versus" || !gameRunning) {
-        queuedVersusEvents.push(msg);
-        return;
-      }
-      if (!versus.isSpawnHost) return;
-      notifyVersusSyncSnapshot();
-      return;
-    }
-
-    if (msg.type === "vs_sync_snapshot") {
-      if (currentMode !== "versus" || !gameRunning) {
-        queuedVersusEvents.push(msg);
-        return;
-      }
-      applyVersusSyncSnapshot(msg.points);
-      return;
-    }
+    if (msg.type === "vs_spawn_mission" || msg.type === "vs_mission_claimed" || msg.type === "vs_sync_request" || msg.type === "vs_sync_snapshot") return;
 
     if (msg.type === "vs_match_end") {
       if (currentMode !== "versus" || msg.from !== versus.opponentId) return;
@@ -933,19 +898,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (remoteResolvedMissionIds.has(missionId)) return;
     remoteResolvedMissionIds.add(missionId);
 
-    completedMissionIds.add(missionId);
-    remoteClaimedMissionIds.delete(missionId);
-    pendingMissions = pendingMissions.filter((m) => m.id !== missionId);
-
-    if (currentMissionId === missionId && missionModal.classList.contains("show")) {
-      hideModal(missionModal);
-      currentMissionId = null;
-      selectedCharIds = new Set();
-    }
-
-    releaseCharsForMission(missionId);
-    removePoint(missionId);
-
     if (success) rivalWins += 1;
     updateHud();
 
@@ -1036,17 +988,11 @@ document.addEventListener("DOMContentLoaded", () => {
     else clearInterval(gameClockTimer);
 
     startLifeTicker();
-    if (currentMode === "arcade" || versus.isSpawnHost) {
-      scheduleNextSpawn();
-    }
-    if (currentMode === "versus") {
-      startVersusSpawnWatchdog();
-      if (!versus.isSpawnHost) notifyVersusSyncRequest();
-      if (queuedVersusEvents.length) {
-        const queued = [...queuedVersusEvents];
-        queuedVersusEvents = [];
-        queued.forEach((ev) => handleVersusMessage(ev));
-      }
+    scheduleNextSpawn();
+    if (currentMode === "versus" && queuedVersusEvents.length) {
+      const queued = [...queuedVersusEvents];
+      queuedVersusEvents = [];
+      queued.forEach((ev) => handleVersusMessage(ev));
     }
   }
 
@@ -1104,7 +1050,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function onPointClick(missionId) {
     const st = activePoints.get(missionId);
-    if (!st || completedMissionIds.has(missionId) || remoteClaimedMissionIds.has(missionId)) return;
+    if (!st || completedMissionIds.has(missionId)) return;
 
     if (specialArmed && !specialUsed) {
       specialUsed = true;
@@ -1114,12 +1060,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    if (st.phase === "spawned") {
-      if (currentMode === "versus") {
-        notifyVersusMissionClaim(missionId);
-      }
-      return openMission(missionId);
-    }
+    if (st.phase === "spawned") return openMission(missionId);
     if (st.phase === "ready") return openRouletteForMission(missionId);
   }
 
@@ -1198,11 +1139,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const idx = randInt(0, pendingMissions.length - 1);
       const mission = pendingMissions.splice(idx, 1)[0];
       if (mission && !completedMissionIds.has(mission.id)) {
-        const spawn = createMissionPoint(mission);
-        if (currentMode === "versus" && versus.isSpawnHost && spawn) {
-          notifyVersusMissionSpawn(mission.id, spawn.xPct, spawn.yPct);
-          notifyVersusSyncSnapshot();
-        }
+        createMissionPoint(mission);
       }
       scheduleNextSpawn();
     }, randInt(SPAWN_MIN_DELAY_MS, SPAWN_MAX_DELAY_MS));
