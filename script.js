@@ -42,21 +42,15 @@ document.addEventListener("DOMContentLoaded", () => {
     { id: "c1", name: "Albert", tags: ["Produccion", "Museos"] },
     { id: "c2", name: "Eliot", tags: ["Museos", "Produccion"] },
     { id: "c3", name: "Camus", tags: ["Picofino"] },
-    { id: "c4", name: "Risko", tags: ["Educacion"] },
-    { id: "c5", name: "Pendergast", tags: ["Programacion"] },
-    { id: "c6", name: "Friday", tags: ["Produccion"] },
     { id: "c7", name: "Jane", tags: ["Diseno"] },
     { id: "c8", name: "Lisa", tags: ["Produccion"] },
     { id: "c9", name: "Willard", tags: ["Produccion"] }
   ];
 
   const CARDS = [
-    { id: "card_buster", name: "Risko", img: "images/Risko.png", text: "Carta de apoyo: aporta claridad y estructura." },
     { id: "card_castri", name: "Albert", img: "images/Mistra.PNG", text: "Carta de apoyo: coordinacion y ejecucion con criterio." },
     { id: "card_maider", name: "Eliot", img: "images/Eliot.PNG", text: "Carta de apoyo: mirada de sala y ajuste fino." },
     { id: "card_celia", name: "Camus", img: "images/Camus.PNG", text: "Carta de apoyo: resuelve operativa con rapidez." },
-    { id: "card_dre", name: "Pendergast", img: "images/Pendergast.PNG", text: "Carta de apoyo: detecta fallos y los arregla." },
-    { id: "card_genio", name: "Friday", img: "images/Friday.PNG", text: "Carta de apoyo: saca tareas adelante con recursos limitados." },
     { id: "card_lorena", name: "Jane", img: "images/Jane.PNG", text: "Carta de apoyo: mejora presentacion, orden y estetica." },
     { id: "card_alba", name: "Lisa", img: "images/Lisa.PNG", text: "Carta de apoyo: ejecucion rapida y organizada." },
     { id: "card_mariam", name: "Willard", img: "images/Willard.PNG", text: "Carta de apoyo: coordina y aterriza lo pendiente." }
