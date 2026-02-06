@@ -531,7 +531,18 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!versus.transport) versus.transport = "bc";
   }
 
+  function getConfiguredWsUrl() {
+    const globalUrl = typeof window !== "undefined" ? window.VERSUS_WS_URL : null;
+    const localUrl = typeof window !== "undefined" ? window.localStorage?.getItem("versusWsUrl") : null;
+    const candidate = (localUrl || globalUrl || "").trim();
+    if (!candidate) return null;
+    if (!/^wss?:\/\//i.test(candidate)) return null;
+    return candidate;
+  }
+
   function getVersusWsUrl() {
+    const configured = getConfiguredWsUrl();
+    if (configured) return configured;
     if (!window.location || !window.location.origin) return null;
     if (window.location.protocol !== "http:" && window.location.protocol !== "https:") return null;
     const wsProto = window.location.protocol === "https:" ? "wss:" : "ws:";
@@ -641,8 +652,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const usingWs = versus.wsReady;
     matchmakingText.textContent = usingWs
-      ? "Buscando otro jugador conectado..."
-      : "Buscando jugador en esta misma sesion local...";
+      ? "Buscando rival online (movil, ordenador o tablet conectados ahora)."
+      : "Servidor online no disponible. Emparejamiento local de respaldo.";
     showModal(matchmakingModal);
 
     const announce = () => {
