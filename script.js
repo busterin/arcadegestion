@@ -42,7 +42,8 @@ document.addEventListener("DOMContentLoaded", () => {
   ];
 
   const CHARACTERS = [
-        { id: "c2", name: "Eliot", tags: ["Museos", "Produccion"] },
+    { id: "c1", name: "Winchester", tags: ["Produccion", "Museos"] },
+    { id: "c2", name: "Eliot", tags: ["Museos", "Produccion"] },
     { id: "c3", name: "Camus", tags: ["Picofino"] },
     { id: "c7", name: "Jane", tags: ["Diseno"] },
     { id: "c8", name: "Lisa", tags: ["Produccion"] },
@@ -50,14 +51,14 @@ document.addEventListener("DOMContentLoaded", () => {
   ];
 
   const RECRUITABLE_CHARACTERS = [
-    { id: "c1", name: "Albert", tags: ["Produccion", "Museos"] },
     { id: "c4", name: "Friday", tags: ["Programacion"] },
     { id: "c5", name: "Risko", tags: ["Programacion"] },
     { id: "c6", name: "Pendergast", tags: ["Educacion"] }
   ];
 
   const CARDS = [
-        { id: "card_maider", name: "Eliot", img: "images/Eliot.PNG", text: "Carta de apoyo: mirada de sala y ajuste fino." },
+    { id: "card_castri", name: "Winchester", img: "images/Mistra.PNG", text: "Carta de apoyo: coordinacion y ejecucion con criterio." },
+    { id: "card_maider", name: "Eliot", img: "images/Eliot.PNG", text: "Carta de apoyo: mirada de sala y ajuste fino." },
     { id: "card_celia", name: "Camus", img: "images/Camus.PNG", text: "Carta de apoyo: resuelve operativa con rapidez." },
     { id: "card_lorena", name: "Jane", img: "images/Jane.PNG", text: "Carta de apoyo: mejora presentacion, orden y estetica." },
     { id: "card_alba", name: "Lisa", img: "images/Lisa.PNG", text: "Carta de apoyo: ejecucion rapida y organizada." },
@@ -65,7 +66,6 @@ document.addEventListener("DOMContentLoaded", () => {
   ];
 
   const RECRUITABLE_CARDS = [
-    { id: "card_castri", charId: "c1", name: "Albert", img: "images/Mistra.PNG", text: "Carta de apoyo: coordinacion y ejecucion con criterio." },
     { id: "card_friday", charId: "c4", name: "Friday", img: "images/Friday.PNG", text: "Carta de apoyo: programacion precisa y resolutiva." },
     { id: "card_risko", charId: "c5", name: "Risko", img: "images/Risko.png", text: "Carta de apoyo: depura problemas tecnicos con calma." },
     { id: "card_pendergast", charId: "c6", name: "Pendergast", img: "images/Pendergast.PNG", text: "Carta de apoyo: dinamiza equipos y formacion." }
@@ -320,25 +320,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (recruitingInProgress) return;
 
     const locked = RECRUITABLE_CHARACTERS.filter((ch) => !unlockedRecruitCharIds.has(ch.id));
-    const albertLocked = locked.some((ch) => ch.id === "c1");
-
-    const drawCandidate = () => {
-      if (!locked.length) {
-        return RECRUITABLE_CHARACTERS[randInt(0, RECRUITABLE_CHARACTERS.length - 1)];
-      }
-
-      const nonAlbertLocked = locked.filter((ch) => ch.id !== "c1");
-      if (albertLocked && Math.random() < 0.1) {
-        return locked.find((ch) => ch.id === "c1") || nonAlbertLocked[0];
-      }
-
-      if (nonAlbertLocked.length) {
-        return nonAlbertLocked[randInt(0, nonAlbertLocked.length - 1)];
-      }
-
-      const fallbackPool = RECRUITABLE_CHARACTERS.filter((ch) => ch.id !== "c1");
-      return fallbackPool[randInt(0, fallbackPool.length - 1)];
-    };
+    const pool = locked.length ? locked : RECRUITABLE_CHARACTERS;
 
     recruitingInProgress = true;
     recruitPackBtn.classList.add("spinning");
@@ -346,12 +328,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let tick = 0;
     const rollTimer = setInterval(() => {
-      const candidate = drawCandidate();
+      const candidate = pool[randInt(0, pool.length - 1)];
       recruitResultText.textContent = `Girando ruleta... ${candidate.name}`;
       tick += 1;
       if (tick >= 16) {
         clearInterval(rollTimer);
-        const winner = drawCandidate();
+        const winner = pool[randInt(0, pool.length - 1)];
         const awardingNew = locked.some((ch) => ch.id === winner.id);
 
         if (awardingNew) {
@@ -615,6 +597,7 @@ document.addEventListener("DOMContentLoaded", () => {
       btn.innerHTML = `
         <img src="${cardData.img}" alt="${cardData.name}" />
         <div class="team-card-name">
+          <span class="team-card-title">${cardData.name}</span>
           <span class="pill">${selectedTeamCardIds.has(cardData.id) ? "Elegido" : "Elegir"}</span>
         </div>
       `;
