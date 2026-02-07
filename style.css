@@ -87,6 +87,7 @@ img{ max-width:100%; height:auto; }
   text-shadow:
     0 8px 0 rgba(0,0,0,.25),
     0 18px 38px rgba(0,0,0,.45);
+  display:none;
 }
 
 .intro-logo{
@@ -129,8 +130,8 @@ img{ max-width:100%; height:auto; }
   background: transparent;
   cursor:pointer;
   padding: 0;
-  width: min(380px, 68vw);
-  min-height: 120px;
+  width: min(520px, 86vw);
+  min-height: 170px;
   position: relative;
   display:flex;
   align-items:center;
@@ -909,7 +910,7 @@ img{ max-width:100%; height:auto; }
   .intro-title{ font-size: clamp(40px, 9vw, 70px); }
   .intro-actions{ gap: 8px; width: min(460px, 100%); }
   .intro-nav-btn{ width: 46px; height: 46px; font-size: 30px; }
-  .intro-image-btn{ width: min(290px, 72vw); }
+  .intro-image-btn{ width: min(360px, 82vw); min-height: 140px; }
 
   .grid{ grid-template-columns: 1fr; }
   .buster-img{ width: 190px; }

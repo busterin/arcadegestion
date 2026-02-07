@@ -1765,9 +1765,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener("click", (e) => {
     const target = e.target;
     if (!(target instanceof Element)) return;
-    if (target.id === "introPrevBtn") prevIntroMenuOption();
-    if (target.id === "introNextBtn") nextIntroMenuOption();
-    if (target.id === "introMenuBtn" || target.id === "introMenuImg" || target.id === "introMenuFallback") activateIntroMenuOption();
+    if (target.id === "introMenuImg" || target.id === "introMenuFallback") activateIntroMenuOption();
     if (target.id === "recruitPackBtn") recruitRandomCharacter();
     if (target.id === "recruitBackBtn") setIntroVisible();
     if (target.id === "userBackBtn") setIntroVisible();
