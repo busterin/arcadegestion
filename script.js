@@ -77,10 +77,11 @@ document.addEventListener("DOMContentLoaded", () => {
   ].sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
 
   const introScreen = document.getElementById("introScreen");
-  const introStartBtn = document.getElementById("introStartBtn");
-  const introVersusBtn = document.getElementById("introVersusBtn");
-  const introRecruitBtn = document.getElementById("introRecruitBtn");
-  const introUserBtn = document.getElementById("introUserBtn");
+  const introPrevBtn = document.getElementById("introPrevBtn");
+  const introNextBtn = document.getElementById("introNextBtn");
+  const introMenuBtn = document.getElementById("introMenuBtn");
+  const introMenuImg = document.getElementById("introMenuImg");
+  const introMenuFallback = document.getElementById("introMenuFallback");
 
   const recruitScreen = document.getElementById("recruitScreen");
   const recruitPackBtn = document.getElementById("recruitPackBtn");
@@ -191,6 +192,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let availableCards = [];
 
   let avatarIndex = 0;
+  let introMenuIndex = 0;
   let specialUsed = false;
   let specialArmed = false;
   let recruitingInProgress = false;
@@ -216,6 +218,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
   const rand = (min, max) => Math.random() * (max - min) + min;
   const randInt = (min, max) => Math.floor(rand(min, max + 1));
+  const INTRO_MENU_OPTIONS = [
+    { key: "arcade", label: "ARCADE", img: "images/arcade.png" },
+    { key: "versus", label: "VERSUS", img: "images/versus.png" },
+    { key: "reclutar", label: "RECLUTAR", img: "images/reclutar.png" },
+    { key: "cuenta", label: "CUENTA", img: "images/cuenta.png" }
+  ];
 
   function loadUnlockedRecruitCharIds() {
     try {
@@ -470,12 +478,53 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function setIntroVisible() {
+    introMenuIndex = 0;
+    renderIntroMenu(0);
     introScreen.classList.remove("hidden");
     recruitScreen?.classList.add("hidden");
     userScreen?.classList.add("hidden");
     startScreen.classList.add("hidden");
     teamScreen.classList.add("hidden");
     gameRoot.classList.add("hidden");
+  }
+
+  function renderIntroMenu(direction = 0) {
+    const item = INTRO_MENU_OPTIONS[introMenuIndex];
+    if (!item) return;
+    if (introMenuImg) {
+      introMenuBtn?.classList.remove("no-image");
+      introMenuImg.onerror = () => introMenuBtn?.classList.add("no-image");
+      introMenuImg.onload = () => introMenuBtn?.classList.remove("no-image");
+      introMenuImg.src = item.img;
+      introMenuImg.alt = item.label;
+      if (direction !== 0) {
+        const dx = direction > 0 ? 28 : -28;
+        introMenuImg.animate(
+          [{ transform: `translateX(${dx}px)`, opacity: .2 }, { transform: "translateX(0px)", opacity: 1 }],
+          { duration: 240, easing: "cubic-bezier(.2,.8,.2,1)" }
+        );
+      }
+    }
+    if (introMenuFallback) introMenuFallback.textContent = item.label;
+  }
+
+  function prevIntroMenuOption() {
+    introMenuIndex = (introMenuIndex - 1 + INTRO_MENU_OPTIONS.length) % INTRO_MENU_OPTIONS.length;
+    renderIntroMenu(-1);
+  }
+
+  function nextIntroMenuOption() {
+    introMenuIndex = (introMenuIndex + 1) % INTRO_MENU_OPTIONS.length;
+    renderIntroMenu(1);
+  }
+
+  function activateIntroMenuOption() {
+    const current = INTRO_MENU_OPTIONS[introMenuIndex];
+    if (!current) return;
+    if (current.key === "arcade") goToStartScreen("arcade");
+    if (current.key === "versus") goToStartScreen("versus");
+    if (current.key === "reclutar") goToRecruitScreen();
+    if (current.key === "cuenta") goToUserScreen();
   }
 
   function goToStartScreen(mode) {
@@ -1704,10 +1753,9 @@ document.addEventListener("DOMContentLoaded", () => {
     startGame();
   }
 
-  introStartBtn?.addEventListener("click", () => goToStartScreen("arcade"));
-  introVersusBtn?.addEventListener("click", () => goToStartScreen("versus"));
-  introRecruitBtn?.addEventListener("click", goToRecruitScreen);
-  introUserBtn?.addEventListener("click", goToUserScreen);
+  introPrevBtn?.addEventListener("click", prevIntroMenuOption);
+  introNextBtn?.addEventListener("click", nextIntroMenuOption);
+  introMenuBtn?.addEventListener("click", activateIntroMenuOption);
 
   recruitPackBtn?.addEventListener("click", recruitRandomCharacter);
   recruitBackBtn?.addEventListener("click", setIntroVisible);
@@ -1717,8 +1765,9 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener("click", (e) => {
     const target = e.target;
     if (!(target instanceof Element)) return;
-    if (target.id === "introRecruitBtn") goToRecruitScreen();
-    if (target.id === "introUserBtn") goToUserScreen();
+    if (target.id === "introPrevBtn") prevIntroMenuOption();
+    if (target.id === "introNextBtn") nextIntroMenuOption();
+    if (target.id === "introMenuBtn" || target.id === "introMenuImg" || target.id === "introMenuFallback") activateIntroMenuOption();
     if (target.id === "recruitPackBtn") recruitRandomCharacter();
     if (target.id === "recruitBackBtn") setIntroVisible();
     if (target.id === "userBackBtn") setIntroVisible();
@@ -1729,7 +1778,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.addEventListener("keydown", (e) => {
     if (!introScreen.classList.contains("hidden")) {
-      if (e.key === "Enter") goToStartScreen("arcade");
+      if (e.key === "ArrowLeft") prevIntroMenuOption();
+      if (e.key === "ArrowRight") nextIntroMenuOption();
+      if (e.key === "Enter") activateIntroMenuOption();
       return;
     }
 
@@ -1810,6 +1861,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   renderAvatarCarousel(0);
+  renderIntroMenu(0);
   const savedProfilePhoto = loadUserProfilePhoto();
   if (savedProfilePhoto) setUserProfilePhoto(savedProfilePhoto);
   renderRecruitUnlockedState();
