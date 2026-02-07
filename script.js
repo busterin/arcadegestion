@@ -279,7 +279,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!recruitReveal || !recruitRevealImg || !recruitRevealName || !name) return;
     const card = RECRUITABLE_CARDS.find((c) => c.name === name);
     if (!card) return;
-    recruitRevealImg.src = card.img;
+    const isRisko = card.name === "Risko";
+    recruitReveal.classList.toggle("is-risko", isRisko);
+    recruitRevealImg.src = isRisko ? "images/Risko2.png" : card.img;
     recruitRevealImg.alt = card.name;
     recruitRevealName.textContent = card.name;
     recruitReveal.classList.remove("hidden");

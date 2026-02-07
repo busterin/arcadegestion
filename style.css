@@ -266,6 +266,13 @@ img{ max-width:100%; height:auto; }
   text-align: center;
 }
 
+.recruit-reveal.is-risko{
+  width: min(340px, 88vw);
+}
+.recruit-reveal.is-risko .recruit-reveal-img{
+  height: 290px;
+}
+
 /* ---------- USUARIO ---------- */
 .user-card{
   width: min(760px, 100%);
