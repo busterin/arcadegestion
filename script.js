@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
   ];
 
   const CARDS = [
-    { id: "card_castri", name: "Winchester", img: "images/Mistra.PNG", text: "Carta de apoyo: coordinacion y ejecucion con criterio." },
+    { id: "card_castri", name: "Winchester", img: "images/Winchester.PNG", text: "Carta de apoyo: coordinacion y ejecucion con criterio." },
     { id: "card_maider", name: "Eliot", img: "images/Eliot.PNG", text: "Carta de apoyo: mirada de sala y ajuste fino." },
     { id: "card_celia", name: "Camus", img: "images/Camus.PNG", text: "Carta de apoyo: resuelve operativa con rapidez." },
     { id: "card_lorena", name: "Jane", img: "images/Jane.PNG", text: "Carta de apoyo: mejora presentacion, orden y estetica." },
