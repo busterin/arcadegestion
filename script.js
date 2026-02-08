@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const RECRUIT_STORAGE_KEY = "arcadegestion_recruits_v1";
   const RECRUIT_LAST_STORAGE_KEY = "arcadegestion_last_recruit_v1";
   const USER_PROFILE_AVATAR_KEY = "arcadegestion_user_profile_avatar_v1";
-  const DEFAULT_PROFILE_AVATAR_SRC = "images/Risko2.png";
+  const DEFAULT_PROFILE_AVATAR_SRC = "images/Evelyn.PNG";
 
   const MISSIONS = [
     { id: "m1", title: "Taller Expres", internalTag: "Educacion", img: "images/mision.png", text: "Hay un grupo listo para empezar y falta ajustar la dinamica. Envia a alguien que domine actividades educativas y manejo de tiempos." },
@@ -97,6 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const userScreen = document.getElementById("userScreen");
   const userProfileImg = document.getElementById("userProfileImg");
+  const userAvatarToggleBtn = document.getElementById("userAvatarToggleBtn");
   const userAvatarPicker = document.getElementById("userAvatarPicker");
   const userMainGrid = document.getElementById("userMainGrid");
   const userSecondaryGrid = document.getElementById("userSecondaryGrid");
@@ -448,9 +449,18 @@ document.addEventListener("DOMContentLoaded", () => {
         setUserProfileAvatar(opt.src);
         persistUserProfileAvatar(opt.src);
         renderUserAvatarPicker();
+        userAvatarPicker?.classList.add("hidden");
+        if (userAvatarToggleBtn) userAvatarToggleBtn.textContent = "Elegir avatar";
       });
       userAvatarPicker.appendChild(btn);
     });
+  }
+
+  function toggleUserAvatarPicker() {
+    if (!userAvatarPicker) return;
+    const willShow = userAvatarPicker.classList.contains("hidden");
+    userAvatarPicker.classList.toggle("hidden");
+    if (userAvatarToggleBtn) userAvatarToggleBtn.textContent = willShow ? "Ocultar avatares" : "Elegir avatar";
   }
 
   function renderUserCollection() {
@@ -488,6 +498,8 @@ document.addEventListener("DOMContentLoaded", () => {
     teamScreen.classList.add("hidden");
     gameRoot.classList.add("hidden");
     userScreen.classList.remove("hidden");
+    userAvatarPicker?.classList.add("hidden");
+    if (userAvatarToggleBtn) userAvatarToggleBtn.textContent = "Elegir avatar";
     renderUserAvatarPicker();
     renderUserCollection();
   }
@@ -1823,6 +1835,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   recruitPackBtn?.addEventListener("click", recruitRandomCharacter);
   recruitBackBtn?.addEventListener("click", setIntroVisible);
+  userAvatarToggleBtn?.addEventListener("click", toggleUserAvatarPicker);
   userBackBtn?.addEventListener("click", setIntroVisible);
 
   document.addEventListener("click", (e) => {

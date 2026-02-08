@@ -358,8 +358,16 @@ img{ max-width:100%; height:auto; }
   width: fit-content;
 }
 
-.user-avatar-picker{
+.user-avatar-dropdown{
   margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.user-avatar-picker{
+  margin-top: 0;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(54px, 54px));
   gap: 8px;
