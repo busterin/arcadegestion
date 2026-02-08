@@ -8,13 +8,15 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("orientationchange", setAppHeightVar);
 
   const GAME_DURATION_MS = 5 * 60 * 1000;
-  const MAX_ACTIVE_POINTS = 10;
+  const MAX_ACTIVE_POINTS = 12;
   const MISSION_LIFETIME_MS = 2 * 60 * 1000;
-  const EXECUTION_TIME_MS = 30 * 1000;
+  const EXECUTION_TIME_MS = 10 * 1000;
   const SPAWN_MIN_DELAY_MS = 900;
   const SPAWN_MAX_DELAY_MS = 3800;
   const SCORE_WIN = 1;
   const SCORE_LOSE = 0;
+
+  const ARCADE_WIN_TARGET = 8;
 
   const VERSUS_WIN_TARGET = 8;
   const VERSUS_WS_PATH = "/versus";
@@ -23,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const RECRUIT_LAST_STORAGE_KEY = "arcadegestion_last_recruit_v1";
   const USER_PROFILE_AVATAR_KEY = "arcadegestion_user_profile_avatar_v1";
   const USER_PROFILE_NAME_KEY = "arcadegestion_user_profile_name_v1";
-  const DEFAULT_PROFILE_AVATAR_SRC = "images/Evelyn.PNG";
+  const DEFAULT_PROFILE_AVATAR_SRC = "images/Evelyn2.PNG";
   const DEFAULT_PROFILE_NAME = "Usuario";
 
   const MISSIONS = [
@@ -75,7 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
   ];
 
   const AVATARS = [
-    { key: "evelyn", name: "Evelyn", src: "images/Evelyn.PNG", alt: "Evelyn" },
+    { key: "evelyn", name: "Evelyn", src: "images/Evelyn2.PNG", alt: "Evelyn" },
   ].sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
 
   const introScreen = document.getElementById("introScreen");
@@ -145,6 +147,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const rouletteModal = document.getElementById("rouletteModal");
   const rouletteWheel = document.getElementById("rouletteWheel");
   const rouletteOutcome = document.getElementById("rouletteOutcome");
+  const rouletteSub = document.getElementById("rouletteSub");
   const rouletteOkBtn = document.getElementById("rouletteOkBtn");
 
   const finalModal = document.getElementById("finalModal");
@@ -583,7 +586,7 @@ document.addEventListener("DOMContentLoaded", () => {
       progressEl.textContent = `${localWins} - ${rivalWins}`;
     } else {
       if (hudLabelEl) hudLabelEl.textContent = "Misiones";
-      progressEl.textContent = String(completedMissionIds.size);
+      progressEl.textContent = String(score) + "/" + String(ARCADE_WIN_TARGET);
     }
     rivalTeamBtn?.classList.toggle("hidden", currentMode !== "versus");
   }
@@ -1385,7 +1388,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     gameRunning = true;
 
-    if (currentMode === "arcade") startGameClock();
+    if (currentMode === "arcade") clearInterval(gameClockTimer);
     else clearInterval(gameClockTimer);
 
     startLifeTicker();
@@ -1489,7 +1492,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function failMission(missionId) {
     if (completedMissionIds.has(missionId)) return;
 
-    completedMissionIds.add(missionId);
+    if (currentMode === "versus") completedMissionIds.add(missionId);
     setScore(SCORE_LOSE);
     releaseCharsForMission(missionId);
     removePoint(missionId);
@@ -1506,7 +1509,13 @@ document.addEventListener("DOMContentLoaded", () => {
     releaseCharsForMission(missionId);
     removePoint(missionId);
 
-    if (currentMode === "versus") localWins += 1;
+    if (currentMode === "versus") {
+      localWins += 1;
+    } else if (score >= ARCADE_WIN_TARGET) {
+      finishArcadeVictory();
+      return;
+    }
+
     updateHud();
 
     notifyVersusMissionResult(missionId, true);
@@ -1684,14 +1693,16 @@ document.addEventListener("DOMContentLoaded", () => {
     rouletteOkBtn.disabled = true;
 
     const greenPct = clamp(chance, 0.01, 1) * 100;
-    rouletteWheel.style.background = `conic-gradient(from 0deg, rgba(46,229,157,.85) 0 ${greenPct}%, rgba(255,59,59,.85) ${greenPct}% 100%)`;
+    if (rouletteSub) rouletteSub.textContent = "Probabilidad de éxito: " + Math.round(greenPct) + "%";
+    rouletteWheel.style.background = "conic-gradient(from 0deg, rgba(46,229,157,.85) 0 " + greenPct + "%, rgba(255,59,59,.85) " + greenPct + "% 100%)";
+    rouletteWheel.style.transform = "rotate(0deg)";
 
-    const turns = randInt(4, 7);
+    const turns = randInt(5, 8);
     const finalDeg = turns * 360 + randInt(0, 359);
 
     rouletteWheel.animate(
-      [{ transform: "rotate(0deg)" }, { transform: `rotate(${finalDeg}deg)` }],
-      { duration: 1400, easing: "cubic-bezier(.2,.8,.2,1)", fill: "forwards" }
+      [{ transform: "rotate(0deg)" }, { transform: "rotate(" + finalDeg + "deg)" }],
+      { duration: 1800, easing: "cubic-bezier(.2,.8,.2,1)", fill: "forwards" }
     );
 
     setTimeout(() => {
@@ -1700,7 +1711,7 @@ document.addEventListener("DOMContentLoaded", () => {
       rouletteOutcome.style.color = win ? "var(--ok)" : "var(--danger)";
       rouletteOkBtn.disabled = false;
       onDone(win);
-    }, 1500);
+    }, 1900);
   }
 
   function openRouletteForMission(missionId) {
@@ -1776,6 +1787,22 @@ document.addEventListener("DOMContentLoaded", () => {
     finalTitleEl.textContent = "Fin de la partida";
     const finalText = finalModal.querySelector(".modal-text");
     if (finalText) finalText.textContent = "¡Tiempo!";
+    finalScoreEl.textContent = String(score);
+    setGlobalPause(true);
+    showModal(finalModal);
+  }
+
+  function finishArcadeVictory() {
+    stopGameLoops();
+
+    hideModal(missionModal);
+    hideModal(rouletteModal);
+    hideModal(cardInfoModal);
+    hideModal(specialModal);
+
+    finalTitleEl.textContent = "Victoria";
+    const finalText = finalModal.querySelector(".modal-text");
+    if (finalText) finalText.textContent = "Has completado 8 misiones con éxito.";
     finalScoreEl.textContent = String(score);
     setGlobalPause(true);
     showModal(finalModal);
