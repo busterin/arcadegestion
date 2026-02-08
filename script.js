@@ -1796,7 +1796,6 @@ document.addEventListener("DOMContentLoaded", () => {
   introMenuBtn?.addEventListener("click", activateIntroMenuOption);
 
   recruitPackBtn?.addEventListener("click", recruitRandomCharacter);
-  recruitOddsBtn?.addEventListener("click", toggleRecruitOdds);
   recruitBackBtn?.addEventListener("click", setIntroVisible);
   userBackBtn?.addEventListener("click", setIntroVisible);
   userPhotoInput?.addEventListener("change", onUserPhotoSelected);

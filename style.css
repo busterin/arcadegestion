@@ -977,9 +977,9 @@ img{ max-width:100%; height:auto; }
   .intro-title{ font-size: clamp(40px, 9vw, 70px); }
   .intro-actions{ gap: 8px; width: min(460px, 100%); }
   .intro-nav-btn{ width: 56px; height: 56px; font-size: 36px; }
-  .intro-image-btn{ width: min(460px, 94vw); min-height: 190px; }
-  .recruit-pack-img{ width: min(360px, 92vw); }
-  .recruit-odds{ width: min(400px, 94vw); }
+  .intro-image-btn{ width: min(360px, 82vw); min-height: 150px; }
+  .recruit-pack-img{ width: min(280px, 78vw); }
+  .recruit-odds{ width: min(320px, 90vw); }
 
   .grid{ grid-template-columns: 1fr; }
   .buster-img{ width: 190px; }
