@@ -70,11 +70,11 @@ img{ max-width:100%; height:auto; }
 }
 
 .intro-main-logo{
-  width: min(620px, 94vw);
-  max-height: 34vh;
+  width: min(280px, 56vw);
+  max-height: 14vh;
   object-fit: contain;
   display:block;
-  filter: drop-shadow(0 18px 30px rgba(0,0,0,.45));
+  filter: drop-shadow(0 12px 22px rgba(0,0,0,.4));
 }
 
 .intro-profile{
@@ -83,7 +83,7 @@ img{ max-width:100%; height:auto; }
   justify-content:flex-start;
   width: min(520px, 86vw);
   gap: 12px;
-  padding: 0;
+  padding: 0 0 0 18px;
   background: transparent;
   border: none;
 }
@@ -433,15 +433,15 @@ img{ max-width:100%; height:auto; }
 .user-avatar-picker{
   margin-top: 0;
   display: grid;
-  grid-template-columns: repeat(6, 62px);
+  grid-template-columns: repeat(4, 64px);
   gap: 10px;
   justify-content: flex-start;
-  width: min(100%, 432px);
+  width: min(100%, 286px);
 }
 
 .avatar-option{
-  width: 62px;
-  height: 62px;
+  width: 64px;
+  height: 64px;
   border-radius: 999px;
   border: 1px solid rgba(255,255,255,.16);
   background: rgba(255,255,255,.06);
@@ -1081,12 +1081,13 @@ img{ max-width:100%; height:auto; }
   .intro-title{ font-size: clamp(40px, 9vw, 70px); }
   .intro-actions{ gap: 8px; width: min(460px, 100%); }
   .intro-main-logo{
-    width: min(360px, 92vw);
-    max-height: 24vh;
+    width: min(220px, 58vw);
+    max-height: 12vh;
   }
   .intro-profile{
     width: min(360px, 82vw);
     justify-content: flex-start;
+    padding-left: 12px;
   }
   .intro-nav-btn{ width: 56px; height: 56px; font-size: 36px; }
   .intro-image-btn{ width: min(360px, 82vw); min-height: 150px; }
