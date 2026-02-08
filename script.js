@@ -22,7 +22,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const RECRUIT_STORAGE_KEY = "arcadegestion_recruits_v1";
   const RECRUIT_LAST_STORAGE_KEY = "arcadegestion_last_recruit_v1";
   const USER_PROFILE_AVATAR_KEY = "arcadegestion_user_profile_avatar_v1";
+  const USER_PROFILE_NAME_KEY = "arcadegestion_user_profile_name_v1";
   const DEFAULT_PROFILE_AVATAR_SRC = "images/Evelyn.PNG";
+  const DEFAULT_PROFILE_NAME = "Usuario";
 
   const MISSIONS = [
     { id: "m1", title: "Taller Expres", internalTag: "Educacion", img: "images/mision.png", text: "Hay un grupo listo para empezar y falta ajustar la dinamica. Envia a alguien que domine actividades educativas y manejo de tiempos." },
@@ -82,6 +84,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const introMenuBtn = document.getElementById("introMenuBtn");
   const introMenuImg = document.getElementById("introMenuImg");
   const introMenuFallback = document.getElementById("introMenuFallback");
+  const introProfileImg = document.getElementById("introProfileImg");
+  const introProfileName = document.getElementById("introProfileName");
 
   const recruitScreen = document.getElementById("recruitScreen");
   const recruitPackBtn = document.getElementById("recruitPackBtn");
@@ -99,6 +103,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const userProfileImg = document.getElementById("userProfileImg");
   const userAvatarToggleBtn = document.getElementById("userAvatarToggleBtn");
   const userAvatarPicker = document.getElementById("userAvatarPicker");
+  const userNameInput = document.getElementById("userNameInput");
   const userMainGrid = document.getElementById("userMainGrid");
   const userSecondaryGrid = document.getElementById("userSecondaryGrid");
   const userBackBtn = document.getElementById("userBackBtn");
@@ -390,6 +395,34 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 160);
   }
 
+  function loadUserProfileName() {
+    try {
+      const raw = window.localStorage?.getItem(USER_PROFILE_NAME_KEY);
+      return raw ? String(raw) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function persistUserProfileName(name) {
+    try {
+      window.localStorage?.setItem(USER_PROFILE_NAME_KEY, name);
+    } catch {
+      // ignore storage errors
+    }
+  }
+
+  function normalizeUserProfileName(name) {
+    const clean = String(name || "").trim();
+    return clean || DEFAULT_PROFILE_NAME;
+  }
+
+  function setUserProfileName(name) {
+    const next = normalizeUserProfileName(name);
+    if (introProfileName) introProfileName.textContent = next;
+    if (userNameInput && userNameInput.value !== next) userNameInput.value = next;
+  }
+
   function loadUserProfileAvatar() {
     try {
       const raw = window.localStorage?.getItem(USER_PROFILE_AVATAR_KEY);
@@ -424,9 +457,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function setUserProfileAvatar(src) {
-    if (!userProfileImg) return;
     const next = src || DEFAULT_PROFILE_AVATAR_SRC;
-    userProfileImg.src = next;
+    if (userProfileImg) userProfileImg.src = next;
+    if (introProfileImg) introProfileImg.src = next;
   }
 
   function renderUserAvatarPicker() {
@@ -500,6 +533,9 @@ document.addEventListener("DOMContentLoaded", () => {
     userScreen.classList.remove("hidden");
     userAvatarPicker?.classList.add("hidden");
     if (userAvatarToggleBtn) userAvatarToggleBtn.textContent = "Elegir avatar";
+    const currentName = normalizeUserProfileName(loadUserProfileName() || DEFAULT_PROFILE_NAME);
+    setUserProfileName(currentName);
+    persistUserProfileName(currentName);
     renderUserAvatarPicker();
     renderUserCollection();
   }
@@ -1836,6 +1872,16 @@ document.addEventListener("DOMContentLoaded", () => {
   recruitPackBtn?.addEventListener("click", recruitRandomCharacter);
   recruitBackBtn?.addEventListener("click", setIntroVisible);
   userAvatarToggleBtn?.addEventListener("click", toggleUserAvatarPicker);
+  userNameInput?.addEventListener("input", () => {
+    const next = normalizeUserProfileName(userNameInput.value);
+    persistUserProfileName(next);
+    setUserProfileName(next);
+  });
+  userNameInput?.addEventListener("blur", () => {
+    const next = normalizeUserProfileName(userNameInput.value);
+    persistUserProfileName(next);
+    setUserProfileName(next);
+  });
   userBackBtn?.addEventListener("click", setIntroVisible);
 
   document.addEventListener("click", (e) => {
@@ -1939,6 +1985,9 @@ document.addEventListener("DOMContentLoaded", () => {
   renderIntroMenu(0);
   renderRecruitUnlockedState();
   setUserProfileAvatar(loadUserProfileAvatar() || DEFAULT_PROFILE_AVATAR_SRC);
+  const initialProfileName = normalizeUserProfileName(loadUserProfileName() || DEFAULT_PROFILE_NAME);
+  setUserProfileName(initialProfileName);
+  persistUserProfileName(initialProfileName);
   updateHud();
   ensureVersusTransport();
 });
