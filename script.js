@@ -63,7 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
     { id: "card_castri", name: "Winchester", img: "images/Winchester.PNG", text: "Carta de apoyo: coordinacion y ejecucion con criterio." },
     { id: "card_maider", name: "Eliot", img: "images/Eliot.PNG", text: "Carta de apoyo: mirada de sala y ajuste fino." },
     { id: "card_celia", name: "Camus", img: "images/Camus.PNG", text: "Carta de apoyo: resuelve operativa con rapidez." },
-    { id: "card_lorena", name: "Jane", img: "images/Jane.PNG", text: "Carta de apoyo: mejora presentacion, orden y estetica." },
+    { id: "card_lorena", name: "Jane", img: "images/Jane.PNG?v=20260209", text: "Carta de apoyo: mejora presentacion, orden y estetica." },
     { id: "card_alba", name: "Lisa", img: "images/Lisa.PNG", text: "Carta de apoyo: ejecucion rapida y organizada." },
     { id: "card_mariam", name: "Willard", img: "images/Willard.PNG", text: "Carta de apoyo: coordina y aterriza lo pendiente." }
   ];
@@ -290,7 +290,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!card) return;
     const isRisko = card.name === "Risko";
     recruitReveal.classList.toggle("is-risko", isRisko);
-    recruitRevealImg.src = isRisko ? "images/Risko2.png" : card.img;
+    recruitRevealImg.src = isRisko ? "images/Risko.png" : card.img;
     recruitRevealImg.alt = card.name;
     recruitRevealName.textContent = card.name;
     recruitReveal.classList.remove("hidden");

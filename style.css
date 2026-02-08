@@ -438,10 +438,12 @@ img{ max-width:100%; height:auto; }
 .user-avatar-picker{
   margin-top: 0;
   display: grid;
-  grid-template-columns: repeat(4, 64px);
+  grid-template-columns: repeat(auto-fit, minmax(64px, 64px));
   gap: 10px;
   justify-content: flex-start;
-  width: min(100%, 286px);
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .avatar-option{
@@ -458,6 +460,8 @@ img{ max-width:100%; height:auto; }
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transform: scale(1.12);
+  transform-origin: center;
 }
 .avatar-option.active{
   border-color: rgba(58,208,255,.9);
