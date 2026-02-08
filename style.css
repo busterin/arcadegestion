@@ -236,6 +236,52 @@ img{ max-width:100%; height:auto; }
   text-align: center;
 }
 
+#recruitScreen .start-title,
+#recruitScreen .start-subtitle,
+#recruitScreen .recruit-result,
+#recruitScreen .recruit-unlocked,
+#recruitScreen .recruit-reveal-name{
+  display: none;
+}
+
+.recruit-odds-wrap{
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.recruit-odds{
+  width: min(360px, 92vw);
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(0,0,0,.28);
+  padding: 10px 12px;
+}
+
+.recruit-odds-list{
+  display: grid;
+  gap: 6px;
+}
+
+.recruit-odds-row{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.recruit-odds-name{
+  font-weight: 800;
+}
+
+.recruit-odds-pct{
+  color: #ffe75a;
+  font-weight: 900;
+}
+
 .recruit-reveal{
   position: absolute;
   left: 50%;
@@ -923,8 +969,10 @@ img{ max-width:100%; height:auto; }
   .intro-logo{ max-height: 38vh; }
   .intro-title{ font-size: clamp(40px, 9vw, 70px); }
   .intro-actions{ gap: 8px; width: min(460px, 100%); }
-  .intro-nav-btn{ width: 46px; height: 46px; font-size: 30px; }
-  .intro-image-btn{ width: min(360px, 82vw); min-height: 140px; }
+  .intro-nav-btn{ width: 56px; height: 56px; font-size: 36px; }
+  .intro-image-btn{ width: min(460px, 94vw); min-height: 190px; }
+  .recruit-pack-img{ width: min(360px, 92vw); }
+  .recruit-odds{ width: min(400px, 94vw); }
 
   .grid{ grid-template-columns: 1fr; }
   .buster-img{ width: 190px; }
@@ -953,7 +1001,7 @@ img{ max-width:100%; height:auto; }
     max-height: calc(100dvh - 28px);
   }
 
-  .teambar-item{ width: 58px; height: 58px; border-radius: 14px; }
+  .teambar-item{ width: 66px; height: 66px; border-radius: 14px; }
   .teambar-img{ border-radius: 14px; }
 }
 

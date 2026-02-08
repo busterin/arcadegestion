@@ -90,6 +90,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const recruitReveal = document.getElementById("recruitReveal");
   const recruitRevealImg = document.getElementById("recruitRevealImg");
   const recruitRevealName = document.getElementById("recruitRevealName");
+  const recruitOddsBtn = document.getElementById("recruitOddsBtn");
+  const recruitOddsPanel = document.getElementById("recruitOddsPanel");
+  const recruitOddsList = document.getElementById("recruitOddsList");
 
   const userScreen = document.getElementById("userScreen");
   const userProfileImg = document.getElementById("userProfileImg");
@@ -303,6 +306,31 @@ document.addEventListener("DOMContentLoaded", () => {
       : "Desbloqueados: ninguno";
   }
 
+  function renderRecruitOdds() {
+    if (!recruitOddsList) return;
+
+    const locked = RECRUITABLE_CHARACTERS.filter((ch) => !unlockedRecruitCharIds.has(ch.id));
+    const pool = locked.length ? locked : RECRUITABLE_CHARACTERS;
+
+    recruitOddsList.innerHTML = "";
+    RECRUITABLE_CHARACTERS.forEach((ch) => {
+      const pct = pool.some((p) => p.id === ch.id) ? (100 / pool.length) : 0;
+      const row = document.createElement("div");
+      row.className = "recruit-odds-row";
+      row.innerHTML = `
+        <span class="recruit-odds-name">${ch.name}</span>
+        <span class="recruit-odds-pct">${pct.toFixed(1)}%</span>
+      `;
+      recruitOddsList.appendChild(row);
+    });
+  }
+
+  function toggleRecruitOdds() {
+    if (!recruitOddsPanel) return;
+    recruitOddsPanel.classList.toggle("hidden");
+    if (!recruitOddsPanel.classList.contains("hidden")) renderRecruitOdds();
+  }
+
   function goToRecruitScreen() {
     if (!recruitScreen) return;
     introScreen.classList.add("hidden");
@@ -312,7 +340,9 @@ document.addEventListener("DOMContentLoaded", () => {
     gameRoot.classList.add("hidden");
     recruitScreen.classList.remove("hidden");
     recruitReveal?.classList.add("hidden");
+    recruitOddsPanel?.classList.add("hidden");
     renderRecruitUnlockedState();
+    renderRecruitOdds();
   }
 
   function recruitRandomCharacter() {
@@ -343,6 +373,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         persistLastRecruitedName(winner.name);
         renderRecruitUnlockedState();
+        renderRecruitOdds();
         renderUserCollection();
         recruitResultText.textContent = awardingNew
           ? `Te ha tocado: ${winner.name}. Ya esta disponible en Arcade y Versus.`
@@ -1763,6 +1794,7 @@ document.addEventListener("DOMContentLoaded", () => {
   introMenuBtn?.addEventListener("click", activateIntroMenuOption);
 
   recruitPackBtn?.addEventListener("click", recruitRandomCharacter);
+  recruitOddsBtn?.addEventListener("click", toggleRecruitOdds);
   recruitBackBtn?.addEventListener("click", setIntroVisible);
   userBackBtn?.addEventListener("click", setIntroVisible);
   userPhotoInput?.addEventListener("change", onUserPhotoSelected);
@@ -1772,6 +1804,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!(target instanceof Element)) return;
     if (target.id === "introMenuImg" || target.id === "introMenuFallback") activateIntroMenuOption();
     if (target.id === "recruitPackBtn") recruitRandomCharacter();
+    if (target.id === "recruitOddsBtn") toggleRecruitOdds();
     if (target.id === "recruitBackBtn") setIntroVisible();
     if (target.id === "userBackBtn") setIntroVisible();
   });
