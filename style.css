@@ -112,6 +112,11 @@ img{ max-width:100%; height:auto; }
 .intro-profile-name{
   font-size: 14px;
   font-weight: 900;
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(0,0,0,.34);
+  border: 1px solid rgba(255,255,255,.16);
 }
 
 .intro-title{
@@ -1074,6 +1079,16 @@ img{ max-width:100%; height:auto; }
 
 /* ---------- RESPONSIVE ---------- */
 @media (max-width: 520px){
+  .intro{
+    align-items: flex-start;
+    padding: 8px 12px 12px;
+  }
+
+  .intro-content{
+    justify-content: flex-start;
+    gap: 10px;
+  }
+
   .topbar{ flex-direction:column; align-items:stretch; }
   .hud{ justify-content:space-between; }
 
