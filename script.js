@@ -415,7 +415,7 @@ document.addEventListener("DOMContentLoaded", () => {
     userSecondaryGrid.innerHTML = "";
 
     const mainCharacters = [...AVATARS].sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
-    const secondaryCards = getSelectableCards().sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
+    const secondaryCards = [...CARDS, ...RECRUITABLE_CARDS].sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
 
     mainCharacters.forEach((ch) => {
       const item = document.createElement("div");
@@ -428,8 +428,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     secondaryCards.forEach((card) => {
+      const isRecruitable = RECRUITABLE_CARDS.some((rc) => rc.id === card.id);
+      const isUnlocked = !isRecruitable || unlockedRecruitCharIds.has(card.charId);
       const item = document.createElement("div");
-      item.className = "user-char";
+      item.className = `user-char${isUnlocked ? "" : " locked"}`;
       item.innerHTML = `
         <img src="${card.img}" alt="${card.name}" />
         <div class="user-char-name">${card.name}</div>

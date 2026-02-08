@@ -401,6 +401,12 @@ img{ max-width:100%; height:auto; }
   font-weight: 800;
 }
 
+.user-char.locked{
+  filter: grayscale(1);
+  opacity: .45;
+}
+
+
 /* ---------- START SCREEN ---------- */
 .start{
   height: 100%;
@@ -835,7 +841,8 @@ img{ max-width:100%; height:auto; }
 .team-grid{
   margin-top: 12px;
   display:grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(150px, 150px));
+  justify-content: center;
   gap: 10px;
 }
 
@@ -989,8 +996,6 @@ img{ max-width:100%; height:auto; }
   .carousel-center{ min-height: 240px; }
 
   .stage{ padding-bottom: 10px; }
-
-  .team-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .rival-team-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .user-grid-main{ grid-template-columns: 1fr; }
   .user-grid-secondary{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
