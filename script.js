@@ -21,7 +21,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const DEFAULT_VERSUS_WS_URL = "wss://arcadegestion.onrender.com/versus";
   const RECRUIT_STORAGE_KEY = "arcadegestion_recruits_v1";
   const RECRUIT_LAST_STORAGE_KEY = "arcadegestion_last_recruit_v1";
-  const USER_PROFILE_PHOTO_KEY = "arcadegestion_user_profile_photo_v1";
+  const USER_PROFILE_AVATAR_KEY = "arcadegestion_user_profile_avatar_v1";
+  const DEFAULT_PROFILE_AVATAR_SRC = "images/Risko2.png";
 
   const MISSIONS = [
     { id: "m1", title: "Taller Expres", internalTag: "Educacion", img: "images/mision.png", text: "Hay un grupo listo para empezar y falta ajustar la dinamica. Envia a alguien que domine actividades educativas y manejo de tiempos." },
@@ -96,7 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const userScreen = document.getElementById("userScreen");
   const userProfileImg = document.getElementById("userProfileImg");
-  const userPhotoInput = document.getElementById("userPhotoInput");
+  const userAvatarPicker = document.getElementById("userAvatarPicker");
   const userMainGrid = document.getElementById("userMainGrid");
   const userSecondaryGrid = document.getElementById("userSecondaryGrid");
   const userBackBtn = document.getElementById("userBackBtn");
@@ -374,6 +375,7 @@ document.addEventListener("DOMContentLoaded", () => {
         persistLastRecruitedName(winner.name);
         renderRecruitUnlockedState();
         renderRecruitOdds();
+        renderUserAvatarPicker();
         renderUserCollection();
         recruitResultText.textContent = awardingNew
           ? `Te ha tocado: ${winner.name}. Ya esta disponible en Arcade y Versus.`
@@ -387,26 +389,68 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 160);
   }
 
-  function loadUserProfilePhoto() {
+  function loadUserProfileAvatar() {
     try {
-      const raw = window.localStorage?.getItem(USER_PROFILE_PHOTO_KEY);
+      const raw = window.localStorage?.getItem(USER_PROFILE_AVATAR_KEY);
       return raw ? String(raw) : null;
     } catch {
       return null;
     }
   }
 
-  function persistUserProfilePhoto(dataUrl) {
+  function persistUserProfileAvatar(src) {
     try {
-      window.localStorage?.setItem(USER_PROFILE_PHOTO_KEY, dataUrl);
+      window.localStorage?.setItem(USER_PROFILE_AVATAR_KEY, src);
     } catch {
       // ignore storage errors
     }
   }
 
-  function setUserProfilePhoto(dataUrl) {
-    if (!userProfileImg || !dataUrl) return;
-    userProfileImg.src = dataUrl;
+  function getUnlockedProfileAvatarOptions() {
+    const opts = [];
+    const pushUnique = (src, name) => {
+      if (!src || opts.some((o) => o.src === src)) return;
+      opts.push({ src, name });
+    };
+
+    AVATARS.forEach((a) => pushUnique(a.src, a.name));
+    CARDS.forEach((c) => pushUnique(c.img, c.name));
+    RECRUITABLE_CARDS
+      .filter((c) => unlockedRecruitCharIds.has(c.charId))
+      .forEach((c) => pushUnique(c.img, c.name));
+
+    return opts;
+  }
+
+  function setUserProfileAvatar(src) {
+    if (!userProfileImg) return;
+    const next = src || DEFAULT_PROFILE_AVATAR_SRC;
+    userProfileImg.src = next;
+  }
+
+  function renderUserAvatarPicker() {
+    if (!userAvatarPicker) return;
+    userAvatarPicker.innerHTML = "";
+
+    const options = getUnlockedProfileAvatarOptions();
+    const stored = loadUserProfileAvatar() || DEFAULT_PROFILE_AVATAR_SRC;
+    const active = options.some((o) => o.src === stored) ? stored : DEFAULT_PROFILE_AVATAR_SRC;
+
+    setUserProfileAvatar(active);
+    persistUserProfileAvatar(active);
+
+    options.forEach((opt) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "avatar-option" + (active === opt.src ? " active" : "");
+      btn.innerHTML = "<img src=\"" + opt.src + "\" alt=\"" + opt.name + "\" />";
+      btn.addEventListener("click", () => {
+        setUserProfileAvatar(opt.src);
+        persistUserProfileAvatar(opt.src);
+        renderUserAvatarPicker();
+      });
+      userAvatarPicker.appendChild(btn);
+    });
   }
 
   function renderUserCollection() {
@@ -420,10 +464,8 @@ document.addEventListener("DOMContentLoaded", () => {
     mainCharacters.forEach((ch) => {
       const item = document.createElement("div");
       item.className = "user-char";
-      item.innerHTML = `
-        <img src="${ch.src}" alt="${ch.name}" />
-        <div class="user-char-name">${ch.name}</div>
-      `;
+      item.innerHTML = "<img src=\"" + ch.src + "\" alt=\"" + ch.name + "\" />" +
+        "<div class=\"user-char-name\">" + ch.name + "</div>";
       userMainGrid.appendChild(item);
     });
 
@@ -431,11 +473,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const isRecruitable = RECRUITABLE_CARDS.some((rc) => rc.id === card.id);
       const isUnlocked = !isRecruitable || unlockedRecruitCharIds.has(card.charId);
       const item = document.createElement("div");
-      item.className = `user-char${isUnlocked ? "" : " locked"}`;
-      item.innerHTML = `
-        <img src="${card.img}" alt="${card.name}" />
-        <div class="user-char-name">${card.name}</div>
-      `;
+      item.className = "user-char" + (isUnlocked ? "" : " locked");
+      item.innerHTML = "<img src=\"" + card.img + "\" alt=\"" + card.name + "\" />" +
+        "<div class=\"user-char-name\">" + card.name + "</div>";
       userSecondaryGrid.appendChild(item);
     });
   }
@@ -448,22 +488,8 @@ document.addEventListener("DOMContentLoaded", () => {
     teamScreen.classList.add("hidden");
     gameRoot.classList.add("hidden");
     userScreen.classList.remove("hidden");
+    renderUserAvatarPicker();
     renderUserCollection();
-  }
-
-  function onUserPhotoSelected(event) {
-    const file = event?.target?.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith("image/")) return;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = typeof reader.result === "string" ? reader.result : null;
-      if (!dataUrl) return;
-      setUserProfilePhoto(dataUrl);
-      persistUserProfilePhoto(dataUrl);
-    };
-    reader.readAsDataURL(file);
   }
 
   function showModal(el) {
@@ -1798,7 +1824,6 @@ document.addEventListener("DOMContentLoaded", () => {
   recruitPackBtn?.addEventListener("click", recruitRandomCharacter);
   recruitBackBtn?.addEventListener("click", setIntroVisible);
   userBackBtn?.addEventListener("click", setIntroVisible);
-  userPhotoInput?.addEventListener("change", onUserPhotoSelected);
 
   document.addEventListener("click", (e) => {
     const target = e.target;
@@ -1899,9 +1924,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   renderAvatarCarousel(0);
   renderIntroMenu(0);
-  const savedProfilePhoto = loadUserProfilePhoto();
-  if (savedProfilePhoto) setUserProfilePhoto(savedProfilePhoto);
   renderRecruitUnlockedState();
+  setUserProfileAvatar(loadUserProfileAvatar() || DEFAULT_PROFILE_AVATAR_SRC);
   updateHud();
   ensureVersusTransport();
 });
