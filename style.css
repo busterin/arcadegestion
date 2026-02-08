@@ -460,7 +460,7 @@ img{ max-width:100%; height:auto; }
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transform: scale(1.22);
+  transform: scale(1.34);
   transform-origin: center;
 }
 .avatar-option.active{
@@ -895,6 +895,54 @@ img{ max-width:100%; height:auto; }
 
 .modal-actions{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
 .modal-actions.end{ justify-content:flex-end; }
+
+.roulette-card{
+  width:min(460px, 100%);
+}
+
+.roulette-wrap{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap: 12px;
+}
+
+.roulette{
+  position:relative;
+  width: 220px;
+  height: 220px;
+  display:grid;
+  place-items:center;
+}
+
+.roulette-pointer{
+  position:absolute;
+  top:-14px;
+  left:50%;
+  transform: translateX(-50%);
+  z-index:2;
+  font-size: 24px;
+  line-height:1;
+  color: #ffeaa7;
+  text-shadow: 0 2px 6px rgba(0,0,0,.45);
+}
+
+.roulette-wheel{
+  width:220px;
+  height:220px;
+  border-radius:50%;
+  background: url("images/ruleta.svg") center/cover no-repeat;
+  border: 3px solid rgba(255,255,255,.22);
+  box-shadow: 0 12px 26px rgba(0,0,0,.35);
+}
+
+.roulette-outcome{
+  min-height: 24px;
+  font-size: 22px;
+  font-weight: 1000;
+  letter-spacing: .2px;
+  text-align:center;
+}
 
 .btn{
   appearance:none;

@@ -1694,7 +1694,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const greenPct = clamp(chance, 0.01, 1) * 100;
     if (rouletteSub) rouletteSub.textContent = "Probabilidad de éxito: " + Math.round(greenPct) + "%";
-    rouletteWheel.style.background = "conic-gradient(from 0deg, rgba(46,229,157,.85) 0 " + greenPct + "%, rgba(255,59,59,.85) " + greenPct + "% 100%)";
+    rouletteWheel.style.boxShadow = "0 0 0 4px rgba(255,255,255,.18), 0 0 24px rgba(46,229,157," + (0.2 + (greenPct / 200)) + ")";
     rouletteWheel.style.transform = "rotate(0deg)";
 
     const turns = randInt(5, 8);
