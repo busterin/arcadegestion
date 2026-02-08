@@ -841,9 +841,8 @@ img{ max-width:100%; height:auto; }
 .team-grid{
   margin-top: 12px;
   display:grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 150px));
-  justify-content: center;
-  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 
 /* ✅ SOLO en selección de equipo permitimos scroll (interno) */
@@ -860,7 +859,9 @@ img{ max-width:100%; height:auto; }
   overflow:auto;
   -webkit-overflow-scrolling: touch;
   padding-right: 6px;
+  align-content: start;
 }
+
 
 .team-card{
   border-radius: 16px;
@@ -877,7 +878,7 @@ img{ max-width:100%; height:auto; }
 
 .team-card img{
   width: 100%;
-  height: 110px;
+  height: 150px;
   object-fit: contain;
   object-position: center;
   display:block;
