@@ -187,6 +187,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const closeSpecialBtn = document.getElementById("closeSpecialBtn");
   const specialCancelBtn = document.getElementById("specialCancelBtn");
   const specialAcceptBtn = document.getElementById("specialAcceptBtn");
+  const tutorialModal = document.getElementById("tutorialModal");
+  const tutorialText = document.getElementById("tutorialText");
+  const tutorialNextBtn = document.getElementById("tutorialNextBtn");
 
   const matchmakingModal = document.getElementById("matchmakingModal");
   const matchmakingText = document.getElementById("matchmakingText");
@@ -233,6 +236,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let unlockedRecruitCharIds = new Set(loadUnlockedRecruitCharIds());
   let currentCardInfoData = null;
   let coins = loadCoins();
+  let tutorialPending = false;
+  let tutorialStep = 0;
 
   const versus = {
     clientId: `p_${Math.random().toString(36).slice(2, 10)}`,
@@ -264,6 +269,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const STORY_LINES = [
     { speaker: "Risko", text: "Prueba", active: "left" },
     { speaker: "Landom", text: "Prueba2", active: "right" }
+  ];
+  const TUTORIAL_STEPS = [
+    "Bienvenido al tutorial. Tu objetivo es completar misiones pulsando los puntos rojos del mapa.",
+    "Al abrir una mision, elige 1 o 2 personajes. Si sus etiquetas coinciden con la mision, sube la probabilidad de exito.",
+    "Tras asignar personajes, el punto pasa a amarillo. Cuando este listo, pulsa el punto para lanzar la ruleta.",
+    "Si cae en verde, ganas la mision. Si cae en rojo, fallas. Completa suficientes misiones para ganar."
   ];
   let storyStep = 0;
 
@@ -675,6 +686,7 @@ document.addEventListener("DOMContentLoaded", () => {
       finalModal.classList.contains("show") ||
       cardInfoModal.classList.contains("show") ||
       specialModal.classList.contains("show") ||
+      tutorialModal.classList.contains("show") ||
       rivalTeamModal.classList.contains("show")
     );
   }
@@ -799,11 +811,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (evelynIdx >= 0) avatarIndex = evelynIdx;
     renderAvatarCarousel(0);
 
-    selectedTeamCardIds = new Set(CARDS.slice(0, 6).map((c) => c.id));
-    if (!commitTeam()) {
+    selectedTeamCardIds = new Set(["card_celia", "card_castri", "card_lorena"]);
+    if (!applyTeamFromCardIds([...selectedTeamCardIds])) {
       goToTeamScreen();
       return;
     }
+    tutorialPending = true;
 
     introScreen.classList.add("hidden");
     storyScreen?.classList.add("hidden");
@@ -918,6 +931,41 @@ document.addEventListener("DOMContentLoaded", () => {
     availableCharacters = allCharacters.filter((ch) => selectedNames.has(ch.name));
 
     return availableCards.length === 6 && availableCharacters.length === 6;
+  }
+
+  function applyTeamFromCardIds(cardIds) {
+    const allCards = [...CARDS, ...RECRUITABLE_CARDS];
+    const allCharacters = [...CHARACTERS, ...RECRUITABLE_CHARACTERS];
+    const selectedCards = cardIds.map((id) => allCards.find((c) => c.id === id)).filter(Boolean);
+    const selectedNames = new Set(selectedCards.map((c) => c.name));
+
+    availableCards = selectedCards;
+    availableCharacters = allCharacters.filter((ch) => selectedNames.has(ch.name));
+    return availableCards.length > 0 && availableCharacters.length > 0;
+  }
+
+  function renderTutorialStep() {
+    const text = TUTORIAL_STEPS[tutorialStep] || TUTORIAL_STEPS[TUTORIAL_STEPS.length - 1];
+    if (tutorialText) tutorialText.textContent = text;
+    if (tutorialNextBtn) tutorialNextBtn.textContent = tutorialStep >= TUTORIAL_STEPS.length - 1 ? "Entendido" : "Siguiente";
+  }
+
+  function startTutorial() {
+    tutorialPending = false;
+    tutorialStep = 0;
+    renderTutorialStep();
+    setGlobalPause(true);
+    showModal(tutorialModal);
+  }
+
+  function nextTutorialStep() {
+    if (tutorialStep < TUTORIAL_STEPS.length - 1) {
+      tutorialStep += 1;
+      renderTutorialStep();
+      return;
+    }
+    hideModal(tutorialModal);
+    if (!isAnyModalOpen()) setGlobalPause(false);
   }
 
   function normalizeTag(tag) {
@@ -1085,7 +1133,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderTeamBar() {
     if (!teamBar) return;
     teamBar.innerHTML = "";
-    if (!Array.isArray(availableCards) || availableCards.length !== 6) return;
+    if (!Array.isArray(availableCards) || availableCards.length < 1) return;
 
     const ordered = [...availableCards].sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
     ordered.forEach((cardData) => {
@@ -1591,6 +1639,7 @@ document.addEventListener("DOMContentLoaded", () => {
       queuedVersusEvents = [];
       queued.forEach((ev) => handleVersusMessage(ev));
     }
+    if (tutorialPending && currentMode === "arcade") startTutorial();
   }
 
   function getRedPointsCount() {
@@ -2090,6 +2139,7 @@ document.addEventListener("DOMContentLoaded", () => {
     hideModal(finalModal);
     hideModal(cardInfoModal);
     hideModal(specialModal);
+    hideModal(tutorialModal);
     hideModal(matchmakingModal);
     hideModal(rivalTeamModal);
 
@@ -2116,6 +2166,8 @@ document.addEventListener("DOMContentLoaded", () => {
     specialUsed = false;
     specialArmed = false;
     setSpecialArmedUI(false);
+    tutorialPending = false;
+    tutorialStep = 0;
 
     if (teamBar) teamBar.innerHTML = "";
     const finalText = finalModal.querySelector(".modal-text");
@@ -2234,6 +2286,7 @@ document.addEventListener("DOMContentLoaded", () => {
   specialCancelBtn.addEventListener("click", cancelSpecial);
   specialAcceptBtn.addEventListener("click", acceptSpecial);
   specialModal.addEventListener("click", (e) => { if (e.target === specialModal) cancelSpecial(); });
+  tutorialNextBtn?.addEventListener("click", nextTutorialStep);
 
   rivalTeamBtn?.addEventListener("click", () => {
     renderRivalTeam();
