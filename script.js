@@ -1844,14 +1844,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function openCardInfo(cardData) {
     setGlobalPause(true);
-    const isCamus = String(cardData?.name || "").trim().toLowerCase() === "camus";
+    const cardName = String(cardData?.name || "").trim().toLowerCase();
+    const SPECIAL_CARD_INFO = {
+      camus: {
+        infoText: "Camus era mago de la corte y uno de los hombres de maxima confianza de su majestad, pero, cuando Orion se hizo con el trono, fue declarado traidor a la corona por ser fiel al anterior rey.\n\nUno de los mejores magos de todo el reino, condenado al exilio, ahora se gana la vida como cazafortunas.",
+        skillsText: "Sin habilidades actualmente"
+      },
+      evelyn: {
+        infoText: "Evelyn perdio a sus padres a muy temprana edad y se vio obligada a vagar por las calles con la unica compania de su hermano mayor, del que acabo distanciandose con el tiempo.\nActualmente lidera un grupo de mercenarios, fundado por ella misma, conocido con el nombre de Atalaya, que hacen cualquier tipo de trabajo sucio a cambio de dinero, o al menos eso dicen.",
+        skillsText: "Pulsa sobre una mision y la completa automaticamente (Durante el combate, pulsa sobre Evelyn para activar su habilidad)."
+      },
+      landom: {
+        infoText: "Ya desde muy pequeno se movia por ambientes oscuros, destacando y haciendose famoso por su increible habilidad con todo tipo de armas blancas. Su situacion no mejoro cuando perdio a sus padres ya que, aunque no tenia mucha relacion con ellos, le dejaron una hermana pequena a la que cuidar. Intentando que no siguiera sus pasos, se distancio de ella pero no sirvio de mucho... Experto en liderar con exito todo tipo de peligrosas misiones, a cambio de una buena suma, no teme a nada ni nadie.",
+        skillsText: "Pulsa sobre una mision y la completa automaticamente (Durante el combate, pulsa sobre Landom para activar su habilidad)."
+      }
+    };
+    const specialInfo = SPECIAL_CARD_INFO[cardName];
     currentCardInfoData = {
-      infoText: isCamus
-        ? "Camus era mago de la corte y uno de los hombres de maxima confianza de su majestad, pero, cuando Orion se hizo con el trono, fue declarado traidor a la corona por ser fiel al anterior rey.\n\nUno de los mejores magos de todo el reino, condenado al exilio, ahora se gana la vida como cazafortunas."
-        : (cardData?.infoText || "En construcción"),
-      skillsText: isCamus
-        ? "Sin habilidades actualmente"
-        : (cardData?.skillsText || "En construcción")
+      infoText: specialInfo?.infoText || cardData?.infoText || "En construcción",
+      skillsText: specialInfo?.skillsText || cardData?.skillsText || "En construcción"
     };
     cardInfoTitle.textContent = cardData.name;
     cardInfoImg.src = cardData.img;
