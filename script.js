@@ -1860,6 +1860,9 @@ document.addEventListener("DOMContentLoaded", () => {
         infoText: "Evelyn perdio a sus padres a muy temprana edad y se vio obligada a vagar por las calles con la unica compania de su hermano mayor, del que acabo distanciandose con el tiempo.\nActualmente lidera un grupo de mercenarios, fundado por ella misma, conocido con el nombre de Atalaya, que hacen cualquier tipo de trabajo sucio a cambio de dinero, o al menos eso dicen.",
         skillsText: "Pulsa sobre una mision y la completa automaticamente (Durante el combate, pulsa sobre Evelyn para activar su habilidad)."
       },
+      eliot: {
+        infoText: "Desde joven, Eliot destaco en la magia y, a pesar de contar con pocos ingresos, logro formarse como un gran curandero, llegando a formar parte del prestigioso grupo Asclepio, que reune a los mejores curanderos y magos blancos, como se denominan a los que, como el, se especializan en magia de curacion."
+      },
       landom: {
         infoText: "Ya desde muy pequeno se movia por ambientes oscuros, destacando y haciendose famoso por su increible habilidad con todo tipo de armas blancas. Su situacion no mejoro cuando perdio a sus padres ya que, aunque no tenia mucha relacion con ellos, le dejaron una hermana pequena a la que cuidar. Intentando que no siguiera sus pasos, se distancio de ella pero no sirvio de mucho... Experto en liderar con exito todo tipo de peligrosas misiones, a cambio de una buena suma, no teme a nada ni nadie.",
         skillsText: "Pulsa sobre una mision y la completa automaticamente (Durante el combate, pulsa sobre Landom para activar su habilidad)."
