@@ -85,15 +85,15 @@ img{ max-width:100%; height:auto; }
   justify-content:center;
   width: min(380px, 72vw);
   gap: 10px;
-  margin-top: 48px;
+  margin-top: 68px;
   padding: 0;
   background: transparent;
   border: none;
 }
 
 .intro-profile-img{
-  width: 58px;
-  height: 58px;
+  width: 48px;
+  height: 48px;
   border-radius: 999px;
   object-fit: cover;
   object-position: center;
@@ -384,8 +384,8 @@ img{ max-width:100%; height:auto; }
 }
 
 .user-profile-img{
-  width: 78px;
-  height: 78px;
+  width: 64px;
+  height: 64px;
   border-radius: 999px;
   object-fit: cover;
   object-position: center;
@@ -476,7 +476,7 @@ img{ max-width:100%; height:auto; }
 }
 
 .user-section-title{
-  margin-top: 14px;
+  margin-top: 26px;
   margin-bottom: 8px;
   text-align: left;
   font-weight: 900;
@@ -1165,12 +1165,12 @@ img{ max-width:100%; height:auto; }
     width: min(430px, 90vw);
     align-items: flex-start;
     justify-content: center;
-    margin-top: 14px;
+    margin-top: 30px;
     padding-left: 0;
   }
   .intro-profile-img{
-    width: 66px;
-    height: 66px;
+    width: 56px;
+    height: 56px;
   }
   .intro-nav-btn{ width: 64px; height: 64px; font-size: 38px; border-radius: 16px; }
   .intro-image-btn{ width: min(430px, 90vw); min-height: 190px; }
