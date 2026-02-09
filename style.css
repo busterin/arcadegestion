@@ -579,7 +579,7 @@ img{ max-width:100%; height:auto; }
 .carousel-btn:active{ transform: translateY(1px); }
 
 .carousel-center{
-  min-height: 260px;
+  min-height: 340px;
   border-radius: 18px;
   border: none;
   background: transparent;
@@ -593,7 +593,7 @@ img{ max-width:100%; height:auto; }
 }
 
 .carousel-img{
-  height: 170px;
+  height: 250px;
   width: auto;
   max-width: 100%;
   object-fit: contain;
@@ -1212,11 +1212,11 @@ img{ max-width:100%; height:auto; }
   .carousel-btn{ width:48px; height:48px; border-radius: 14px; font-size: 30px; }
 
   .carousel-img{
-    height: 150px;
+    height: 210px;
     width: auto;
   }
 
-  .carousel-center{ min-height: 240px; }
+  .carousel-center{ min-height: 300px; }
 
   .stage{ padding-bottom: 10px; }
   .rival-team-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
