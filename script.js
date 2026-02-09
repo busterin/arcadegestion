@@ -82,7 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const AVATARS = [
     { key: "evelyn", name: "Evelyn", src: "images/Evelyn.png", accountSrc: "images/Evelyn2.PNG", alt: "Evelyn" },
-    { key: "landom", name: "Landom", src: "images/Landom.png?v=20260210-2", accountSrc: "images/Landom2.png", alt: "Landom", unlockRecruitCharId: "c10" },
+    { key: "landom", name: "Landom", src: "images/Landom.png?v=20260210-3", accountSrc: "images/Landom2.png", alt: "Landom", unlockRecruitCharId: "c10" },
   ].sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
 
   const introScreen = document.getElementById("introScreen");
@@ -796,6 +796,8 @@ document.addEventListener("DOMContentLoaded", () => {
     startScreen.classList.add("hidden");
     teamScreen.classList.add("hidden");
     gameRoot.classList.add("hidden");
+    const landomAvatar = AVATARS.find((a) => a.key === "landom");
+    if (storyRightChar && landomAvatar?.src) storyRightChar.src = landomAvatar.src;
     storyScreen?.classList.remove("hidden");
     storyStep = 0;
     renderStoryStep();
