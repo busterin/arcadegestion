@@ -29,36 +29,28 @@ document.addEventListener("DOMContentLoaded", () => {
   const DEFAULT_PROFILE_NAME = "Usuario";
 
   const MISSIONS = [
-    { id: "m1", title: "Taller Expres", internalTag: "Educacion", img: "images/mision.png", text: "Hay un grupo listo para empezar y falta ajustar la dinamica. Envia a alguien que domine actividades educativas y manejo de tiempos." },
-    { id: "m2", title: "Guia de Actividad", internalTag: "Educacion", img: "images/mision.png", text: "Necesitamos una mini-guia clara para que cualquiera pueda dirigir la sesion. Envia a quien sepa convertir ideas en instrucciones sencillas." },
-    { id: "m3", title: "Plan de Aula", internalTag: "Educacion", img: "images/mision.png", text: "Han cambiado el perfil del publico a ultima hora. Envia a alguien que sepa adaptar contenidos y mantener a la gente enganchada." },
-    { id: "m4", title: "Incidencia de Operativa", internalTag: "Picofino", img: "images/mision.png", text: "Se ha bloqueado una tarea del dia a dia y hay que desbloquearla sin montar lio. Envia a quien conozca bien como se mueve Picofino." },
-    { id: "m5", title: "Pedido Descuadrado", internalTag: "Picofino", img: "images/mision.png", text: "Un pedido no cuadra con lo esperado y el equipo necesita una mano para reordenar prioridades y resolverlo rapido." },
-    { id: "m6", title: "Turno Improvisado", internalTag: "Picofino", img: "images/mision.png", text: "Falta gente en un turno clave. Envia a quien sepa reorganizar recursos y apagar fuegos sin que se note." },
-    { id: "m7", title: "Montaje a Contrarreloj", internalTag: "Produccion", img: "images/mision.png", text: "Hay que montar algo rapido y bien, cuidando detalles y materiales. Envia a quien sepa de logistica, montaje y ejecucion." },
-    { id: "m8", title: "Materiales Perdidos", internalTag: "Produccion", img: "images/mision.png", text: "Falta material y nadie sabe donde esta. Envia a quien tenga control de inventario y sepa coordinar busquedas sin caos." },
-    { id: "m9", title: "Plan B de Produccion", internalTag: "Produccion", img: "images/mision.png", text: "El plan inicial se ha caido. Necesitamos a alguien que replantee el paso a paso y saque la tarea adelante con recursos limitados." },
-    { id: "m10", title: "Ajuste de Sala", internalTag: "Museos", img: "images/mision.png", text: "La sala necesita un cambio fino: recorrido, cartelas y flujo de personas. Envia a quien sepa de exposicion y criterios de museo." },
-    { id: "m11", title: "Bug Fantasma", internalTag: "Programacion", img: "images/mision.png", text: "Algo falla solo a veces y nadie logra reproducirlo. Envia a quien sepa investigar errores raros y aislar la causa." },
-    { id: "m12", title: "Integracion Rapida", internalTag: "Programacion", img: "images/mision.png", text: "Hay que conectar dos piezas que no se hablan bien. Envia a quien se maneje con integraciones y soluciones limpias." },
-    { id: "m13", title: "Optimizar Carga", internalTag: "Programacion", img: "images/mision.png", text: "En moviles tarda demasiado en cargar. Envia a quien sepa mejorar rendimiento sin romper nada." },
-    { id: "m14", title: "Boton Rebelde", internalTag: "Programacion", img: "images/mision.png", text: "Un boton deja de responder en ciertos casos. Envia a quien tenga mano con eventos, estados y depuracion." },
-    { id: "m15", title: "Refactor Discreto", internalTag: "Programacion", img: "images/mision.png", text: "Hay codigo que funciona pero es un lio. Envia a quien sepa ordenar y dejarlo mantenible sin cambiar el comportamiento." }
+    {
+      id: "m1",
+      title: "Rescatar prisioneros",
+      internalTags: ["sigilo", "lider"],
+      img: "images/mision.png",
+      text: "Las hordas del General Orion, de las tierras del Sur, han secuestrado a civiles para extorsionar a las naciones vecinas. Envia un equipo de rescate para infiltrarse y rescatarlos, capaz de manejar una situacion bajo presion."
+    }
   ];
 
   const CHARACTERS = [
-    { id: "c1", name: "Winchester", tags: ["Produccion", "Museos"] },
-    { id: "c2", name: "Eliot", tags: ["Museos", "Produccion"] },
-    { id: "c3", name: "Camus", tags: ["Picofino"] },
-    { id: "c7", name: "Jane", tags: ["Diseno"] },
-    { id: "c8", name: "Lisa", tags: ["Produccion"] },
-    { id: "c9", name: "Willard", tags: ["Produccion"] }
+    { id: "c1", name: "Winchester", tags: ["magia", "adistancia", "cuerpoacuerpo"] },
+    { id: "c2", name: "Eliot", tags: ["magia", "curacion"] },
+    { id: "c3", name: "Camus", tags: ["magia", "adistancia"] },
+    { id: "c7", name: "Jane", tags: ["adistancia", "exploracion"] },
+    { id: "c8", name: "Lisa", tags: ["magia", "curacion"] },
+    { id: "c9", name: "Willard", tags: ["adistancia", "cuerpoacuerpo"] }
   ];
 
   const RECRUITABLE_CHARACTERS = [
-    { id: "c4", name: "Friday", tags: ["Programacion"] },
-    { id: "c5", name: "Risko", tags: ["Programacion"] },
-    { id: "c6", name: "Pendergast", tags: ["Educacion"] }
+    { id: "c4", name: "Friday", tags: ["volar", "adistancia"] },
+    { id: "c5", name: "Risko", tags: ["adistancia", "lider"] },
+    { id: "c6", name: "Pendergast", tags: ["lider", "exploracion"] }
   ];
 
   const CARDS = [
@@ -758,25 +750,34 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function normalizeTag(tag) {
-    const t = String(tag || "").trim().toLowerCase();
-    if (t === "museos" || t === "museo") return "Museos";
-    if (t === "educacion" || t === "educacion") return "Educacion";
-    if (t === "produccion" || t === "produccion") return "Produccion";
-    if (t === "picofino") return "Picofino";
-    if (t === "programacion" || t === "programacion") return "Programacion";
-    if (t === "diseno" || t === "diseno") return "Diseno";
-    return tag;
+    const raw = String(tag || "").trim().toLowerCase();
+    const t = raw.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+    if (t === "cuerpo a cuerpo") return "cuerpoacuerpo";
+    if (t === "a distancia") return "adistancia";
+    if (t === "curacion") return "curacion";
+    if (t === "lider") return "lider";
+    if (t === "sigilo") return "sigilo";
+    if (t === "exploracion") return "exploracion";
+    if (t === "volar") return "volar";
+    if (t === "magia") return "magia";
+
+    return t.replace(/\s+/g, "");
   }
 
   function computeChance(mission, chosenIds) {
-    const missionTag = normalizeTag(mission.internalTag);
+    const missionTags = Array.isArray(mission.internalTags)
+      ? mission.internalTags.map(normalizeTag)
+      : [normalizeTag(mission.internalTag)];
+
     let p = 0;
 
     for (const cid of chosenIds) {
       const ch = availableCharacters.find((c) => c.id === cid);
       if (!ch) continue;
       const tags = Array.isArray(ch.tags) ? ch.tags : [ch.tags];
-      const match = tags.map(normalizeTag).includes(missionTag);
+      const normalizedTags = tags.map(normalizeTag);
+      const match = normalizedTags.some((tag) => missionTags.includes(tag));
       p += match ? 0.8 : 0.1;
     }
 
