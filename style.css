@@ -85,7 +85,7 @@ img{ max-width:100%; height:auto; }
   justify-content:center;
   width: min(380px, 72vw);
   gap: 10px;
-  margin-top: 18px;
+  margin-top: 34px;
   padding: 0;
   background: transparent;
   border: none;
@@ -223,7 +223,7 @@ img{ max-width:100%; height:auto; }
 
 .recruit-zone{
   width: min(420px, 92vw);
-  margin-top: 14px;
+  margin-top: 24px;
   margin-bottom: 8px;
   position: relative;
   display: flex;
@@ -374,9 +374,12 @@ img{ max-width:100%; height:auto; }
 
 .user-profile-top{
   display: flex;
-  align-items: center;
-  gap: 14px;
+  align-items: flex-start;
+  gap: 18px;
   text-align: left;
+  min-height: 122px;
+  padding-top: 8px;
+  margin-bottom: 14px;
 }
 
 .user-profile-img{
@@ -395,7 +398,8 @@ img{ max-width:100%; height:auto; }
 .user-profile-actions{
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+  padding-top: 6px;
 }
 
 .user-name-input{
