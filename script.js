@@ -86,6 +86,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const introMenuBtn = document.getElementById("introMenuBtn");
   const introMenuImg = document.getElementById("introMenuImg");
   const introMenuFallback = document.getElementById("introMenuFallback");
+  const introProfile = document.getElementById("introProfile");
   const introProfileImg = document.getElementById("introProfileImg");
   const introProfileName = document.getElementById("introProfileName");
 
@@ -514,6 +515,13 @@ document.addEventListener("DOMContentLoaded", () => {
       item.className = "user-char";
       item.innerHTML = "<img src=\"" + ch.src + "\" alt=\"" + ch.name + "\" />" +
         "<div class=\"user-char-name\">" + ch.name + "</div>";
+      item.addEventListener("click", () => {
+        openCardInfo({
+          name: ch.name,
+          img: ch.src,
+          text: "Personaje principal. Puedes usarlo como avatar."
+        });
+      });
       userMainGrid.appendChild(item);
     });
 
@@ -524,6 +532,13 @@ document.addEventListener("DOMContentLoaded", () => {
       item.className = "user-char" + (isUnlocked ? "" : " locked");
       item.innerHTML = "<img src=\"" + card.img + "\" alt=\"" + card.name + "\" />" +
         "<div class=\"user-char-name\">" + card.name + "</div>";
+      item.addEventListener("click", () => {
+        openCardInfo({
+          name: card.name,
+          img: card.img,
+          text: isUnlocked ? card.text : (card.text + " (Aun no desbloqueado)")
+        });
+      });
       userSecondaryGrid.appendChild(item);
     });
   }
@@ -1898,6 +1913,8 @@ document.addEventListener("DOMContentLoaded", () => {
   introPrevBtn?.addEventListener("click", prevIntroMenuOption);
   introNextBtn?.addEventListener("click", nextIntroMenuOption);
   introMenuBtn?.addEventListener("click", activateIntroMenuOption);
+  introProfileImg?.addEventListener("click", goToUserScreen);
+  introProfile?.addEventListener("click", goToUserScreen);
 
   recruitPackBtn?.addEventListener("click", recruitRandomCharacter);
   recruitBackBtn?.addEventListener("click", setIntroVisible);
