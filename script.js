@@ -126,6 +126,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const teamCountEl = document.getElementById("teamCount");
   const teamHint = document.getElementById("teamHint");
   const teamConfirmBtn = document.getElementById("teamConfirmBtn");
+  const teamBackBtn = document.getElementById("teamBackBtn");
 
   const gameRoot = document.getElementById("gameRoot");
   const mapEl = document.getElementById("map");
@@ -656,6 +657,11 @@ document.addEventListener("DOMContentLoaded", () => {
     startScreen.classList.add("hidden");
     teamScreen.classList.remove("hidden");
     renderTeamSelection();
+  }
+
+  function backToAvatarSelection() {
+    teamScreen.classList.add("hidden");
+    startScreen.classList.remove("hidden");
   }
 
   function animateCarousel(direction) {
@@ -1945,6 +1951,7 @@ document.addEventListener("DOMContentLoaded", () => {
     goToTeamScreen();
   });
 
+  teamBackBtn?.addEventListener("click", backToAvatarSelection);
   teamConfirmBtn.addEventListener("click", startConfiguredGameFlow);
 
   playerImg.addEventListener("click", openSpecialModal);
