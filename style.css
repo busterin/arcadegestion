@@ -275,12 +275,19 @@ img{ max-width:100%; height:auto; }
 }
 
 .story-char.left{ left: 3%; }
-.story-char.right{ right: 3%; }
+.story-char.right{
+  right: 3%;
+  transform: scaleX(-1);
+}
 
 .story-char.active{
   opacity: 1;
   transform: scale(1.03);
   filter: drop-shadow(0 20px 40px rgba(0,0,0,.55));
+}
+
+.story-char.right.active{
+  transform: scaleX(-1) scale(1.03);
 }
 
 .story-dialog{
@@ -1338,7 +1345,7 @@ img{ max-width:100%; height:auto; }
   }
 
   #startScreen .carousel-img.is-landom{
-    height: 250px;
+    height: 280px;
   }
 
   .carousel-center{ min-height: 300px; }
