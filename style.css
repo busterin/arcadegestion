@@ -71,8 +71,8 @@ img{ max-width:100%; height:auto; }
 }
 
 .intro-main-logo{
-  width: min(420px, 78vw);
-  max-height: 22vh;
+  width: min(340px, 62vw);
+  max-height: 18vh;
   object-fit: contain;
   display:block;
   filter: drop-shadow(0 12px 22px rgba(0,0,0,.4));
@@ -81,10 +81,11 @@ img{ max-width:100%; height:auto; }
 .intro-profile{
   display:flex;
   flex-direction:column;
-  align-items:center;
+  align-items:flex-start;
   justify-content:center;
-  width: min(520px, 86vw);
+  width: min(380px, 72vw);
   gap: 10px;
+  margin-top: 18px;
   padding: 0;
   background: transparent;
   border: none;
@@ -146,18 +147,18 @@ img{ max-width:100%; height:auto; }
   display:flex;
   align-items:center;
   justify-content:center;
-  gap: 12px;
-  width: min(640px, 100%);
+  gap: 10px;
+  width: min(520px, 92vw);
 }
 
 .intro-nav-btn{
-  width: 54px;
-  height: 54px;
-  border-radius: 14px;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
   border: 1px solid rgba(255,255,255,.16);
   background: rgba(0,0,0,.24);
   color: #fff;
-  font-size: 36px;
+  font-size: 30px;
   line-height: 1;
   cursor: pointer;
   display: grid;
@@ -173,8 +174,8 @@ img{ max-width:100%; height:auto; }
   background: transparent;
   cursor:pointer;
   padding: 0;
-  width: min(520px, 86vw);
-  min-height: 170px;
+  width: min(380px, 72vw);
+  min-height: 130px;
   position: relative;
   display:flex;
   align-items:center;
@@ -1142,7 +1143,7 @@ img{ max-width:100%; height:auto; }
 
   .intro-content{
     justify-content: flex-start;
-    gap: 10px;
+    gap: 12px;
   }
 
   .topbar{ flex-direction:column; align-items:stretch; }
@@ -1150,18 +1151,24 @@ img{ max-width:100%; height:auto; }
 
   .intro-logo{ max-height: 38vh; }
   .intro-title{ font-size: clamp(40px, 9vw, 70px); }
-  .intro-actions{ gap: 8px; width: min(460px, 100%); }
+  .intro-actions{ gap: 10px; width: min(560px, 100%); }
   .intro-main-logo{
-    width: min(300px, 74vw);
-    max-height: 18vh;
+    width: min(380px, 92vw);
+    max-height: 24vh;
   }
   .intro-profile{
-    width: min(360px, 82vw);
+    width: min(430px, 90vw);
+    align-items: flex-start;
     justify-content: center;
+    margin-top: 14px;
     padding-left: 0;
   }
-  .intro-nav-btn{ width: 56px; height: 56px; font-size: 36px; }
-  .intro-image-btn{ width: min(360px, 82vw); min-height: 150px; }
+  .intro-profile-img{
+    width: 66px;
+    height: 66px;
+  }
+  .intro-nav-btn{ width: 64px; height: 64px; font-size: 38px; border-radius: 16px; }
+  .intro-image-btn{ width: min(430px, 90vw); min-height: 190px; }
   .recruit-pack-img{ width: min(280px, 78vw); }
   .recruit-odds{ width: min(320px, 90vw); }
 
