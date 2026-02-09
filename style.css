@@ -605,6 +605,10 @@ img{ max-width:100%; height:auto; }
   transition: transform .15s ease;
 }
 
+#startScreen .carousel-img.is-landom{
+  height: 300px;
+}
+
 .carousel-name{
   font-weight: 1000;
   letter-spacing:.2px;
@@ -1214,6 +1218,10 @@ img{ max-width:100%; height:auto; }
   .carousel-img{
     height: 210px;
     width: auto;
+  }
+
+  #startScreen .carousel-img.is-landom{
+    height: 250px;
   }
 
   .carousel-center{ min-height: 300px; }

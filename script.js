@@ -726,6 +726,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const avatars = clampAvatarIndex();
     const a = avatars[avatarIndex];
     if (!a) return;
+    avatarPreviewImg.classList.toggle("is-landom", a.key === "landom");
     avatarPreviewImg.src = a.src;
     avatarPreviewImg.alt = a.alt;
     avatarPreviewName.textContent = a.name;
