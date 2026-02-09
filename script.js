@@ -1844,9 +1844,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function openCardInfo(cardData) {
     setGlobalPause(true);
+    const isCamus = String(cardData?.name || "").trim().toLowerCase() === "camus";
     currentCardInfoData = {
-      infoText: cardData?.infoText || "En construcción",
-      skillsText: cardData?.skillsText || "En construcción"
+      infoText: isCamus
+        ? "Camus era mago de la corte y uno de los hombres de maxima confianza de su majestad, pero, cuando Orion se hizo con el trono, fue declarado traidor a la corona por ser fiel al anterior rey.\n\nUno de los mejores magos de todo el reino, condenado al exilio, ahora se gana la vida como cazafortunas."
+        : (cardData?.infoText || "En construcción"),
+      skillsText: isCamus
+        ? "Sin habilidades actualmente"
+        : (cardData?.skillsText || "En construcción")
     };
     cardInfoTitle.textContent = cardData.name;
     cardInfoImg.src = cardData.img;
