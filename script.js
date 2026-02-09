@@ -112,6 +112,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const startScreen = document.getElementById("startScreen");
   const startBtn = document.getElementById("startBtn");
+  const startBackBtn = document.getElementById("startBackBtn");
 
   const prevAvatarBtn = document.getElementById("prevAvatarBtn");
   const nextAvatarBtn = document.getElementById("nextAvatarBtn");
@@ -1933,6 +1934,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (e.key === "ArrowRight") nextAvatar();
     }
   });
+
+  startBackBtn?.addEventListener("click", setIntroVisible);
 
   startBtn.addEventListener("click", () => {
     selectedTeamCardIds = new Set();

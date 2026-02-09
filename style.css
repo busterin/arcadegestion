@@ -72,8 +72,8 @@ img{ max-width:100%; height:auto; }
 }
 
 .intro-main-logo{
-  width: min(340px, 62vw);
-  max-height: 18vh;
+  width: min(500px, 84vw);
+  max-height: 28vh;
   object-fit: contain;
   display:block;
   filter: drop-shadow(0 12px 22px rgba(0,0,0,.4));
