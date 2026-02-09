@@ -104,6 +104,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const userScreen = document.getElementById("userScreen");
   const userProfileImg = document.getElementById("userProfileImg");
+  const userProfileTitle = document.getElementById("userProfileTitle");
   const userAvatarToggleBtn = document.getElementById("userAvatarToggleBtn");
   const userAvatarPicker = document.getElementById("userAvatarPicker");
   const userNameInput = document.getElementById("userNameInput");
@@ -426,6 +427,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function setUserProfileName(name) {
     const next = normalizeUserProfileName(name);
     if (introProfileName) introProfileName.textContent = next;
+    if (userProfileTitle) userProfileTitle.textContent = next;
     if (userNameInput && userNameInput.value !== next) userNameInput.value = next;
   }
 
