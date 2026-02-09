@@ -85,7 +85,7 @@ img{ max-width:100%; height:auto; }
   justify-content:center;
   width: min(380px, 72vw);
   gap: 10px;
-  margin-top: 34px;
+  margin-top: 48px;
   padding: 0;
   background: transparent;
   border: none;
@@ -223,7 +223,7 @@ img{ max-width:100%; height:auto; }
 
 .recruit-zone{
   width: min(420px, 92vw);
-  margin-top: 24px;
+  margin-top: 30px;
   margin-bottom: 8px;
   position: relative;
   display: flex;
@@ -247,11 +247,11 @@ img{ max-width:100%; height:auto; }
   z-index: 1;
 }
 .recruit-pack:hover{
-  transform: translateY(-2px) rotate(-1deg);
-  box-shadow: 0 18px 30px rgba(0,0,0,.3);
+  transform: translateY(0) rotate(0deg);
+  box-shadow: none;
 }
 .recruit-pack:active{
-  transform: translateY(1px) scale(.99);
+  transform: scale(1);
 }
 .recruit-pack.spinning{
   animation: recruitShake .62s cubic-bezier(.2,.8,.2,1) infinite;
@@ -262,7 +262,7 @@ img{ max-width:100%; height:auto; }
   height: auto;
   object-fit: contain;
   display: block;
-  filter: drop-shadow(0 10px 18px rgba(0,0,0,.36));
+  filter: none;
 }
 
 .recruit-result{
@@ -370,6 +370,7 @@ img{ max-width:100%; height:auto; }
   max-height: calc(100dvh - 36px);
   overflow: auto;
   -webkit-overflow-scrolling: touch;
+  padding: 8px 12px 12px;
 }
 
 .user-profile-top{
@@ -377,9 +378,9 @@ img{ max-width:100%; height:auto; }
   align-items: flex-start;
   gap: 18px;
   text-align: left;
-  min-height: 122px;
-  padding-top: 8px;
-  margin-bottom: 14px;
+  min-height: 132px;
+  padding-top: 10px;
+  margin-bottom: 18px;
 }
 
 .user-profile-img{
