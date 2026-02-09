@@ -53,7 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
     { id: "c1", name: "Winchester", tags: ["magia", "adistancia", "cuerpoacuerpo"] },
     { id: "c2", name: "Eliot", tags: ["magia", "curacion"] },
     { id: "c3", name: "Camus", tags: ["magia", "adistancia"] },
-    { id: "c7", name: "Jane", tags: ["adistancia", "exploracion"] },
+    { id: "c7", name: "Jane", tags: ["adistancia", "exploracion", "sigilo"] },
     { id: "c8", name: "Lisa", tags: ["magia", "curacion"] },
     { id: "c9", name: "Willard", tags: ["adistancia", "cuerpoacuerpo"] }
   ];
@@ -1918,6 +1918,9 @@ document.addEventListener("DOMContentLoaded", () => {
       landom: {
         infoText: "Ya desde muy pequeno se movia por ambientes oscuros, destacando y haciendose famoso por su increible habilidad con todo tipo de armas blancas. Su situacion no mejoro cuando perdio a sus padres ya que, aunque no tenia mucha relacion con ellos, le dejaron una hermana pequena a la que cuidar. Intentando que no siguiera sus pasos, se distancio de ella pero no sirvio de mucho... Experto en liderar con exito todo tipo de peligrosas misiones, a cambio de una buena suma, no teme a nada ni nadie.",
         skillsText: "Pulsa sobre una mision y la completa automaticamente (Durante el combate, pulsa sobre Landom para activar su habilidad)."
+      },
+      jane: {
+        infoText: "Una cazadora que conoce los bosques del reino como la palma de su mano, capaz de entremezclarse con el bosque y fundirse con el viento, no la veras llegar hasta que sea demasiado tarde. Miembro honorifico del grupo de mercenarios Atalaya, con los que colabora asiduamente."
       }
     };
     const specialInfo = SPECIAL_CARD_INFO[cardName];
