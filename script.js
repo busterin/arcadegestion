@@ -294,7 +294,7 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const raw = window.localStorage?.getItem(COINS_STORAGE_KEY);
       const parsed = Number(raw);
-      return Number.isFinite(parsed) && parsed >= 0 ? Math.floor(parsed) : DEFAULT_COINS;
+      return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : DEFAULT_COINS;
     } catch {
       return DEFAULT_COINS;
     }
@@ -432,7 +432,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!recruitPackBtn || !recruitResultText) return;
     if (recruitingInProgress) return;
     if (!spendCoins(RECRUIT_PACK_COST)) {
-      if (recruitPriceHint) recruitPriceHint.textContent = "No tienes suficientes monedas para abrir un sobre.";
+      if (recruitPriceHint) recruitPriceHint.textContent = "No tienes suficientes monedas para abrir un cofre.";
       return;
     }
     if (recruitPriceHint) recruitPriceHint.textContent = "";
