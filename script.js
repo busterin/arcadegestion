@@ -77,7 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
   ];
 
   const AVATARS = [
-    { key: "evelyn", name: "Evelyn", src: "images/Evelyn2.PNG", alt: "Evelyn" },
+    { key: "evelyn", name: "Evelyn", src: "images/Evelyn.png", alt: "Evelyn" },
   ].sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
 
   const introScreen = document.getElementById("introScreen");

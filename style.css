@@ -70,8 +70,8 @@ img{ max-width:100%; height:auto; }
 }
 
 .intro-main-logo{
-  width: min(280px, 56vw);
-  max-height: 14vh;
+  width: min(420px, 78vw);
+  max-height: 22vh;
   object-fit: contain;
   display:block;
   filter: drop-shadow(0 12px 22px rgba(0,0,0,.4));
@@ -460,7 +460,7 @@ img{ max-width:100%; height:auto; }
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transform: scale(1.34);
+  transform: scale(1.55);
   transform-origin: center;
 }
 .avatar-option.active{
@@ -1151,8 +1151,8 @@ img{ max-width:100%; height:auto; }
   .intro-title{ font-size: clamp(40px, 9vw, 70px); }
   .intro-actions{ gap: 8px; width: min(460px, 100%); }
   .intro-main-logo{
-    width: min(220px, 58vw);
-    max-height: 12vh;
+    width: min(300px, 74vw);
+    max-height: 18vh;
   }
   .intro-profile{
     width: min(360px, 82vw);
