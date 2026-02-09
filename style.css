@@ -91,8 +91,8 @@ img{ max-width:100%; height:auto; }
 }
 
 .intro-profile-img{
-  width: 74px;
-  height: 74px;
+  width: 58px;
+  height: 58px;
   border-radius: 999px;
   object-fit: cover;
   object-position: center;
@@ -379,8 +379,8 @@ img{ max-width:100%; height:auto; }
 }
 
 .user-profile-img{
-  width: 96px;
-  height: 96px;
+  width: 78px;
+  height: 78px;
   border-radius: 999px;
   object-fit: cover;
   object-position: center;
@@ -459,6 +459,11 @@ img{ max-width:100%; height:auto; }
   transform: scale(var(--avatar-zoom));
   transform-origin: center;
 }
+.avatar-option img[src*="Evelyn2"],
+.avatar-option img[src*="Evelyn.png"]{
+  object-position: center 68%;
+}
+
 .avatar-option.active{
   border-color: rgba(58,208,255,.9);
   box-shadow: 0 0 0 2px rgba(58,208,255,.28);
