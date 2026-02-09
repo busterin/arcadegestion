@@ -77,7 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
   ];
 
   const AVATARS = [
-    { key: "evelyn", name: "Evelyn", src: "images/Evelyn.png", alt: "Evelyn" },
+    { key: "evelyn", name: "Evelyn", src: "images/Evelyn.png", accountSrc: "images/Evelyn2.PNG", alt: "Evelyn" },
   ].sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
 
   const introScreen = document.getElementById("introScreen");
@@ -504,7 +504,7 @@ document.addEventListener("DOMContentLoaded", () => {
     userMainGrid.innerHTML = "";
     userSecondaryGrid.innerHTML = "";
 
-    const mainCharacters = [...AVATARS].sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
+    const mainCharacters = [...AVATARS].map((a) => ({ ...a, src: a.accountSrc || a.src })).sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
     const secondaryCards = [...CARDS, ...RECRUITABLE_CARDS].sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
 
     mainCharacters.forEach((ch) => {

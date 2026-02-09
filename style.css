@@ -68,6 +68,7 @@ img{ max-width:100%; height:auto; }
   justify-content:center;
   gap: 14px;
   text-align:center;
+  width: 100%;
 }
 
 .intro-main-logo{
@@ -377,7 +378,7 @@ img{ max-width:100%; height:auto; }
   display: flex;
   align-items: flex-start;
   gap: 18px;
-  text-align: left;
+  text-align: center;
   min-height: 132px;
   padding-top: 10px;
   margin-bottom: 18px;
@@ -516,6 +517,7 @@ img{ max-width:100%; height:auto; }
   padding: 8px 10px;
   font-size: 13px;
   font-weight: 800;
+  text-align: center;
 }
 
 .user-char.locked{
