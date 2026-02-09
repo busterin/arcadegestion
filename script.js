@@ -1747,13 +1747,19 @@ document.addEventListener("DOMContentLoaded", () => {
     rouletteOutcome.textContent = "";
     rouletteOkBtn.disabled = true;
 
-    const greenPct = clamp(chance, 0.01, 1) * 100;
+    const greenPct = clamp(chance, 0.01, 0.99) * 100;
+    const greenDeg = (greenPct / 100) * 360;
     if (rouletteSub) rouletteSub.textContent = "Probabilidad de éxito: " + Math.round(greenPct) + "%";
+    rouletteWheel.style.background = `conic-gradient(from 0deg, var(--ok) 0deg ${greenDeg}deg, var(--danger) ${greenDeg}deg 360deg)`;
     rouletteWheel.style.boxShadow = "0 0 0 4px rgba(255,255,255,.18), 0 0 24px rgba(46,229,157," + (0.2 + (greenPct / 200)) + ")";
     rouletteWheel.style.transform = "rotate(0deg)";
 
     const turns = randInt(5, 8);
-    const finalDeg = turns * 360 + randInt(0, 359);
+    let targetAngle = rand(0, 360);
+    if (forcedWin === true) targetAngle = rand(0, Math.max(greenDeg - 0.001, 0.001));
+    if (forcedWin === false) targetAngle = rand(Math.min(greenDeg + 0.001, 359.999), 359.999);
+    const stopRotation = (360 - targetAngle) % 360;
+    const finalDeg = turns * 360 + stopRotation;
 
     rouletteWheel.animate(
       [{ transform: "rotate(0deg)" }, { transform: "rotate(" + finalDeg + "deg)" }],
@@ -1761,7 +1767,7 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 
     setTimeout(() => {
-      const win = forcedWin === null ? Math.random() < chance : forcedWin;
+      const win = forcedWin === null ? targetAngle < greenDeg : forcedWin;
       rouletteOutcome.textContent = win ? "Exito" : "Fallo";
       rouletteOutcome.style.color = win ? "var(--ok)" : "var(--danger)";
       rouletteOkBtn.disabled = false;
