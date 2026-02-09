@@ -29,13 +29,21 @@ document.addEventListener("DOMContentLoaded", () => {
   const DEFAULT_PROFILE_NAME = "Usuario";
 
   const MISSIONS = [
-    {
-      id: "m1",
-      title: "Rescatar prisioneros",
-      internalTags: ["sigilo", "lider"],
-      img: "images/mision.png",
-      text: "Las hordas del General Orion, de las tierras del Sur, han secuestrado a civiles para extorsionar a las naciones vecinas. Envia un equipo de rescate para infiltrarse y rescatarlos, capaz de manejar una situacion bajo presion."
-    }
+    { id: "m1", title: "Rescatar prisioneros", internalTags: ["sigilo", "lider"], img: "images/mision.png", text: "Las hordas del General Orion han secuestrado civiles para extorsionar a las naciones vecinas. Envia un equipo capaz de infiltrarse y rescatarlos bajo presion." },
+    { id: "m2", title: "Asalto al convoy", internalTags: ["adistancia", "exploracion"], img: "images/mision.png", text: "Un convoy enemigo cruza un paso estrecho. Interceptalo con precision y sin alertar a toda la guarnicion." },
+    { id: "m3", title: "Defensa del bastion", internalTags: ["cuerpoacuerpo", "lider"], img: "images/mision.png", text: "El bastion aliado esta siendo asediado. Organiza defensa en primera linea y mantén la posicion." },
+    { id: "m4", title: "Ritual arcano", internalTags: ["magia", "curacion"], img: "images/mision.png", text: "Una runa inestable amenaza con romper el sello. Se necesita control magico y soporte de sanacion." },
+    { id: "m5", title: "Explorar ruinas", internalTags: ["exploracion", "sigilo"], img: "images/mision.png", text: "Un mapa antiguo marca ruinas prohibidas. Recupera informacion clave sin activar trampas." },
+    { id: "m6", title: "Evacuacion nocturna", internalTags: ["lider", "curacion"], img: "images/mision.png", text: "Una aldea aliada debe evacuar antes del amanecer. Coordina rutas y atiende heridos durante la retirada." },
+    { id: "m7", title: "Caceria aerea", internalTags: ["volar", "adistancia"], img: "images/mision.png", text: "Bestias voladoras bloquean el paso comercial. Derribalas antes de que destruyan los suministros." },
+    { id: "m8", title: "Emboscada en bosque", internalTags: ["sigilo", "cuerpoacuerpo"], img: "images/mision.png", text: "Un destacamento enemigo patrulla el bosque. Ejecuta una emboscada rapida y desaparece sin dejar rastro." },
+    { id: "m9", title: "Escolta real", internalTags: ["lider", "adistancia"], img: "images/mision.png", text: "Un emisario real cruza territorio hostil. Protege su ruta y neutraliza amenazas a media distancia." },
+    { id: "m10", title: "Contencion de plaga", internalTags: ["curacion", "magia"], img: "images/mision.png", text: "Una enfermedad magica se expande por la frontera. Conten el brote y estabiliza a los afectados." },
+    { id: "m11", title: "Sabotaje de puente", internalTags: ["exploracion", "adistancia"], img: "images/mision.png", text: "El enemigo depende de un puente estrategico. Localiza puntos debiles y ejecuta sabotaje controlado." },
+    { id: "m12", title: "Duelo de campeones", internalTags: ["cuerpoacuerpo", "magia"], img: "images/mision.png", text: "El campeon rival desafia a tus tropas para romper la moral. Responde con fuerza y tecnica." },
+    { id: "m13", title: "Refuerzo de frontera", internalTags: ["lider", "cuerpoacuerpo"], img: "images/mision.png", text: "La frontera norte necesita refuerzos urgentes. Reorganiza escuadras y frena el avance enemigo." },
+    { id: "m14", title: "Rescate en acantilado", internalTags: ["volar", "curacion"], img: "images/mision.png", text: "Un peloton ha quedado aislado en un acantilado. Extraelos con rapidez y atiende a los heridos." },
+    { id: "m15", title: "Reconocimiento profundo", internalTags: ["exploracion", "sigilo"], img: "images/mision.png", text: "Se sospecha una ofensiva sorpresa tras las montanas. Infiltrate y confirma movimientos sin ser detectado." }
   ];
 
   const CHARACTERS = [
@@ -1466,8 +1474,7 @@ document.addEventListener("DOMContentLoaded", () => {
       isPaused: false,
       assignedCharIds: new Set(),
       chance: null,
-      execRemainingMs: null,
-      execTimerId: null
+      execRemainingMs: null
     };
 
     point.addEventListener("click", () => onPointClick(mission.id));
@@ -1501,10 +1508,6 @@ document.addEventListener("DOMContentLoaded", () => {
   function removePoint(missionId) {
     const st = activePoints.get(missionId);
     if (!st) return;
-    if (st.execTimerId) {
-      clearTimeout(st.execTimerId);
-      st.execTimerId = null;
-    }
     st.pointEl?.parentNode?.removeChild(st.pointEl);
     activePoints.delete(missionId);
   }
@@ -1611,21 +1614,17 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (st.phase === "executing") {
-          st.execRemainingMs = Math.max(0, st.execRemainingMs - dt);
+          st.execRemainingMs -= dt;
+          if (st.execRemainingMs <= 0) {
+            st.phase = "ready";
+            st.execRemainingMs = 0;
+            st.pointEl.classList.remove("assigned");
+            st.pointEl.classList.add("ready");
+            openRouletteForMission(mid);
+          }
         }
       }
     }, 200);
-  }
-
-  function resolveExecutingMission(missionId) {
-    if (!gameRunning) return;
-    const st = activePoints.get(missionId);
-    if (!st || st.phase !== "executing") return;
-    st.execTimerId = null;
-    st.execRemainingMs = 0;
-    const chance = st.chance ?? 0.1;
-    const win = Math.random() < chance;
-    win ? winMission(missionId) : failMission(missionId);
   }
 
   function queueMissionResolution(missionId) {
@@ -1735,8 +1734,6 @@ document.addEventListener("DOMContentLoaded", () => {
     st.lastTickAt = performance.now();
     st.pointEl.classList.add("assigned");
     st.pointEl.classList.remove("ready");
-    if (st.execTimerId) clearTimeout(st.execTimerId);
-    st.execTimerId = setTimeout(() => resolveExecutingMission(st.mission.id), EXECUTION_TIME_MS);
 
     hideModal(missionModal);
     currentMissionId = null;
