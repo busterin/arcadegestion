@@ -531,21 +531,26 @@ document.addEventListener("DOMContentLoaded", () => {
     userMainGrid.innerHTML = "";
     userSecondaryGrid.innerHTML = "";
 
-    const mainCharacters = getAvailableAvatars()
-      .map((a) => ({ ...a, src: a.accountSrc || a.src }))
+    const mainCharacters = [...AVATARS]
+      .map((a) => {
+        const isUnlocked = !a.unlockRecruitCharId || unlockedRecruitCharIds.has(a.unlockRecruitCharId);
+        return { ...a, src: a.accountSrc || a.src, isUnlocked };
+      })
       .sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
     const secondaryCards = [...CARDS, ...RECRUITABLE_CARDS].sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
 
     mainCharacters.forEach((ch) => {
       const item = document.createElement("div");
-      item.className = "user-char";
+      item.className = "user-char" + (ch.isUnlocked ? "" : " locked");
       item.innerHTML = "<img src=\"" + ch.src + "\" alt=\"" + ch.name + "\" />" +
         "<div class=\"user-char-name\">" + ch.name + "</div>";
       item.addEventListener("click", () => {
         openCardInfo({
           name: ch.name,
           img: ch.src,
-          text: "Personaje principal. Puedes usarlo como avatar."
+          text: ch.isUnlocked
+            ? "Personaje principal. Puedes usarlo como avatar."
+            : "Personaje principal. Aun no desbloqueado."
         });
       });
       userMainGrid.appendChild(item);
