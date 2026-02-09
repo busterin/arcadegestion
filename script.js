@@ -1294,7 +1294,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function applyRemoteMissionSpawn(missionId, xPct, yPct) {
-    if (!gameRunning || completedMissionIds.has(missionId) || activePoints.has(missionId)) return;
+    if (!gameRunning || completedMissionIds.has(missionId) || activePoints.has(missionId) || activePoints.size >= MAX_ACTIVE_POINTS) return;
     const mission = MISSIONS.find((m) => m.id === missionId);
     if (!mission) return;
     pendingMissions = pendingMissions.filter((m) => m.id !== missionId);
@@ -1420,6 +1420,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function createMissionPoint(mission, options = {}) {
+    if (activePoints.size >= MAX_ACTIVE_POINTS) return null;
     const point = document.createElement("div");
     point.className = "point";
     point.setAttribute("role", "button");
@@ -1597,11 +1598,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (st.phase === "executing") {
           st.execRemainingMs -= dt;
           if (st.execRemainingMs <= 0) {
-            st.phase = "ready";
             st.execRemainingMs = 0;
-            st.pointEl.classList.remove("assigned");
-            st.pointEl.classList.add("ready");
-            queueMissionResolution(mid);
+            const chance = st.chance ?? 0.1;
+            const win = Math.random() < chance;
+            win ? winMission(mid) : failMission(mid);
           }
         }
       }
