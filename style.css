@@ -247,6 +247,69 @@ img{ max-width:100%; height:auto; }
   opacity: 1;
 }
 
+/* ---------- HISTORIA ---------- */
+.story-screen{
+  height: 100%;
+  padding: 18px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  background: url("images/portadainicio.PNG") center center / cover no-repeat;
+}
+
+.story-stage{
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.story-char{
+  position: absolute;
+  bottom: 0;
+  width: min(42vw, 360px);
+  max-height: 76vh;
+  object-fit: contain;
+  filter: drop-shadow(0 18px 32px rgba(0,0,0,.45));
+  opacity: .32;
+  transition: opacity .2s ease, transform .2s ease, filter .2s ease;
+}
+
+.story-char.left{ left: 3%; }
+.story-char.right{ right: 3%; }
+
+.story-char.active{
+  opacity: 1;
+  transform: scale(1.03);
+  filter: drop-shadow(0 20px 40px rgba(0,0,0,.55));
+}
+
+.story-dialog{
+  margin-top: 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(7,12,23,.78);
+  backdrop-filter: blur(5px);
+  padding: 12px;
+}
+
+.story-speaker{
+  font-weight: 900;
+  font-size: 16px;
+}
+
+.story-text{
+  margin-top: 6px;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.story-actions{
+  margin-top: 12px;
+  display:flex;
+  gap: 8px;
+  justify-content:flex-end;
+}
+
 /* ---------- RECLUTAR ---------- */
 .recruit-card{
   width: min(620px, 100%);
@@ -1285,6 +1348,17 @@ img{ max-width:100%; height:auto; }
   .user-grid-main{ grid-template-columns: 1fr; }
   .user-grid-secondary{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .user-profile-top{ align-items: flex-start; }
+
+  .story-screen{ padding: 10px; }
+  .story-char{
+    width: min(46vw, 230px);
+    max-height: 62vh;
+  }
+  .story-char.left{ left: 0; }
+  .story-char.right{ right: 0; }
+  .story-dialog{ padding: 10px; }
+  .story-speaker{ font-size: 15px; }
+  .story-text{ font-size: 13px; }
 
   #teamScreen .start-card{
     max-height: calc(var(--appH) - 28px);

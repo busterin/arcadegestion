@@ -95,6 +95,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const introProfileImg = document.getElementById("introProfileImg");
   const introProfileName = document.getElementById("introProfileName");
   const introCoinsValue = document.getElementById("introCoinsValue");
+  const storyScreen = document.getElementById("storyScreen");
+  const storyLeftChar = document.getElementById("storyLeftChar");
+  const storyRightChar = document.getElementById("storyRightChar");
+  const storySpeaker = document.getElementById("storySpeaker");
+  const storyText = document.getElementById("storyText");
+  const storyNextBtn = document.getElementById("storyNextBtn");
+  const storySkipBtn = document.getElementById("storySkipBtn");
 
   const recruitScreen = document.getElementById("recruitScreen");
   const recruitPackBtn = document.getElementById("recruitPackBtn");
@@ -250,9 +257,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const INTRO_MENU_OPTIONS = [
     { key: "arcade", label: "ARCADE", img: "images/arcade.png" },
     { key: "versus", label: "VERSUS", img: "images/versus.png" },
+    { key: "historia", label: "HISTORIA", img: "images/historia.png" },
     { key: "reclutar", label: "RECLUTAR", img: "images/reclutar.png" },
     { key: "cuenta", label: "CUENTA", img: "images/cuenta.png" }
   ];
+  const STORY_LINES = [
+    { speaker: "Risko", text: "Prueba", active: "left" },
+    { speaker: "Landom", text: "Prueba2", active: "right" }
+  ];
+  let storyStep = 0;
 
   function loadUnlockedRecruitCharIds() {
     try {
@@ -415,6 +428,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function goToRecruitScreen() {
     if (!recruitScreen) return;
     introScreen.classList.add("hidden");
+    storyScreen?.classList.add("hidden");
     userScreen?.classList.add("hidden");
     startScreen.classList.add("hidden");
     teamScreen.classList.add("hidden");
@@ -629,6 +643,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function goToUserScreen() {
     if (!userScreen) return;
     introScreen.classList.add("hidden");
+    storyScreen?.classList.add("hidden");
     recruitScreen?.classList.add("hidden");
     startScreen.classList.add("hidden");
     teamScreen.classList.add("hidden");
@@ -695,6 +710,7 @@ document.addEventListener("DOMContentLoaded", () => {
     introMenuIndex = 0;
     renderIntroMenu(0);
     introScreen.classList.remove("hidden");
+    storyScreen?.classList.add("hidden");
     recruitScreen?.classList.add("hidden");
     userScreen?.classList.add("hidden");
     startScreen.classList.add("hidden");
@@ -737,6 +753,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!current) return;
     if (current.key === "arcade") goToStartScreen("arcade");
     if (current.key === "versus") goToStartScreen("versus");
+    if (current.key === "historia") goToStoryScreen();
     if (current.key === "reclutar") goToRecruitScreen();
     if (current.key === "cuenta") goToUserScreen();
   }
@@ -744,11 +761,67 @@ document.addEventListener("DOMContentLoaded", () => {
   function goToStartScreen(mode) {
     selectedMode = mode;
     introScreen.classList.add("hidden");
+    storyScreen?.classList.add("hidden");
     recruitScreen?.classList.add("hidden");
     userScreen?.classList.add("hidden");
     startScreen.classList.remove("hidden");
     teamScreen.classList.add("hidden");
     gameRoot.classList.add("hidden");
+  }
+
+  function renderStoryStep() {
+    const line = STORY_LINES[storyStep] || STORY_LINES[0];
+    if (storySpeaker) storySpeaker.textContent = line.speaker;
+    if (storyText) storyText.textContent = line.text;
+    storyLeftChar?.classList.toggle("active", line.active === "left");
+    storyRightChar?.classList.toggle("active", line.active === "right");
+  }
+
+  function goToStoryScreen() {
+    introScreen.classList.add("hidden");
+    recruitScreen?.classList.add("hidden");
+    userScreen?.classList.add("hidden");
+    startScreen.classList.add("hidden");
+    teamScreen.classList.add("hidden");
+    gameRoot.classList.add("hidden");
+    storyScreen?.classList.remove("hidden");
+    storyStep = 0;
+    renderStoryStep();
+  }
+
+  function startStoryCombat() {
+    resetGame();
+    selectedMode = "arcade";
+    currentMode = "arcade";
+
+    const avatars = clampAvatarIndex();
+    const evelynIdx = avatars.findIndex((a) => a.key === "evelyn");
+    if (evelynIdx >= 0) avatarIndex = evelynIdx;
+    renderAvatarCarousel(0);
+
+    selectedTeamCardIds = new Set(CARDS.slice(0, 6).map((c) => c.id));
+    if (!commitTeam()) {
+      goToTeamScreen();
+      return;
+    }
+
+    introScreen.classList.add("hidden");
+    storyScreen?.classList.add("hidden");
+    recruitScreen?.classList.add("hidden");
+    userScreen?.classList.add("hidden");
+    startScreen.classList.add("hidden");
+    teamScreen.classList.add("hidden");
+    gameRoot.classList.remove("hidden");
+    startGame();
+  }
+
+  function nextStoryStep() {
+    if (storyStep < STORY_LINES.length - 1) {
+      storyStep += 1;
+      renderStoryStep();
+      return;
+    }
+    startStoryCombat();
   }
 
   function goToTeamScreen() {
@@ -2092,6 +2165,8 @@ document.addEventListener("DOMContentLoaded", () => {
     persistUserProfileName(next);
     setUserProfileName(next);
   });
+  storyNextBtn?.addEventListener("click", nextStoryStep);
+  storySkipBtn?.addEventListener("click", startStoryCombat);
   userBackBtn?.addEventListener("click", setIntroVisible);
 
   document.addEventListener("click", (e) => {
