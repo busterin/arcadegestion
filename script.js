@@ -1294,7 +1294,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function applyRemoteMissionSpawn(missionId, xPct, yPct) {
-    if (!gameRunning || completedMissionIds.has(missionId) || activePoints.has(missionId) || activePoints.size >= MAX_ACTIVE_POINTS) return;
+    if (!gameRunning || completedMissionIds.has(missionId) || activePoints.has(missionId) || getRedPointsCount() >= MAX_ACTIVE_POINTS) return;
     const mission = MISSIONS.find((m) => m.id === missionId);
     if (!mission) return;
     pendingMissions = pendingMissions.filter((m) => m.id !== missionId);
@@ -1419,8 +1419,18 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function getRedPointsCount() {
+    let count = 0;
+    for (const st of activePoints.values()) {
+      if (st?.phase === "spawned") count += 1;
+    }
+    return count;
+  }
+
   function createMissionPoint(mission, options = {}) {
-    if (activePoints.size >= MAX_ACTIVE_POINTS) return null;
+    if (!mission) return null;
+    if (activePoints.has(mission.id)) return null;
+    if (getRedPointsCount() >= MAX_ACTIVE_POINTS) return null;
     const point = document.createElement("div");
     point.className = "point";
     point.setAttribute("role", "button");
@@ -1456,7 +1466,8 @@ document.addEventListener("DOMContentLoaded", () => {
       isPaused: false,
       assignedCharIds: new Set(),
       chance: null,
-      execRemainingMs: null
+      execRemainingMs: null,
+      execTimerId: null
     };
 
     point.addEventListener("click", () => onPointClick(mission.id));
@@ -1490,6 +1501,10 @@ document.addEventListener("DOMContentLoaded", () => {
   function removePoint(missionId) {
     const st = activePoints.get(missionId);
     if (!st) return;
+    if (st.execTimerId) {
+      clearTimeout(st.execTimerId);
+      st.execTimerId = null;
+    }
     st.pointEl?.parentNode?.removeChild(st.pointEl);
     activePoints.delete(missionId);
   }
@@ -1545,13 +1560,13 @@ document.addEventListener("DOMContentLoaded", () => {
     clearTimeout(spawnTimer);
     if (!gameRunning) return;
 
-    if (activePoints.size >= MAX_ACTIVE_POINTS) {
+    if (getRedPointsCount() >= MAX_ACTIVE_POINTS) {
       spawnTimer = setTimeout(scheduleNextSpawn, 800);
       return;
     }
 
     if (pendingMissions.length === 0) {
-      pendingMissions = MISSIONS.filter((m) => !completedMissionIds.has(m.id));
+      pendingMissions = MISSIONS.filter((m) => !completedMissionIds.has(m.id) && !activePoints.has(m.id));
       if (pendingMissions.length === 0) {
         spawnTimer = setTimeout(scheduleNextSpawn, 1000);
         return;
@@ -1560,14 +1575,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     spawnTimer = setTimeout(() => {
       if (!gameRunning) return;
-      if (activePoints.size >= MAX_ACTIVE_POINTS) {
+      if (getRedPointsCount() >= MAX_ACTIVE_POINTS) {
         scheduleNextSpawn();
         return;
       }
 
       const idx = randInt(0, pendingMissions.length - 1);
       const mission = pendingMissions.splice(idx, 1)[0];
-      if (mission && !completedMissionIds.has(mission.id)) {
+      if (mission && !completedMissionIds.has(mission.id) && !activePoints.has(mission.id)) {
         createMissionPoint(mission);
       }
       scheduleNextSpawn();
@@ -1596,16 +1611,21 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (st.phase === "executing") {
-          st.execRemainingMs -= dt;
-          if (st.execRemainingMs <= 0) {
-            st.execRemainingMs = 0;
-            const chance = st.chance ?? 0.1;
-            const win = Math.random() < chance;
-            win ? winMission(mid) : failMission(mid);
-          }
+          st.execRemainingMs = Math.max(0, st.execRemainingMs - dt);
         }
       }
     }, 200);
+  }
+
+  function resolveExecutingMission(missionId) {
+    if (!gameRunning) return;
+    const st = activePoints.get(missionId);
+    if (!st || st.phase !== "executing") return;
+    st.execTimerId = null;
+    st.execRemainingMs = 0;
+    const chance = st.chance ?? 0.1;
+    const win = Math.random() < chance;
+    win ? winMission(missionId) : failMission(missionId);
   }
 
   function queueMissionResolution(missionId) {
@@ -1715,6 +1735,8 @@ document.addEventListener("DOMContentLoaded", () => {
     st.lastTickAt = performance.now();
     st.pointEl.classList.add("assigned");
     st.pointEl.classList.remove("ready");
+    if (st.execTimerId) clearTimeout(st.execTimerId);
+    st.execTimerId = setTimeout(() => resolveExecutingMission(st.mission.id), EXECUTION_TIME_MS);
 
     hideModal(missionModal);
     currentMissionId = null;
