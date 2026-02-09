@@ -1207,3 +1207,10 @@ img{ max-width:100%; height:auto; }
 .intro.intro-bg{
   background: url("images/portadainicio.PNG") center center / cover no-repeat;
 }
+
+#recruitScreen,
+#userScreen,
+#startScreen,
+#teamScreen{
+  background: url("images/portadainicio.PNG") center center / cover no-repeat;
+}
