@@ -165,6 +165,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const cardInfoTitle = document.getElementById("cardInfoTitle");
   const cardInfoText = document.getElementById("cardInfoText");
   const cardInfoImg = document.getElementById("cardInfoImg");
+  const cardInfoInfoBtn = document.getElementById("cardInfoInfoBtn");
+  const cardInfoSkillsBtn = document.getElementById("cardInfoSkillsBtn");
   const closeCardInfoBtn = document.getElementById("closeCardInfoBtn");
 
   const specialModal = document.getElementById("specialModal");
@@ -215,6 +217,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let specialArmed = false;
   let recruitingInProgress = false;
   let unlockedRecruitCharIds = new Set(loadUnlockedRecruitCharIds());
+  let currentCardInfoData = null;
 
   const versus = {
     clientId: `p_${Math.random().toString(36).slice(2, 10)}`,
@@ -1841,14 +1844,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function openCardInfo(cardData) {
     setGlobalPause(true);
+    currentCardInfoData = {
+      infoText: cardData?.infoText || "En construcción",
+      skillsText: cardData?.skillsText || "En construcción"
+    };
     cardInfoTitle.textContent = cardData.name;
-    cardInfoText.textContent = cardData.text;
     cardInfoImg.src = cardData.img;
     cardInfoImg.alt = cardData.name;
+    cardInfoInfoBtn?.classList.add("active");
+    cardInfoSkillsBtn?.classList.remove("active");
+    cardInfoText.textContent = currentCardInfoData.infoText;
     showModal(cardInfoModal);
   }
 
   function closeCardInfo() {
+    currentCardInfoData = null;
     hideModal(cardInfoModal);
     if (!isAnyModalOpen()) setGlobalPause(false);
   }
@@ -2051,6 +2061,18 @@ document.addEventListener("DOMContentLoaded", () => {
   confirmBtn.addEventListener("click", confirmMission);
 
   closeCardInfoBtn.addEventListener("click", closeCardInfo);
+  cardInfoInfoBtn?.addEventListener("click", () => {
+    if (!currentCardInfoData) return;
+    cardInfoInfoBtn.classList.add("active");
+    cardInfoSkillsBtn?.classList.remove("active");
+    cardInfoText.textContent = currentCardInfoData.infoText;
+  });
+  cardInfoSkillsBtn?.addEventListener("click", () => {
+    if (!currentCardInfoData) return;
+    cardInfoSkillsBtn.classList.add("active");
+    cardInfoInfoBtn?.classList.remove("active");
+    cardInfoText.textContent = currentCardInfoData.skillsText;
+  });
   cardInfoModal.addEventListener("click", (e) => { if (e.target === cardInfoModal) closeCardInfo(); });
 
   closeSpecialBtn.addEventListener("click", cancelSpecial);

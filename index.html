@@ -5,7 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Gestión de recursos (Prototipo)</title>
-<link href="style.css?v=20260209-1" rel="stylesheet"/>
+<link href="style.css?v=20260209-2" rel="stylesheet"/>
 </head>
 <body>
 <div class="app">
@@ -248,7 +248,17 @@
 <div class="modal-title" id="cardInfoTitle">Carta</div>
 <!-- Imagen ampliada -->
 <img alt="" class="cardinfo-img" id="cardInfoImg" src=""/>
-<div class="modal-text" id="cardInfoText">Prueba</div>
+<div class="cardinfo-actions" id="cardInfoActions">
+<button class="cardinfo-action active" data-type="info" id="cardInfoInfoBtn" type="button">
+<span aria-hidden="true">ℹ</span>
+<span>Información</span>
+</button>
+<button class="cardinfo-action" data-type="skills" id="cardInfoSkillsBtn" type="button">
+<span aria-hidden="true">✦</span>
+<span>Habilidades</span>
+</button>
+</div>
+<div class="modal-text" id="cardInfoText">En construcción</div>
 </div>
 <button aria-label="Cerrar" class="icon-btn" id="closeCardInfoBtn" type="button">✕</button>
 </div>
@@ -271,6 +281,6 @@
 </div>
 </div>
 </div>
-<script src="script.js?v=20260209-1"></script>
+<script src="script.js?v=20260209-2"></script>
 </body>
 </html>
