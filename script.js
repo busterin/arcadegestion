@@ -82,7 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const AVATARS = [
     { key: "evelyn", name: "Evelyn", src: "images/Evelyn.png", accountSrc: "images/Evelyn2.PNG", alt: "Evelyn" },
-    { key: "landom", name: "Landom", src: "images/Landom.png?v=20260210-3", accountSrc: "images/Landom2.png", alt: "Landom", unlockRecruitCharId: "c10" },
+    { key: "landom", name: "Landom", src: "images/Landom.png?v=20260210-4", accountSrc: "images/Landom2.png", alt: "Landom", unlockRecruitCharId: "c10" },
   ].sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
 
   const introScreen = document.getElementById("introScreen");
@@ -801,6 +801,7 @@ document.addEventListener("DOMContentLoaded", () => {
     storyScreen?.classList.remove("hidden");
     storyStep = 0;
     renderStoryStep();
+    applyStoryCharacterNormalization();
   }
 
   function startStoryCombat() {
@@ -870,6 +871,7 @@ document.addEventListener("DOMContentLoaded", () => {
     avatarPreviewImg.src = a.src;
     avatarPreviewImg.alt = a.alt;
     avatarPreviewName.textContent = a.name;
+    applyAvatarPreviewNormalization(a.src);
     dot0?.classList.toggle("active", avatarIndex === 0);
     dot1?.classList.toggle("active", avatars.length > 1 && avatarIndex === 1);
     if (direction !== 0) animateCarousel(direction);
@@ -1007,6 +1009,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const spriteBoxCache = new Map();
   let referenceVisibleHeightPx = null;
+  let selectorReferenceVisibleRatio = null;
+  let storyReferenceVisiblePerWidth = null;
+  let avatarPreviewNormalizeReq = 0;
+  let storyNormalizeReq = 0;
 
   async function getSpriteBox(src) {
     if (spriteBoxCache.has(src)) return spriteBoxCache.get(src);
@@ -1020,7 +1026,8 @@ document.addEventListener("DOMContentLoaded", () => {
       img.onerror = () => rej(new Error("No se pudo cargar " + src));
     });
 
-    const hasAlpha = /\.png$/i.test(src) || /\.webp$/i.test(src);
+    const normalizedSrc = String(src || "").split("?")[0].split("#")[0];
+    const hasAlpha = /\.png$/i.test(normalizedSrc) || /\.webp$/i.test(normalizedSrc);
     if (!hasAlpha) {
       const out = { w: img.naturalWidth, h: img.naturalHeight, boxH: img.naturalHeight, boxW: img.naturalWidth };
       spriteBoxCache.set(src, out);
@@ -1077,6 +1084,57 @@ document.addEventListener("DOMContentLoaded", () => {
     const neededWidth = referenceVisibleHeightPx * (box.w / box.boxH);
     const clamped = Math.max(baseWidthPx * 0.75, Math.min(neededWidth, baseWidthPx * 1.8));
     playerImg.style.width = `${clamped}px`;
+  }
+
+  async function getSelectorScaleFor(src) {
+    const box = await getSpriteBox(src);
+    const ratio = box.h > 0 ? (box.boxH / box.h) : 1;
+    if (selectorReferenceVisibleRatio == null) selectorReferenceVisibleRatio = ratio;
+    if (ratio <= 0) return 1;
+    return clamp(selectorReferenceVisibleRatio / ratio, 0.85, 1.7);
+  }
+
+  async function getStoryScaleFor(src) {
+    const box = await getSpriteBox(src);
+    const visiblePerWidth = box.w > 0 ? (box.boxH / box.w) : 1;
+    if (storyReferenceVisiblePerWidth == null) storyReferenceVisiblePerWidth = visiblePerWidth;
+    if (visiblePerWidth <= 0) return 1;
+    return clamp(storyReferenceVisiblePerWidth / visiblePerWidth, 0.85, 1.7);
+  }
+
+  async function applyAvatarPreviewNormalization(src) {
+    if (!avatarPreviewImg) return;
+    const req = ++avatarPreviewNormalizeReq;
+    avatarPreviewImg.style.setProperty("--sprite-scale", "1");
+    try {
+      const scale = await getSelectorScaleFor(src);
+      if (req !== avatarPreviewNormalizeReq) return;
+      avatarPreviewImg.style.setProperty("--sprite-scale", scale.toFixed(3));
+    } catch (_) {
+      if (req !== avatarPreviewNormalizeReq) return;
+      avatarPreviewImg.style.setProperty("--sprite-scale", "1");
+    }
+  }
+
+  async function applyStoryCharacterNormalization() {
+    const req = ++storyNormalizeReq;
+    const targets = [
+      [storyLeftChar, storyLeftChar?.src],
+      [storyRightChar, storyRightChar?.src]
+    ];
+
+    for (const [el, src] of targets) {
+      if (!el || !src) continue;
+      el.style.setProperty("--char-scale", "1");
+      try {
+        const scale = await getStoryScaleFor(src);
+        if (req !== storyNormalizeReq) return;
+        el.style.setProperty("--char-scale", scale.toFixed(3));
+      } catch (_) {
+        if (req !== storyNormalizeReq) return;
+        el.style.setProperty("--char-scale", "1");
+      }
+    }
   }
 
   async function applySelectedAvatarToMap() {

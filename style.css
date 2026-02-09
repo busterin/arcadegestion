@@ -264,6 +264,7 @@ img{ max-width:100%; height:auto; }
 }
 
 .story-char{
+  --char-scale: 1;
   position: absolute;
   bottom: 0;
   width: min(42vw, 360px);
@@ -274,20 +275,23 @@ img{ max-width:100%; height:auto; }
   transition: opacity .2s ease, transform .2s ease, filter .2s ease;
 }
 
-.story-char.left{ left: 3%; }
+.story-char.left{
+  left: 3%;
+  transform: scale(var(--char-scale));
+}
 .story-char.right{
   right: 3%;
-  transform: scaleX(-1);
+  transform: scaleX(-1) scale(var(--char-scale));
 }
 
 .story-char.active{
   opacity: 1;
-  transform: scale(1.03);
+  transform: scale(calc(var(--char-scale) * 1.03));
   filter: drop-shadow(0 20px 40px rgba(0,0,0,.55));
 }
 
 .story-char.right.active{
-  transform: scaleX(-1) scale(1.03);
+  transform: scaleX(-1) scale(calc(var(--char-scale) * 1.03));
 }
 
 .story-dialog{
@@ -717,6 +721,7 @@ img{ max-width:100%; height:auto; }
 }
 
 .carousel-img{
+  --sprite-scale: 1;
   height: 250px;
   width: auto;
   max-width: 100%;
@@ -727,6 +732,8 @@ img{ max-width:100%; height:auto; }
   user-select:none;
   pointer-events:none;
   transition: transform .15s ease;
+  transform: scale(var(--sprite-scale));
+  transform-origin: center bottom;
 }
 
 #startScreen .carousel-img.is-landom{
