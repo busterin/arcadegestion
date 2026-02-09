@@ -539,7 +539,8 @@ img{ max-width:100%; height:auto; }
   width: min(720px, 100%);
   border-radius: 18px;
   border: 1px solid rgba(255,255,255,.12);
-  background: linear-gradient(180deg, rgba(15,26,51,.96), rgba(14,23,48,.96));
+  background: linear-gradient(180deg, rgba(15,26,51,.62), rgba(14,23,48,.62));
+  backdrop-filter: blur(6px);
   box-shadow: var(--shadow);
   padding: 18px;
   text-align:center;
