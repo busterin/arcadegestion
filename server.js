@@ -6,7 +6,15 @@ const { WebSocketServer, WebSocket } = require("ws");
 const PORT = process.env.PORT || 3000;
 
 const app = express();
-app.use(express.static(path.resolve(__dirname)));
+app.use(express.static(path.resolve(__dirname), {
+  setHeaders: (res, filePath) => {
+    if (/\.(html|js|css)$/i.test(filePath)) {
+      res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+      res.setHeader("Pragma", "no-cache");
+      res.setHeader("Expires", "0");
+    }
+  }
+}));
 
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server, path: "/versus" });
