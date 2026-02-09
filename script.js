@@ -1484,7 +1484,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (st.phase === "spawned") return openMission(missionId);
-    if (st.phase === "ready") return openRouletteForMission(missionId);
   }
 
   function removePoint(missionId) {
@@ -1602,10 +1601,26 @@ document.addEventListener("DOMContentLoaded", () => {
             st.execRemainingMs = 0;
             st.pointEl.classList.remove("assigned");
             st.pointEl.classList.add("ready");
+            queueMissionResolution(mid);
           }
         }
       }
     }, 200);
+  }
+
+  function queueMissionResolution(missionId) {
+    const st = activePoints.get(missionId);
+    if (!st || st.phase !== "ready") return;
+
+    st.phase = "resolving";
+
+    setTimeout(() => {
+      const live = activePoints.get(missionId);
+      if (!live || live.phase !== "resolving") return;
+      const chance = live.chance ?? 0.1;
+      const win = Math.random() < chance;
+      win ? winMission(missionId) : failMission(missionId);
+    }, 160);
   }
 
   function openMission(missionId) {
