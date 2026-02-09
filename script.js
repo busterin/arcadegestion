@@ -58,7 +58,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const RECRUITABLE_CHARACTERS = [
     { id: "c4", name: "Friday", tags: ["volar", "adistancia"] },
     { id: "c5", name: "Risko", tags: ["adistancia", "lider"] },
-    { id: "c6", name: "Pendergast", tags: ["lider", "exploracion"] }
+    { id: "c6", name: "Pendergast", tags: ["lider", "exploracion"] },
+    { id: "c10", name: "Landom", tags: ["magia", "lider"] }
   ];
 
   const CARDS = [
@@ -78,6 +79,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const AVATARS = [
     { key: "evelyn", name: "Evelyn", src: "images/Evelyn.png", accountSrc: "images/Evelyn2.PNG", alt: "Evelyn" },
+    { key: "landom", name: "Landom", src: "images/Landom.png", accountSrc: "images/Landom2.png", alt: "Landom", unlockRecruitCharId: "c10" },
   ].sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
 
   const introScreen = document.getElementById("introScreen");
@@ -291,15 +293,32 @@ document.addEventListener("DOMContentLoaded", () => {
     ];
   }
 
+  function getAvailableAvatars() {
+    return AVATARS.filter((a) => !a.unlockRecruitCharId || unlockedRecruitCharIds.has(a.unlockRecruitCharId));
+  }
+
+  function clampAvatarIndex() {
+    const avatars = getAvailableAvatars();
+    if (!avatars.length) {
+      avatarIndex = 0;
+      return avatars;
+    }
+    avatarIndex = clamp(avatarIndex, 0, avatars.length - 1);
+    return avatars;
+  }
+
   function setRecruitRevealByName(name) {
     if (!recruitReveal || !recruitRevealImg || !recruitRevealName || !name) return;
     const card = RECRUITABLE_CARDS.find((c) => c.name === name);
-    if (!card) return;
-    const isRisko = card.name === "Risko";
+    const avatar = AVATARS.find((a) => a.name === name);
+    if (!card && !avatar) return;
+    const isRisko = card?.name === "Risko";
     recruitReveal.classList.toggle("is-risko", isRisko);
-    recruitRevealImg.src = isRisko ? "images/Risko.png" : card.img;
-    recruitRevealImg.alt = card.name;
-    recruitRevealName.textContent = card.name;
+    recruitRevealImg.src = isRisko
+      ? "images/Risko.png"
+      : (card?.img || avatar?.accountSrc || avatar?.src || "");
+    recruitRevealImg.alt = card?.name || avatar?.name || "Recluta";
+    recruitRevealName.textContent = card?.name || avatar?.name || name;
     recruitReveal.classList.remove("hidden");
   }
 
@@ -455,7 +474,7 @@ document.addEventListener("DOMContentLoaded", () => {
       opts.push({ src, name });
     };
 
-    AVATARS.forEach((a) => pushUnique(a.key === "evelyn" ? DEFAULT_PROFILE_AVATAR_SRC : a.src, a.name));
+    getAvailableAvatars().forEach((a) => pushUnique(a.accountSrc || a.src, a.name));
     CARDS.forEach((c) => pushUnique(c.img, c.name));
     RECRUITABLE_CARDS
       .filter((c) => unlockedRecruitCharIds.has(c.charId))
@@ -509,7 +528,9 @@ document.addEventListener("DOMContentLoaded", () => {
     userMainGrid.innerHTML = "";
     userSecondaryGrid.innerHTML = "";
 
-    const mainCharacters = [...AVATARS].map((a) => ({ ...a, src: a.accountSrc || a.src })).sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
+    const mainCharacters = getAvailableAvatars()
+      .map((a) => ({ ...a, src: a.accountSrc || a.src }))
+      .sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
     const secondaryCards = [...CARDS, ...RECRUITABLE_CARDS].sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
 
     mainCharacters.forEach((ch) => {
@@ -694,22 +715,28 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderAvatarCarousel(direction = 0) {
-    const a = AVATARS[avatarIndex];
+    const avatars = clampAvatarIndex();
+    const a = avatars[avatarIndex];
+    if (!a) return;
     avatarPreviewImg.src = a.src;
     avatarPreviewImg.alt = a.alt;
     avatarPreviewName.textContent = a.name;
     dot0?.classList.toggle("active", avatarIndex === 0);
-    dot1?.classList.toggle("active", avatarIndex === 1);
+    dot1?.classList.toggle("active", avatars.length > 1 && avatarIndex === 1);
     if (direction !== 0) animateCarousel(direction);
   }
 
   function prevAvatar() {
-    avatarIndex = (avatarIndex - 1 + AVATARS.length) % AVATARS.length;
+    const avatars = clampAvatarIndex();
+    if (avatars.length <= 1) return;
+    avatarIndex = (avatarIndex - 1 + avatars.length) % avatars.length;
     renderAvatarCarousel(-1);
   }
 
   function nextAvatar() {
-    avatarIndex = (avatarIndex + 1) % AVATARS.length;
+    const avatars = clampAvatarIndex();
+    if (avatars.length <= 1) return;
+    avatarIndex = (avatarIndex + 1) % avatars.length;
     renderAvatarCarousel(+1);
   }
 
@@ -869,7 +896,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function applySelectedAvatarToMap() {
-    const a = AVATARS[avatarIndex];
+    const avatars = clampAvatarIndex();
+    const a = avatars[avatarIndex];
+    if (!a) return;
     playerImg.src = a.src;
     playerImg.alt = a.alt;
     playerImg.style.width = "";
@@ -940,8 +969,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function getLocalProfile() {
+    const avatars = clampAvatarIndex();
     return {
-      avatarKey: AVATARS[avatarIndex]?.key,
+      avatarKey: avatars[avatarIndex]?.key,
       teamCardIds: [...selectedTeamCardIds]
     };
   }
