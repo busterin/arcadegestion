@@ -706,10 +706,6 @@ document.addEventListener("DOMContentLoaded", () => {
       btn.className = "team-card" + (selectedTeamCardIds.has(cardData.id) ? " selected" : "");
       btn.innerHTML = `
         <img src="${cardData.img}" alt="${cardData.name}" />
-        <div class="team-card-name">
-          <span class="team-card-title">${cardData.name}</span>
-          <span class="pill">${selectedTeamCardIds.has(cardData.id) ? "Elegido" : "Elegir"}</span>
-        </div>
       `;
 
       btn.addEventListener("click", () => {
