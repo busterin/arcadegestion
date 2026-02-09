@@ -1503,6 +1503,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (st.phase === "spawned") return openMission(missionId);
+    if (st.phase === "ready") return openRouletteForMission(missionId);
   }
 
   function removePoint(missionId) {
@@ -1620,7 +1621,6 @@ document.addEventListener("DOMContentLoaded", () => {
             st.execRemainingMs = 0;
             st.pointEl.classList.remove("assigned");
             st.pointEl.classList.add("ready");
-            openRouletteForMission(mid);
           }
         }
       }

@@ -813,10 +813,10 @@ img{ max-width:100%; height:auto; }
 
 .point.ready{
   background: var(--warn);
-  animation: megaBlinkYellow .55s infinite !important;
-  box-shadow: 0 0 0 0 rgba(255,213,74,.75);
+  animation: megaBlinkYellow .38s infinite !important;
+  box-shadow: 0 0 0 0 rgba(255,213,74,.92);
 }
-.point.ready::after{ border-color: rgba(255,213,74,.55); }
+.point.ready::after{ border-color: rgba(255,213,74,.85); }
 
 /* ---------- MODALS ---------- */
 .modal{
@@ -1116,7 +1116,7 @@ img{ max-width:100%; height:auto; }
 }
 @keyframes megaBlinkYellow{
   0%{ transform: translate(-50%, -50%) scale(1); filter: brightness(1); }
-  50%{ transform: translate(-50%, -50%) scale(1.45); filter: brightness(1.8); }
+  50%{ transform: translate(-50%, -50%) scale(1.65); filter: brightness(2.15); }
   100%{ transform: translate(-50%, -50%) scale(1); filter: brightness(1); }
 }
 @keyframes blink{
