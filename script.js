@@ -25,8 +25,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const RECRUIT_LAST_STORAGE_KEY = "arcadegestion_last_recruit_v1";
   const USER_PROFILE_AVATAR_KEY = "arcadegestion_user_profile_avatar_v1";
   const USER_PROFILE_NAME_KEY = "arcadegestion_user_profile_name_v1";
+  const COINS_STORAGE_KEY = "arcadegestion_coins_v1";
   const DEFAULT_PROFILE_AVATAR_SRC = "images/Evelyn2.PNG";
   const DEFAULT_PROFILE_NAME = "Usuario";
+  const DEFAULT_COINS = 50;
+  const RECRUIT_PACK_COST = 5;
 
   const MISSIONS = [
     { id: "m1", title: "Rescatar prisioneros", internalTags: ["sigilo", "lider"], img: "images/mision.png", text: "Las hordas del General Orion han secuestrado civiles para extorsionar a las naciones vecinas. Envia un equipo capaz de infiltrarse y rescatarlos bajo presion." },
@@ -91,6 +94,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const introProfile = document.getElementById("introProfile");
   const introProfileImg = document.getElementById("introProfileImg");
   const introProfileName = document.getElementById("introProfileName");
+  const introCoinsValue = document.getElementById("introCoinsValue");
 
   const recruitScreen = document.getElementById("recruitScreen");
   const recruitPackBtn = document.getElementById("recruitPackBtn");
@@ -103,10 +107,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const recruitOddsBtn = document.getElementById("recruitOddsBtn");
   const recruitOddsPanel = document.getElementById("recruitOddsPanel");
   const recruitOddsList = document.getElementById("recruitOddsList");
+  const recruitCoinsValue = document.getElementById("recruitCoinsValue");
+  const recruitPriceHint = document.getElementById("recruitPriceHint");
 
   const userScreen = document.getElementById("userScreen");
   const userProfileImg = document.getElementById("userProfileImg");
   const userProfileTitle = document.getElementById("userProfileTitle");
+  const userCoinsValue = document.getElementById("userCoinsValue");
   const userAvatarToggleBtn = document.getElementById("userAvatarToggleBtn");
   const userAvatarPicker = document.getElementById("userAvatarPicker");
   const userNameInput = document.getElementById("userNameInput");
@@ -218,6 +225,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let recruitingInProgress = false;
   let unlockedRecruitCharIds = new Set(loadUnlockedRecruitCharIds());
   let currentCardInfoData = null;
+  let coins = loadCoins();
 
   const versus = {
     clientId: `p_${Math.random().toString(36).slice(2, 10)}`,
@@ -280,6 +288,43 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch {
       // ignore storage errors
     }
+  }
+
+  function loadCoins() {
+    try {
+      const raw = window.localStorage?.getItem(COINS_STORAGE_KEY);
+      const parsed = Number(raw);
+      return Number.isFinite(parsed) && parsed >= 0 ? Math.floor(parsed) : DEFAULT_COINS;
+    } catch {
+      return DEFAULT_COINS;
+    }
+  }
+
+  function persistCoins() {
+    try {
+      window.localStorage?.setItem(COINS_STORAGE_KEY, String(coins));
+    } catch {
+      // ignore storage errors
+    }
+  }
+
+  function renderCoins() {
+    if (introCoinsValue) introCoinsValue.textContent = String(coins);
+    if (userCoinsValue) userCoinsValue.textContent = String(coins);
+    if (recruitCoinsValue) recruitCoinsValue.textContent = String(coins);
+  }
+
+  function setCoins(next) {
+    coins = Math.max(0, Math.floor(Number(next) || 0));
+    persistCoins();
+    renderCoins();
+  }
+
+  function spendCoins(amount) {
+    const cost = Math.max(0, Math.floor(Number(amount) || 0));
+    if (coins < cost) return false;
+    setCoins(coins - cost);
+    return true;
   }
 
   function getSelectableCharacters() {
@@ -377,6 +422,8 @@ document.addEventListener("DOMContentLoaded", () => {
     recruitScreen.classList.remove("hidden");
     recruitReveal?.classList.add("hidden");
     recruitOddsPanel?.classList.add("hidden");
+    if (recruitPriceHint) recruitPriceHint.textContent = "";
+    renderCoins();
     renderRecruitUnlockedState();
     renderRecruitOdds();
   }
@@ -384,6 +431,11 @@ document.addEventListener("DOMContentLoaded", () => {
   function recruitRandomCharacter() {
     if (!recruitPackBtn || !recruitResultText) return;
     if (recruitingInProgress) return;
+    if (!spendCoins(RECRUIT_PACK_COST)) {
+      if (recruitPriceHint) recruitPriceHint.textContent = "No tienes suficientes monedas para abrir un sobre.";
+      return;
+    }
+    if (recruitPriceHint) recruitPriceHint.textContent = "";
 
     const locked = RECRUITABLE_CHARACTERS.filter((ch) => !unlockedRecruitCharIds.has(ch.id));
     const pool = locked.length ? locked : RECRUITABLE_CHARACTERS;
@@ -2153,6 +2205,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   renderAvatarCarousel(0);
   renderIntroMenu(0);
+  setCoins(loadCoins());
   renderRecruitUnlockedState();
   setUserProfileAvatar(loadUserProfileAvatar() || DEFAULT_PROFILE_AVATAR_SRC);
   const initialProfileName = normalizeUserProfileName(loadUserProfileName() || DEFAULT_PROFILE_NAME);

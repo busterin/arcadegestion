@@ -5,7 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Protocolo Argo</title>
-<link href="style.css?v=20260209-4" rel="stylesheet"/>
+<link href="style.css?v=20260209-5" rel="stylesheet"/>
 </head>
 <body>
 <div class="app">
@@ -23,7 +23,13 @@
 <button aria-label="Siguiente" class="intro-nav-btn" id="introNextBtn" type="button">›</button>
 </div>
 <div class="intro-profile" id="introProfile">
+<div class="intro-profile-topline">
 <img alt="Avatar de usuario" class="intro-profile-img" id="introProfileImg" src="images/Evelyn2.PNG"/>
+<div class="coin-badge" aria-label="Monedas">
+<span class="coin-icon" aria-hidden="true">◉</span>
+<span id="introCoinsValue">50</span>
+</div>
+</div>
 <div class="intro-profile-name" id="introProfileName">Usuario</div>
 </div>
 </div>
@@ -42,6 +48,11 @@
 <img alt="Sobre de reclutamiento" class="recruit-pack-img" src="images/Sobre1.png"/>
 </button>
 </div>
+<div class="recruit-price" id="recruitPrice">
+<span>Precio del sobre: <b>5</b> monedas</span>
+<span>Saldo: <b id="recruitCoinsValue">50</b></span>
+</div>
+<div class="recruit-price-hint" id="recruitPriceHint"></div>
 <div class="recruit-result" id="recruitResultText">Aun no has abierto ningun sobre.</div>
 <div class="recruit-unlocked" id="recruitUnlockedText">Desbloqueados: ninguno</div>
 <div class="recruit-odds-wrap">
@@ -63,6 +74,10 @@
 <div class="user-profile-actions">
 <div class="start-title" id="userProfileTitle">Usuario</div>
 <div class="start-subtitle">Selecciona un avatar de los personajes que tienes desbloqueados.</div>
+<div class="coin-badge coin-badge-user" aria-label="Monedas">
+<span class="coin-icon" aria-hidden="true">◉</span>
+<span id="userCoinsValue">50</span>
+</div>
 <input class="user-name-input" id="userNameInput" maxlength="20" placeholder="Nombre de usuario" type="text"/>
 </div>
 </div>
@@ -281,6 +296,6 @@
 </div>
 </div>
 </div>
-<script src="script.js?v=20260209-5"></script>
+<script src="script.js?v=20260209-6"></script>
 </body>
 </html>
