@@ -450,7 +450,7 @@ document.addEventListener("DOMContentLoaded", () => {
       opts.push({ src, name });
     };
 
-    AVATARS.forEach((a) => pushUnique(a.src, a.name));
+    AVATARS.forEach((a) => pushUnique(a.key === "evelyn" ? DEFAULT_PROFILE_AVATAR_SRC : a.src, a.name));
     CARDS.forEach((c) => pushUnique(c.img, c.name));
     RECRUITABLE_CARDS
       .filter((c) => unlockedRecruitCharIds.has(c.charId))
