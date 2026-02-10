@@ -814,10 +814,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (storyText) storyText.textContent = scene.text || "";
 
-    if (storyStage) {
-      if (scene.background) storyStage.style.background = `url("${scene.background}") center center / cover no-repeat`;
-      else storyStage.style.background = "";
+    if (storyScreen) {
+      storyScreen.style.background = scene.background
+        ? `url("${scene.background}") center center / cover no-repeat`
+        : 'url("images/portadainicio.PNG") center center / cover no-repeat';
     }
+    if (storyStage) storyStage.style.background = "";
 
     storyLeftChar?.classList.toggle("hidden", !showChars);
     storyRightChar?.classList.toggle("hidden", !showChars);
@@ -909,9 +911,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const scenes = getStorySceneList();
     const scene = scenes[storyStep] || scenes[0];
     applyStoryScene(scene);
+    const isLast = storyStep >= scenes.length - 1;
     if (storySkipBtn) storySkipBtn.classList.toggle("hidden", storyPhase === "post");
+    if (storyMenuBtn) storyMenuBtn.classList.toggle("hidden", !(storyPhase === "post" && isLast));
     if (storyNextBtn) {
-      const isLast = storyStep >= scenes.length - 1;
       storyNextBtn.textContent = isLast && storyPhase === "post" ? "Fin" : "Siguiente";
     }
   }
@@ -1086,9 +1089,6 @@ document.addEventListener("DOMContentLoaded", () => {
   function startTutorial() {
     tutorialPending = false;
     tutorialStep = 0;
-    storyCombatActive = false;
-    storyPhase = "pre";
-    storyStep = 0;
     const landomAvatar = AVATARS.find((a) => a.key === "landom");
     if (tutorialRightChar && landomAvatar?.src) tutorialRightChar.src = landomAvatar.src;
     renderTutorialStep();
