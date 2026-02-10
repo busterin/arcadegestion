@@ -2101,6 +2101,24 @@ document.addEventListener("DOMContentLoaded", () => {
       },
       jane: {
         infoText: "Una cazadora que conoce los bosques del reino como la palma de su mano, capaz de entremezclarse con el bosque y fundirse con el viento, no la veras llegar hasta que sea demasiado tarde. Miembro honorifico del grupo de mercenarios Atalaya, con los que colabora asiduamente."
+      },
+      lisa: {
+        infoText: "Lisa crecio como una nina normal y corriente y puede decirse que tuvo una infancia feliz. A medida que llegaba a la adultez, iba notando como la magia aumentaba en su interior siendo capaz de canalizarla hacia la luz, negandose a utilizarla con otro fin que no fuera curativo, especializandose asi en la llamada magia blanca. Todo esto la llevo a convertirse en una sanadora muy conocida en todo el reino."
+      },
+      pendergast: {
+        infoText: "Proveniente de una familia de inventores y visionarios, no hay cachivache que Pendergast no pueda arreglar ni extrano artilugio que no pueda crear. Fue reclutada por el ejercito del Sur cuando era joven, debido a su capacidad de liderazgo y espiritu creativo, pero acabo renunciando ya que los ideales que ellos transmitian no encajaban con los suyos."
+      },
+      willard: {
+        infoText: "Primero de su promocion, este soldado ha vivido mas batallas de las que desearia y ha sido condecorado en multiples ocasiones. Con una punteria excepcional y un amplio entrenamiento en el combate cuerpo a cuerpo, Willard es una autentica maquina de matar. El no entiende de bandos, solo de cumplir ordenes."
+      },
+      winchester: {
+        infoText: "Esta guerrera magica es la mano derecha de Evelyn en el grupo de mercenarios \"Atalaya\". Capaz de rivalizar con cualquier soldado de elite, blande la espada con la misma precision que un cetro magico. Sabe mantener la cabeza fria en las situaciones mas delicadas y trabajar bajo presion es su especialidad."
+      },
+      risko: {
+        infoText: "Los Pinkerton eran una banda organizada muy conocida en la region. Como una suerte de Robin Hoods, robaban a los ricos para darselo a los pobres y la poblacion los amaba y temia a partes iguales. Un dia que Risko estaba buscando recursos por la zona, su banda, la que hubiera sido su familia durante tanto tiempo, fue masacrada por el ejercito del Sur, a modo de advertencia para todo aquel que quisiera tomarse la justicia por su mano. Consumida por la rabia y el dolor comenzo una cruzada de venganza que solo terminara cuando no quede ni un soldado en pie."
+      },
+      friday: {
+        infoText: "El calendario indicaba que era viernes el dia que encontraron a una pequena nina que no recordaba nada y cuya existencia era un misterio. Criada por una acaudalada familia, Friday estudio en las mejores escuelas y logro entrar en la prestigiosa escuela de aviacion donde logro cumplir su sueno de surcar los cielos. Sin embargo, pequenas visiones la acechan mientras duerme, como si retazos de su pasado la advirtieran de un peligro por llegar."
       }
     };
     const specialInfo = SPECIAL_CARD_INFO[cardName];
