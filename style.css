@@ -483,13 +483,6 @@ img{ max-width:100%; height:auto; }
   text-align: center;
 }
 
-.recruit-reveal.is-risko{
-  width: min(470px, 96vw);
-}
-.recruit-reveal.is-risko .recruit-reveal-img{
-  height: 420px;
-}
-
 /* ---------- USUARIO ---------- */
 .user-card{
   width: min(760px, 100%);
