@@ -179,6 +179,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const specialCancelBtn = document.getElementById("specialCancelBtn");
   const specialAcceptBtn = document.getElementById("specialAcceptBtn");
   const tutorialModal = document.getElementById("tutorialModal");
+  const tutorialRightChar = document.getElementById("tutorialRightChar");
   const tutorialText = document.getElementById("tutorialText");
   const tutorialNextBtn = document.getElementById("tutorialNextBtn");
 
@@ -262,10 +263,11 @@ document.addEventListener("DOMContentLoaded", () => {
     { speaker: "Landom", text: "¿Qué pasa, hermanita? ¿Otra vez perdida en tus mundos? ¡Espabila! Es hora de entrenar. ¿Aún recuerdas cómo se hace?", active: "right" }
   ];
   const TUTORIAL_STEPS = [
-    "Bienvenido al tutorial. Tu objetivo es completar misiones pulsando los puntos rojos del mapa.",
-    "Al abrir una misión, elige 1 o 2 personajes (en algunas misiones especiales puedes enviar 3). Si sus etiquetas coinciden con la misión, sube la probabilidad de éxito.",
-    "Tras asignar personajes, el punto pasa a amarillo. Cuando esté listo, pulsa el punto para lanzar la ruleta.",
-    "Si cae en verde, ganas la misión. Si cae en rojo, fallas. Completa suficientes misiones para ganar."
+    "¡Prepárate para un combate real! Tu objetivo es liderar a tu equipo y completar misiones pulsando los iconos que irán apareciendo en el mapa.",
+    "Al abrir una misión, tendrás que elegir personajes. Debes conocer bien a tu equipo porque si mandas a los más aptos para la misión, las probabilidades de éxito aumentarán considerablemente.",
+    "Si pulsas sobre un personaje, podrás leer su ficha para averiguar quién es más apto para cada misión. Tras asignar personajes, el icono pasa a amarillo. Cuando la misión finalice, el icono parpadeará; púlsalo y se activará una ruleta.",
+    "Si la ruleta se detiene en la zona verde, completarás la misión con éxito. Si se detiene en el color rojo, fallarás. El porcentaje de verde o rojo depende de los personajes que hayas enviado a la misión. Completa suficientes misiones para superar la fase.",
+    "Todos los líderes tienen una habilidad especial, pulsa sobre ellos para activarla. ¡Buena suerte!"
   ];
   let storyStep = 0;
 
@@ -948,6 +950,8 @@ document.addEventListener("DOMContentLoaded", () => {
   function startTutorial() {
     tutorialPending = false;
     tutorialStep = 0;
+    const landomAvatar = AVATARS.find((a) => a.key === "landom");
+    if (tutorialRightChar && landomAvatar?.src) tutorialRightChar.src = landomAvatar.src;
     renderTutorialStep();
     setGlobalPause(true);
     showModal(tutorialModal);
