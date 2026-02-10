@@ -299,6 +299,7 @@ document.addEventListener("DOMContentLoaded", () => {
     {
       speaker: "Evelyn",
       text: "Uf... Uf... Ufff... ¿Qué ha pasado? ¿Dónde...?",
+      background: "historia/1fondopueblo.PNG",
       active: "left",
       leftSrc: "images/Evelyn.png",
       rightSrc: "historia/Marcus2.png",
@@ -307,6 +308,7 @@ document.addEventListener("DOMContentLoaded", () => {
     {
       speaker: "Marcus",
       text: "¿Has vuelto a tener ese sueño?",
+      background: "historia/1fondopueblo.PNG",
       active: "right",
       leftSrc: "images/Evelyn.png",
       rightSrc: "historia/Marcus2.png",
