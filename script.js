@@ -307,9 +307,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function loadCoins() {
     try {
+      if (unlockedRecruitCharIds.size === 0) return DEFAULT_COINS;
       const raw = window.localStorage?.getItem(COINS_STORAGE_KEY);
       const parsed = Number(raw);
-      return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : DEFAULT_COINS;
+      return Number.isFinite(parsed) && parsed >= 0 ? Math.floor(parsed) : DEFAULT_COINS;
     } catch {
       return DEFAULT_COINS;
     }
