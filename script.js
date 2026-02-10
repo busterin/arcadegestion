@@ -109,6 +109,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const userScreen = document.getElementById("userScreen");
   const userProfileImg = document.getElementById("userProfileImg");
   const userProfileTitle = document.getElementById("userProfileTitle");
+  const userNameEditBtn = document.getElementById("userNameEditBtn");
   const userCoinsValue = document.getElementById("userCoinsValue");
   const userAvatarToggleBtn = document.getElementById("userAvatarToggleBtn");
   const userAvatarPicker = document.getElementById("userAvatarPicker");
@@ -229,6 +230,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let unlockedRecruitCharIds = new Set(loadUnlockedRecruitCharIds());
   let currentCardInfoData = null;
   let coins = loadCoins();
+  let isEditingUserName = false;
   let tutorialPending = false;
   let tutorialStep = 0;
   let tutorialReturnToAvatar = false;
@@ -525,6 +527,34 @@ document.addEventListener("DOMContentLoaded", () => {
     if (userNameInput && userNameInput.value !== next) userNameInput.value = next;
   }
 
+  function beginUserNameEdit() {
+    if (!userNameInput) return;
+    isEditingUserName = true;
+    userNameInput.classList.remove("hidden");
+    userNameInput.value = normalizeUserProfileName(loadUserProfileName() || userProfileTitle?.textContent || DEFAULT_PROFILE_NAME);
+    userNameInput.focus();
+    userNameInput.select();
+    if (userNameEditBtn) userNameEditBtn.textContent = "Guardar nombre";
+  }
+
+  function endUserNameEdit(commit = true) {
+    if (!userNameInput) return;
+    if (!isEditingUserName) return;
+    isEditingUserName = false;
+
+    if (commit) {
+      const next = normalizeUserProfileName(userNameInput.value);
+      persistUserProfileName(next);
+      setUserProfileName(next);
+    } else {
+      const current = normalizeUserProfileName(loadUserProfileName() || DEFAULT_PROFILE_NAME);
+      setUserProfileName(current);
+    }
+
+    userNameInput.classList.add("hidden");
+    if (userNameEditBtn) userNameEditBtn.textContent = "Editar nombre";
+  }
+
   function loadUserProfileAvatar() {
     try {
       const raw = window.localStorage?.getItem(USER_PROFILE_AVATAR_KEY);
@@ -660,6 +690,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const currentName = normalizeUserProfileName(loadUserProfileName() || DEFAULT_PROFILE_NAME);
     setUserProfileName(currentName);
     persistUserProfileName(currentName);
+    userNameInput?.classList.add("hidden");
+    isEditingUserName = false;
+    if (userNameEditBtn) userNameEditBtn.textContent = "Editar nombre";
     renderUserAvatarPicker();
     renderUserCollection();
   }
@@ -2303,15 +2336,23 @@ document.addEventListener("DOMContentLoaded", () => {
   recruitPackBtn?.addEventListener("click", recruitRandomCharacter);
   recruitBackBtn?.addEventListener("click", setIntroVisible);
   userAvatarToggleBtn?.addEventListener("click", toggleUserAvatarPicker);
-  userNameInput?.addEventListener("input", () => {
-    const next = normalizeUserProfileName(userNameInput.value);
-    persistUserProfileName(next);
-    setUserProfileName(next);
+  userNameEditBtn?.addEventListener("click", () => {
+    if (isEditingUserName) {
+      endUserNameEdit(true);
+      return;
+    }
+    beginUserNameEdit();
   });
-  userNameInput?.addEventListener("blur", () => {
-    const next = normalizeUserProfileName(userNameInput.value);
-    persistUserProfileName(next);
-    setUserProfileName(next);
+  userNameInput?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      endUserNameEdit(true);
+      return;
+    }
+    if (e.key === "Escape") {
+      e.preventDefault();
+      endUserNameEdit(false);
+    }
   });
   storyNextBtn?.addEventListener("click", nextStoryStep);
   storySkipBtn?.addEventListener("click", startStoryCombat);
