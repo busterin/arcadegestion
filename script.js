@@ -145,6 +145,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const rivalTeamBtn = document.getElementById("rivalTeamBtn");
 
   const missionModal = document.getElementById("missionModal");
+  const missionChooseTitle = document.getElementById("missionChooseTitle");
   const missionTitleEl = document.getElementById("missionTitle");
   const missionImgEl = document.getElementById("missionImg");
   const missionTextEl = document.getElementById("missionText");
@@ -154,6 +155,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const confirmBtn = document.getElementById("confirmBtn");
 
   const rouletteModal = document.getElementById("rouletteModal");
+  const rouletteTitle = document.getElementById("rouletteTitle");
   const rouletteWheel = document.getElementById("rouletteWheel");
   const rouletteOutcome = document.getElementById("rouletteOutcome");
   const rouletteSub = document.getElementById("rouletteSub");
@@ -1926,6 +1928,9 @@ document.addEventListener("DOMContentLoaded", () => {
     missionTextEl.textContent = st.mission.text;
 
     const maxChars = getMissionMaxChars(st.mission);
+    if (missionChooseTitle) {
+      missionChooseTitle.textContent = maxChars >= 3 ? "Elige 1, 2 o 3 personajes" : "Elige 1 o 2 personajes";
+    }
     pickHint.textContent = "Selecciona al menos 1 personaje (máximo " + maxChars + ").";
     pickHint.style.opacity = "1";
 
@@ -2052,6 +2057,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!st || st.phase !== "ready") return;
 
     setGlobalPause(true);
+    if (rouletteTitle) rouletteTitle.textContent = "Resolviendo misión: " + (st.mission?.title || "");
     showModal(rouletteModal);
 
     spinRoulette(st.chance ?? 0.1, (win) => {
@@ -2069,6 +2075,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!st) return;
 
     setGlobalPause(true);
+    if (rouletteTitle) rouletteTitle.textContent = "Resolviendo misión: " + (st.mission?.title || "");
     showModal(rouletteModal);
 
     spinRoulette(1, () => {
