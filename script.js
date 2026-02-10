@@ -85,11 +85,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const introProfileImg = document.getElementById("introProfileImg");
   const introProfileName = document.getElementById("introProfileName");
   const storyScreen = document.getElementById("storyScreen");
+  const storyStage = document.getElementById("storyStage");
   const storyLeftChar = document.getElementById("storyLeftChar");
   const storyRightChar = document.getElementById("storyRightChar");
   const storySpeaker = document.getElementById("storySpeaker");
   const storyText = document.getElementById("storyText");
   const storyNextBtn = document.getElementById("storyNextBtn");
+  const storyMenuBtn = document.getElementById("storyMenuBtn");
   const storySkipBtn = document.getElementById("storySkipBtn");
 
   const recruitScreen = document.getElementById("recruitScreen");
@@ -262,9 +264,54 @@ document.addEventListener("DOMContentLoaded", () => {
     { key: "reclutar", label: "RECLUTAR", img: "images/reclutar.png" },
     { key: "cuenta", label: "CUENTA", img: "images/cuenta.png" }
   ];
-  const STORY_LINES = [
-    { speaker: "Evelyn", text: "Y ahí vamos otra vez... Ese sueño recurrente de nuevo...", active: "left" },
-    { speaker: "Landom", text: "¿Qué pasa, hermanita? ¿Otra vez perdida en tus mundos? ¡Espabila! Es hora de entrenar. ¿Aún recuerdas cómo se hace?", active: "right" }
+  const STORY_COMBAT_WIN_TARGET = 3;
+  const STORY_PRE_COMBAT_SCENES = [
+    {
+      speaker: "",
+      text: "Vivimos tiempos convulsos... Nuestro futuro parece cubierto por una espesa niebla... Antes la vida era más sencilla pero ahora todo ha cambiado... Niebla...",
+      background: "historia/1niebla.PNG",
+      showChars: false
+    },
+    {
+      speaker: "Evelyn",
+      text: "Y ahí vamos otra vez... Ese sueño recurrente de nuevo...",
+      active: "left",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "images/Landom.png?v=20260210-4",
+      showChars: true
+    },
+    {
+      speaker: "Landom",
+      text: "¿Qué pasa, hermanita? ¿Otra vez perdida en tus mundos? ¡Espabila! Es hora de entrenar. ¿Aún recuerdas cómo se hace?",
+      active: "right",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "images/Landom.png?v=20260210-4",
+      showChars: true
+    }
+  ];
+  const STORY_POST_COMBAT_SCENES = [
+    {
+      speaker: "Evelyn",
+      text: "¿Dónde estoy? ¿Landom? ¿Landom? No me abandones otra vez, por favor... No, otra vez, no... Niebla... Todo lo cubre la niebla...",
+      background: "historia/1nieblaevelyn.PNG",
+      showChars: false
+    },
+    {
+      speaker: "Evelyn",
+      text: "Uf... Uf... Ufff... ¿Qué ha pasado? ¿Dónde...?",
+      active: "left",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Marcus2.png",
+      showChars: true
+    },
+    {
+      speaker: "Marcus",
+      text: "¿Has vuelto a tener ese sueño?",
+      active: "right",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Marcus2.png",
+      showChars: true
+    }
   ];
   const TUTORIAL_STEPS = [
     "¡Prepárate para un combate real! Tu objetivo es liderar a tu equipo y completar misiones pulsando los iconos que irán apareciendo en el mapa.",
@@ -274,6 +321,8 @@ document.addEventListener("DOMContentLoaded", () => {
     "Todos los líderes tienen una habilidad especial, pulsa sobre ellos para activarla. ¡Buena suerte!"
   ];
   let storyStep = 0;
+  let storyPhase = "pre";
+  let storyCombatActive = false;
 
   function loadUnlockedRecruitCharIds() {
     try {
@@ -732,13 +781,62 @@ document.addEventListener("DOMContentLoaded", () => {
     score += delta;
   }
 
+  function getCurrentArcadeWinTarget() {
+    return storyCombatActive ? STORY_COMBAT_WIN_TARGET : ARCADE_WIN_TARGET;
+  }
+
+  function getStorySceneList() {
+    return storyPhase === "post" ? STORY_POST_COMBAT_SCENES : STORY_PRE_COMBAT_SCENES;
+  }
+
+  function setImageWithFallback(el, src, fallback) {
+    if (!el) return;
+    const primary = src || fallback || "";
+    const backup = fallback || "";
+    el.onerror = () => {
+      if (backup && el.src !== new URL(backup, window.location.href).href) {
+        el.onerror = null;
+        el.src = backup;
+      } else {
+        el.onerror = null;
+      }
+    };
+    el.src = primary;
+  }
+
+  function applyStoryScene(scene) {
+    if (!scene) return;
+    const showChars = scene.showChars !== false;
+
+    if (storySpeaker) {
+      storySpeaker.textContent = scene.speaker || "";
+      storySpeaker.classList.toggle("hidden", !scene.speaker);
+    }
+    if (storyText) storyText.textContent = scene.text || "";
+
+    if (storyStage) {
+      if (scene.background) storyStage.style.background = `url("${scene.background}") center center / cover no-repeat`;
+      else storyStage.style.background = "";
+    }
+
+    storyLeftChar?.classList.toggle("hidden", !showChars);
+    storyRightChar?.classList.toggle("hidden", !showChars);
+    if (!showChars) return;
+
+    if (storyLeftChar) setImageWithFallback(storyLeftChar, scene.leftSrc, "images/Evelyn.png");
+    if (storyRightChar) setImageWithFallback(storyRightChar, scene.rightSrc, "images/Landom.png?v=20260210-4");
+    storyLeftChar?.classList.toggle("active", scene.active === "left");
+    storyRightChar?.classList.toggle("active", scene.active === "right");
+    applyStoryCharacterNormalization();
+  }
+
   function updateHud() {
     if (currentMode === "versus") {
       if (hudLabelEl) hudLabelEl.textContent = "Marcador";
       progressEl.textContent = `${localWins} - ${rivalWins}`;
     } else {
       if (hudLabelEl) hudLabelEl.textContent = "Misiones";
-      progressEl.textContent = String(score) + "/" + String(ARCADE_WIN_TARGET);
+      progressEl.textContent = String(score) + "/" + String(getCurrentArcadeWinTarget());
     }
     rivalTeamBtn?.classList.toggle("hidden", currentMode !== "versus");
   }
@@ -808,11 +906,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderStoryStep() {
-    const line = STORY_LINES[storyStep] || STORY_LINES[0];
-    if (storySpeaker) storySpeaker.textContent = line.speaker;
-    if (storyText) storyText.textContent = line.text;
-    storyLeftChar?.classList.toggle("active", line.active === "left");
-    storyRightChar?.classList.toggle("active", line.active === "right");
+    const scenes = getStorySceneList();
+    const scene = scenes[storyStep] || scenes[0];
+    applyStoryScene(scene);
+    if (storySkipBtn) storySkipBtn.classList.toggle("hidden", storyPhase === "post");
+    if (storyNextBtn) {
+      const isLast = storyStep >= scenes.length - 1;
+      storyNextBtn.textContent = isLast && storyPhase === "post" ? "Fin" : "Siguiente";
+    }
   }
 
   function goToStoryScreen() {
@@ -822,18 +923,19 @@ document.addEventListener("DOMContentLoaded", () => {
     startScreen.classList.add("hidden");
     teamScreen.classList.add("hidden");
     gameRoot.classList.add("hidden");
-    const landomAvatar = AVATARS.find((a) => a.key === "landom");
-    if (storyRightChar && landomAvatar?.src) storyRightChar.src = landomAvatar.src;
     storyScreen?.classList.remove("hidden");
+    storyCombatActive = false;
+    storyPhase = "pre";
     storyStep = 0;
     renderStoryStep();
-    applyStoryCharacterNormalization();
   }
 
   function startStoryCombat() {
     resetGame();
     selectedMode = "arcade";
     currentMode = "arcade";
+    storyCombatActive = true;
+    storyPhase = "combat";
 
     const avatars = clampAvatarIndex();
     const evelynIdx = avatars.findIndex((a) => a.key === "evelyn");
@@ -858,12 +960,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function nextStoryStep() {
-    if (storyStep < STORY_LINES.length - 1) {
+    const scenes = getStorySceneList();
+    if (storyStep < scenes.length - 1) {
       storyStep += 1;
       renderStoryStep();
       return;
     }
-    startStoryCombat();
+    if (storyPhase === "pre") startStoryCombat();
   }
 
   function goToTeamScreen() {
@@ -983,6 +1086,9 @@ document.addEventListener("DOMContentLoaded", () => {
   function startTutorial() {
     tutorialPending = false;
     tutorialStep = 0;
+    storyCombatActive = false;
+    storyPhase = "pre";
+    storyStep = 0;
     const landomAvatar = AVATARS.find((a) => a.key === "landom");
     if (tutorialRightChar && landomAvatar?.src) tutorialRightChar.src = landomAvatar.src;
     renderTutorialStep();
@@ -1863,7 +1969,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (currentMode === "versus") {
       localWins += 1;
-    } else if (score >= ARCADE_WIN_TARGET) {
+    } else if (score >= getCurrentArcadeWinTarget()) {
       finishArcadeVictory();
       return;
     }
@@ -2222,6 +2328,22 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function finishArcadeVictory() {
+    if (storyCombatActive) {
+      resetGame();
+      storyCombatActive = false;
+      storyPhase = "post";
+      storyStep = 0;
+      introScreen.classList.add("hidden");
+      storyScreen?.classList.remove("hidden");
+      recruitScreen?.classList.add("hidden");
+      userScreen?.classList.add("hidden");
+      startScreen.classList.add("hidden");
+      teamScreen.classList.add("hidden");
+      gameRoot.classList.add("hidden");
+      renderStoryStep();
+      return;
+    }
+
     stopGameLoops();
 
     hideModal(missionModal);
@@ -2352,6 +2474,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
   storyNextBtn?.addEventListener("click", nextStoryStep);
+  storyMenuBtn?.addEventListener("click", setIntroVisible);
   storySkipBtn?.addEventListener("click", startStoryCombat);
   userBackBtn?.addEventListener("click", setIntroVisible);
 
