@@ -119,6 +119,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const startScreen = document.getElementById("startScreen");
   const startBtn = document.getElementById("startBtn");
+  const startTutorialBtn = document.getElementById("startTutorialBtn");
   const startBackBtn = document.getElementById("startBackBtn");
 
   const prevAvatarBtn = document.getElementById("prevAvatarBtn");
@@ -230,6 +231,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let coins = loadCoins();
   let tutorialPending = false;
   let tutorialStep = 0;
+  let tutorialReturnToAvatar = false;
 
   const versus = {
     clientId: `p_${Math.random().toString(36).slice(2, 10)}`,
@@ -770,6 +772,7 @@ document.addEventListener("DOMContentLoaded", () => {
     recruitScreen?.classList.add("hidden");
     userScreen?.classList.add("hidden");
     startScreen.classList.remove("hidden");
+    startTutorialBtn?.classList.toggle("hidden", selectedMode !== "arcade");
     teamScreen.classList.add("hidden");
     gameRoot.classList.add("hidden");
   }
@@ -964,6 +967,10 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     hideModal(tutorialModal);
+    if (tutorialReturnToAvatar) {
+      tutorialReturnToAvatar = false;
+      goToStartScreen("arcade");
+    }
     if (!isAnyModalOpen()) setGlobalPause(false);
   }
 
@@ -2338,6 +2345,10 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   startBackBtn?.addEventListener("click", setIntroVisible);
+  startTutorialBtn?.addEventListener("click", () => {
+    tutorialReturnToAvatar = true;
+    startTutorial();
+  });
 
   startBtn.addEventListener("click", () => {
     selectedTeamCardIds = new Set();
