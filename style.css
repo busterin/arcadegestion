@@ -1012,8 +1012,8 @@ img{ max-width:100%; height:auto; }
 
 .char{
   border-radius: 16px;
-  border: none;
-  background: transparent;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.04);
   padding: 12px;
   cursor:pointer;
   transition: transform .12s ease, border-color .12s ease, background .12s ease, opacity .12s ease;
@@ -1025,9 +1025,16 @@ img{ max-width:100%; height:auto; }
 .char:hover{ transform: translateY(-1px); }
 .char .name{ font-weight:900; }
 .char.selected{
-  border-color: rgba(85,214,255,.7);
-  background: rgba(85,214,255,.10);
-  box-shadow: 0 10px 26px rgba(58,208,255,.12);
+  border-color: rgba(85,214,255,.98);
+  background: linear-gradient(180deg, rgba(85,214,255,.26), rgba(85,214,255,.12));
+  box-shadow: 0 0 0 2px rgba(85,214,255,.35), 0 16px 34px rgba(58,208,255,.30);
+  transform: translateY(-1px) scale(1.02);
+}
+.char.selected .pill{
+  color: #04111d;
+  border-color: rgba(85,214,255,.98);
+  background: linear-gradient(180deg, #b8f4ff, #6fdbff);
+  box-shadow: 0 6px 16px rgba(58,208,255,.35);
 }
 .char.locked{ opacity:.45; cursor:not-allowed; transform:none !important; }
 
