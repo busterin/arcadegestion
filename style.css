@@ -266,7 +266,7 @@ img{ max-width:100%; height:auto; }
 .story-char{
   --char-scale: 1;
   position: absolute;
-  bottom: 0;
+  bottom: -18px;
   width: min(42vw, 360px);
   max-height: 76vh;
   object-fit: contain;
@@ -1365,6 +1365,7 @@ img{ max-width:100%; height:auto; }
 
   .story-screen{ padding: 10px; }
   .story-char{
+    bottom: -10px;
     width: min(46vw, 230px);
     max-height: 62vh;
   }

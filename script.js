@@ -267,8 +267,8 @@ document.addEventListener("DOMContentLoaded", () => {
     { key: "cuenta", label: "CUENTA", img: "images/cuenta.png" }
   ];
   const STORY_LINES = [
-    { speaker: "Risko", text: "Prueba", active: "left" },
-    { speaker: "Landom", text: "Prueba2", active: "right" }
+    { speaker: "Evelyn", text: "Y ahi vamos otra vez... Ese sueno recurrente de nuevo...", active: "left" },
+    { speaker: "Landom", text: "Que pasa, hermanita? Otra vez perdida en tus mundos? Espabila! Es hora de entrenar. Aun recuerdas como se hace?", active: "right" }
   ];
   const TUTORIAL_STEPS = [
     "Bienvenido al tutorial. Tu objetivo es completar misiones pulsando los puntos rojos del mapa.",
