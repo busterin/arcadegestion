@@ -32,11 +32,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const RECRUIT_PACK_COST = 5;
 
   const MISSIONS = [
-    { id: "m1", title: "Oso peligroso", internalTags: ["cuerpoacuerpo", "adistancia"], img: "images/mision.png", text: "Un oso ha atacado en repetidas ocasiones un pueblo de montana. Ya no solo se trata de destrozos materiales sino que algun aldeano ha resultado herido. Urge detenerlo." },
-    { id: "m2", title: "Robos en Marjoire", internalTags: ["exploracion", "lider"], img: "images/mision.png", text: "En la flamante ciudad de Marjoire, concretamente en el barrio Ashira, donde la alta sociedad acostumbra a reunirse para celebrar sus ostentosas fiestas, se estan produciendo una serie de robos. Es necesario investigar la escena y descubrir a los responsables lo antes posible." },
-    { id: "m3", title: "Arena de gladiadores", internalTags: ["cuerpoacuerpo"], img: "images/mision.png", text: "Se buscan a los mejores guerreros. Una gran oportunidad de demostrar tus dotes de combate cuerpo a cuerpo. Nada de arcos ni magia, aqui solo se admiten autenticos gladiadores que no teman a nada." },
-    { id: "m4", title: "Entrega urgente", internalTags: ["volar", "exploracion"], img: "images/mision.png", text: "Un pequeno pueblo montanoso se ha quedado sin medicinas y la salud de muchos de sus habitantes comienza a ser preocupante. Es necesario entregar el paquete lo mas rapido posible." },
-    { id: "m5", title: "La banda de Jack el Tuerto", internalTags: ["cuerpoacuerpo", "adistancia", "magia"], img: "images/mision.png", text: "El famoso bandido Jack el Tuerto tiene aterrorizado a todo el condado de Veiran y nadie se atreve a hacerle frente. Alguien debe detenerlo, pero cuidado, no sera un combate facil.", maxChars: 3, matchBonus: 0.4 }
+    { id: "m1", title: "Oso peligroso", internalTags: ["cuerpoacuerpo", "adistancia"], img: "images/mision.png", text: "Un oso ha atacado en repetidas ocasiones un pueblo de montaña. Ya no solo se trata de destrozos materiales, sino que algún aldeano ha resultado herido. Urge detenerlo." },
+    { id: "m2", title: "Robos en Marjoire", internalTags: ["exploracion", "lider"], img: "images/mision.png", text: "En la flamante ciudad de Marjoire, concretamente en el barrio Ashira, donde la alta sociedad acostumbra a reunirse para celebrar sus ostentosas fiestas, se está produciendo una serie de robos. Es necesario investigar la escena y descubrir a los responsables lo antes posible." },
+    { id: "m3", title: "Arena de gladiadores", internalTags: ["cuerpoacuerpo"], img: "images/mision.png", text: "¡Se buscan a los mejores guerreros! Una gran oportunidad de demostrar tus dotes de combate cuerpo a cuerpo. Nada de arcos ni magia, aquí solo se admiten auténticos gladiadores que no teman a nada." },
+    { id: "m4", title: "Entrega urgente", internalTags: ["volar", "exploracion"], img: "images/mision.png", text: "Un pequeño pueblo montañoso se ha quedado sin medicinas y la salud de muchos de sus habitantes comienza a ser preocupante. Es necesario entregar el paquete lo más rápido posible." },
+    { id: "m5", title: "La banda de Jack el Tuerto", internalTags: ["cuerpoacuerpo", "adistancia", "magia"], img: "images/mision.png", text: "El famoso bandido Jack el Tuerto tiene aterrorizado a todo el condado de Veiran y nadie se atreve a hacerle frente. ¡Alguien debe detenerlo! Pero cuidado, no será un combate fácil.", maxChars: 3, matchBonus: 0.4 }
   ];
 
   const CHARACTERS = [
@@ -56,18 +56,18 @@ document.addEventListener("DOMContentLoaded", () => {
   ];
 
   const CARDS = [
-    { id: "card_castri", name: "Winchester", img: "images/Winchester.PNG", text: "Carta de apoyo: coordinacion y ejecucion con criterio." },
+    { id: "card_castri", name: "Winchester", img: "images/Winchester.PNG", text: "Carta de apoyo: coordinación y ejecución con criterio." },
     { id: "card_maider", name: "Eliot", img: "images/Eliot.PNG", text: "Carta de apoyo: mirada de sala y ajuste fino." },
     { id: "card_celia", name: "Camus", img: "images/Camus.PNG", text: "Carta de apoyo: resuelve operativa con rapidez." },
-    { id: "card_lorena", name: "Jane", img: "images/Jane.PNG?v=20260209", text: "Carta de apoyo: mejora presentacion, orden y estetica." },
-    { id: "card_alba", name: "Lisa", img: "images/Lisa.PNG", text: "Carta de apoyo: ejecucion rapida y organizada." },
+    { id: "card_lorena", name: "Jane", img: "images/Jane.PNG?v=20260209", text: "Carta de apoyo: mejora presentación, orden y estética." },
+    { id: "card_alba", name: "Lisa", img: "images/Lisa.PNG", text: "Carta de apoyo: ejecución rápida y organizada." },
     { id: "card_mariam", name: "Willard", img: "images/Willard.PNG", text: "Carta de apoyo: coordina y aterriza lo pendiente." }
   ];
 
   const RECRUITABLE_CARDS = [
-    { id: "card_friday", charId: "c4", name: "Friday", img: "images/Friday.PNG", text: "Carta de apoyo: programacion precisa y resolutiva." },
-    { id: "card_risko", charId: "c5", name: "Risko", img: "images/Risko.png", text: "Carta de apoyo: depura problemas tecnicos con calma." },
-    { id: "card_pendergast", charId: "c6", name: "Pendergast", img: "images/Pendergast.PNG", text: "Carta de apoyo: dinamiza equipos y formacion." }
+    { id: "card_friday", charId: "c4", name: "Friday", img: "images/Friday.PNG", text: "Carta de apoyo: programación precisa y resolutiva." },
+    { id: "card_risko", charId: "c5", name: "Risko", img: "images/Risko.png", text: "Carta de apoyo: depura problemas técnicos con calma." },
+    { id: "card_pendergast", charId: "c6", name: "Pendergast", img: "images/Pendergast.PNG", text: "Carta de apoyo: dinamiza equipos y formación." }
   ];
 
   const AVATARS = [
@@ -256,14 +256,14 @@ document.addEventListener("DOMContentLoaded", () => {
     { key: "cuenta", label: "CUENTA", img: "images/cuenta.png" }
   ];
   const STORY_LINES = [
-    { speaker: "Evelyn", text: "Y ahi vamos otra vez... Ese sueno recurrente de nuevo...", active: "left" },
-    { speaker: "Landom", text: "Que pasa, hermanita? Otra vez perdida en tus mundos? Espabila! Es hora de entrenar. Aun recuerdas como se hace?", active: "right" }
+    { speaker: "Evelyn", text: "Y ahí vamos otra vez... Ese sueño recurrente de nuevo...", active: "left" },
+    { speaker: "Landom", text: "¿Qué pasa, hermanita? ¿Otra vez perdida en tus mundos? ¡Espabila! Es hora de entrenar. ¿Aún recuerdas cómo se hace?", active: "right" }
   ];
   const TUTORIAL_STEPS = [
     "Bienvenido al tutorial. Tu objetivo es completar misiones pulsando los puntos rojos del mapa.",
-    "Al abrir una mision, elige 1 o 2 personajes (en algunas misiones especiales puedes enviar 3). Si sus etiquetas coinciden con la mision, sube la probabilidad de exito.",
-    "Tras asignar personajes, el punto pasa a amarillo. Cuando este listo, pulsa el punto para lanzar la ruleta.",
-    "Si cae en verde, ganas la mision. Si cae en rojo, fallas. Completa suficientes misiones para ganar."
+    "Al abrir una misión, elige 1 o 2 personajes (en algunas misiones especiales puedes enviar 3). Si sus etiquetas coinciden con la misión, sube la probabilidad de éxito.",
+    "Tras asignar personajes, el punto pasa a amarillo. Cuando esté listo, pulsa el punto para lanzar la ruleta.",
+    "Si cae en verde, ganas la misión. Si cae en rojo, fallas. Completa suficientes misiones para ganar."
   ];
   let storyStep = 0;
 
@@ -478,8 +478,8 @@ document.addEventListener("DOMContentLoaded", () => {
         renderUserAvatarPicker();
         renderUserCollection();
         recruitResultText.textContent = awardingNew
-          ? `Te ha tocado: ${winner.name}. Ya esta disponible en Arcade y Versus.`
-          : `Te ha tocado: ${winner.name} (repetido). Ya tenias todos desbloqueados.`;
+          ? `Te ha tocado: ${winner.name}. Ya está disponible en Arcade y Versus.`
+          : `Te ha tocado: ${winner.name} (repetido). Ya tenías todos desbloqueados.`;
         setRecruitRevealByName(winner.name);
         triggerRecruitRevealFx();
         recruitPackBtn.classList.remove("spinning");
@@ -615,7 +615,7 @@ document.addEventListener("DOMContentLoaded", () => {
           img: ch.src,
           text: ch.isUnlocked
             ? "Personaje principal. Puedes usarlo como avatar."
-            : "Personaje principal. Aun no desbloqueado."
+            : "Personaje principal. Aún no desbloqueado."
         });
       });
       userMainGrid.appendChild(item);
@@ -632,7 +632,7 @@ document.addEventListener("DOMContentLoaded", () => {
         openCardInfo({
           name: card.name,
           img: card.img,
-          text: isUnlocked ? card.text : (card.text + " (Aun no desbloqueado)")
+          text: isUnlocked ? card.text : (card.text + " (Aún no desbloqueado)")
         });
       });
       userSecondaryGrid.appendChild(item);
@@ -1307,7 +1307,7 @@ document.addEventListener("DOMContentLoaded", () => {
         versus.transport = "ws";
         ws.send(JSON.stringify({ type: "vs_register", from: versus.clientId }));
         if (versus.matching) {
-          matchmakingText.textContent = "Buscando rival online (movil, ordenador o tablet conectados ahora).";
+          matchmakingText.textContent = "Buscando rival online (móvil, ordenador o tablet conectados ahora).";
           ws.send(JSON.stringify({
             type: "vs_looking",
             from: versus.clientId,
@@ -1404,7 +1404,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const usingWs = versus.wsReady;
     matchmakingText.textContent = usingWs
-      ? "Buscando rival online (movil, ordenador o tablet conectados ahora)."
+      ? "Buscando rival online (móvil, ordenador o tablet conectados ahora)."
       : `Servidor online no disponible (${versus.wsLastTried[versus.wsLastTried.length - 1] || "sin endpoint WS"}). Reintentando online...`;
     showModal(matchmakingModal);
 
@@ -1415,7 +1415,7 @@ document.addEventListener("DOMContentLoaded", () => {
           matchmakingText.textContent = `Servidor online no disponible (${versus.wsLastTried[versus.wsLastTried.length - 1] || "sin endpoint WS"}). Reintentando online...`;
         }
       } else {
-        matchmakingText.textContent = "Buscando rival online (movil, ordenador o tablet conectados ahora).";
+        matchmakingText.textContent = "Buscando rival online (móvil, ordenador o tablet conectados ahora).";
       }
 
       versusSend({
@@ -1479,13 +1479,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (msg.type === "vs_match_end") {
       if (currentMode !== "versus" || msg.from !== versus.opponentId) return;
-      if (gameRunning) finishVersusGame(false, "Tu rival llego antes a 8 misiones.");
+      if (gameRunning) finishVersusGame(false, "Tu rival llegó antes a 8 misiones.");
       return;
     }
 
     if (msg.type === "vs_leave") {
       if (currentMode !== "versus" || msg.from !== versus.opponentId) return;
-      if (gameRunning) finishVersusGame(true, "Tu rival se desconecto.");
+      if (gameRunning) finishVersusGame(true, "Tu rival se desconectó.");
     }
   }
 
@@ -1602,7 +1602,7 @@ document.addEventListener("DOMContentLoaded", () => {
     updateHud();
 
     if (rivalWins >= VERSUS_WIN_TARGET) {
-      finishVersusGame(false, "Tu rival llego antes a 8 misiones.");
+      finishVersusGame(false, "Tu rival llegó antes a 8 misiones.");
     }
   }
 
@@ -1713,7 +1713,7 @@ document.addEventListener("DOMContentLoaded", () => {
     point.className = "point";
     point.setAttribute("role", "button");
     point.setAttribute("tabindex", "0");
-    point.setAttribute("aria-label", `Mision: ${mission.title}`);
+    point.setAttribute("aria-label", `Misión: ${mission.title}`);
 
     const mapRect = mapEl.getBoundingClientRect();
     let xPct = options.xPct;
@@ -1922,11 +1922,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     missionTitleEl.textContent = st.mission.title;
     missionImgEl.src = st.mission.img || "images/mision.png";
-    missionImgEl.alt = st.mission.title || "Mision";
+    missionImgEl.alt = st.mission.title || "Misión";
     missionTextEl.textContent = st.mission.text;
 
     const maxChars = getMissionMaxChars(st.mission);
-    pickHint.textContent = "Selecciona al menos 1 personaje (maximo " + maxChars + ").";
+    pickHint.textContent = "Selecciona al menos 1 personaje (máximo " + maxChars + ").";
     pickHint.style.opacity = "1";
 
     renderCharacters();
@@ -1954,7 +1954,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       card.addEventListener("click", () => {
         if (locked) {
-          pickHint.textContent = "Ese personaje esta ocupado en otra mision.";
+          pickHint.textContent = "Ese personaje está ocupado en otra misión.";
           pickHint.style.opacity = "1";
           return;
         }
@@ -1977,7 +1977,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (selectedCharIds.size >= maxChars) {
-      pickHint.textContent = "Maximo " + maxChars + " personajes por mision.";
+      pickHint.textContent = "Máximo " + maxChars + " personajes por misión.";
       pickHint.style.opacity = "1";
       return;
     }
@@ -2040,7 +2040,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     setTimeout(() => {
       const win = forcedWin === null ? targetAngle < greenDeg : forcedWin;
-      rouletteOutcome.textContent = win ? "Exito" : "Fallo";
+      rouletteOutcome.textContent = win ? "Éxito" : "Fallo";
       rouletteOutcome.style.color = win ? "var(--ok)" : "var(--danger)";
       rouletteOkBtn.disabled = false;
       onDone(win);
@@ -2086,40 +2086,40 @@ document.addEventListener("DOMContentLoaded", () => {
     const cardName = String(cardData?.name || "").trim().toLowerCase();
     const SPECIAL_CARD_INFO = {
       camus: {
-        infoText: "Camus era mago de la corte y uno de los hombres de maxima confianza de su majestad, pero, cuando Orion se hizo con el trono, fue declarado traidor a la corona por ser fiel al anterior rey.\n\nUno de los mejores magos de todo el reino, condenado al exilio, ahora se gana la vida como cazafortunas.",
+        infoText: "Camus era mago de la corte y uno de los hombres de máxima confianza de su majestad, pero, cuando Orión se hizo con el trono, fue declarado traidor a la corona por ser fiel al anterior rey.\n\nUno de los mejores magos de todo el reino, condenado al exilio, ahora se gana la vida como cazafortunas.",
         skillsText: "Sin habilidades actualmente"
       },
       evelyn: {
-        infoText: "Evelyn perdio a sus padres a muy temprana edad y se vio obligada a vagar por las calles con la unica compania de su hermano mayor, del que acabo distanciandose con el tiempo.\nActualmente lidera un grupo de mercenarios, fundado por ella misma, conocido con el nombre de Atalaya, que hacen cualquier tipo de trabajo sucio a cambio de dinero, o al menos eso dicen.",
-        skillsText: "Pulsa sobre una mision y la completa automaticamente (Durante el combate, pulsa sobre Evelyn para activar su habilidad)."
+        infoText: "Evelyn perdió a sus padres a muy temprana edad y se vio obligada a vagar por las calles con la única compañía de su hermano mayor, del que acabó distanciándose con el tiempo.\nActualmente lidera un grupo de mercenarios, fundado por ella misma, conocido con el nombre de Atalaya, que hacen cualquier tipo de trabajo sucio a cambio de dinero, o al menos eso dicen.",
+        skillsText: "Pulsa sobre una misión y la completa automáticamente (durante el combate, pulsa sobre Evelyn para activar su habilidad)."
       },
       eliot: {
-        infoText: "Desde joven, Eliot destaco en la magia y, a pesar de contar con pocos ingresos, logro formarse como un gran curandero, llegando a formar parte del prestigioso grupo Asclepio, que reune a los mejores curanderos y magos blancos, como se denominan a los que, como el, se especializan en magia de curacion."
+        infoText: "Desde joven, Eliot destacó en la magia y, a pesar de contar con pocos ingresos, logró formarse como un gran curandero, llegando a formar parte del prestigioso grupo Asclepio, que reúne a los mejores curanderos y magos blancos, como se denominan a los que, como él, se especializan en magia de curación."
       },
       landom: {
-        infoText: "Ya desde muy pequeno se movia por ambientes oscuros, destacando y haciendose famoso por su increible habilidad con todo tipo de armas blancas. Su situacion no mejoro cuando perdio a sus padres ya que, aunque no tenia mucha relacion con ellos, le dejaron una hermana pequena a la que cuidar. Intentando que no siguiera sus pasos, se distancio de ella pero no sirvio de mucho... Experto en liderar con exito todo tipo de peligrosas misiones, a cambio de una buena suma, no teme a nada ni nadie.",
-        skillsText: "Pulsa sobre una mision y la completa automaticamente (Durante el combate, pulsa sobre Landom para activar su habilidad)."
+        infoText: "Ya desde muy pequeño se movía por ambientes oscuros, destacando y haciéndose famoso por su increíble habilidad con todo tipo de armas blancas. Su situación no mejoró cuando perdió a sus padres ya que, aunque no tenía mucha relación con ellos, le dejaron una hermana pequeña a la que cuidar. Intentando que no siguiera sus pasos, se distanció de ella pero no sirvió de mucho... Experto en liderar con éxito todo tipo de peligrosas misiones, a cambio de una buena suma, no teme a nada ni nadie.",
+        skillsText: "Pulsa sobre una misión y la completa automáticamente (durante el combate, pulsa sobre Landom para activar su habilidad)."
       },
       jane: {
-        infoText: "Una cazadora que conoce los bosques del reino como la palma de su mano, capaz de entremezclarse con el bosque y fundirse con el viento, no la veras llegar hasta que sea demasiado tarde. Miembro honorifico del grupo de mercenarios Atalaya, con los que colabora asiduamente."
+        infoText: "Una cazadora que conoce los bosques del reino como la palma de su mano, capaz de entremezclarse con el bosque y fundirse con el viento; no la verás llegar hasta que sea demasiado tarde. Miembro honorífico del grupo de mercenarios Atalaya, con los que colabora asiduamente."
       },
       lisa: {
-        infoText: "Lisa crecio como una nina normal y corriente y puede decirse que tuvo una infancia feliz. A medida que llegaba a la adultez, iba notando como la magia aumentaba en su interior siendo capaz de canalizarla hacia la luz, negandose a utilizarla con otro fin que no fuera curativo, especializandose asi en la llamada magia blanca. Todo esto la llevo a convertirse en una sanadora muy conocida en todo el reino."
+        infoText: "Lisa creció como una niña normal y corriente y puede decirse que tuvo una infancia feliz. A medida que llegaba a la adultez, iba notando cómo la magia aumentaba en su interior, siendo capaz de canalizarla hacia la luz, negándose a utilizarla con otro fin que no fuera curativo, especializándose así en la llamada magia blanca. Todo esto la llevó a convertirse en una sanadora muy conocida en todo el reino."
       },
       pendergast: {
-        infoText: "Proveniente de una familia de inventores y visionarios, no hay cachivache que Pendergast no pueda arreglar ni extrano artilugio que no pueda crear. Fue reclutada por el ejercito del Sur cuando era joven, debido a su capacidad de liderazgo y espiritu creativo, pero acabo renunciando ya que los ideales que ellos transmitian no encajaban con los suyos."
+        infoText: "Proveniente de una familia de inventores y visionarios, no hay cachivache que Pendergast no pueda arreglar ni extraño artilugio que no pueda crear. Fue reclutada por el ejército del Sur cuando era joven, debido a su capacidad de liderazgo y espíritu creativo, pero acabó renunciando ya que los ideales que ellos transmitían no encajaban con los suyos."
       },
       willard: {
-        infoText: "Primero de su promocion, este soldado ha vivido mas batallas de las que desearia y ha sido condecorado en multiples ocasiones. Con una punteria excepcional y un amplio entrenamiento en el combate cuerpo a cuerpo, Willard es una autentica maquina de matar. El no entiende de bandos, solo de cumplir ordenes."
+        infoText: "Primero de su promoción, este soldado ha vivido más batallas de las que desearía y ha sido condecorado en múltiples ocasiones. Con una puntería excepcional y un amplio entrenamiento en el combate cuerpo a cuerpo, Willard es una auténtica máquina de matar. Él no entiende de bandos, solo de cumplir órdenes."
       },
       winchester: {
-        infoText: "Esta guerrera magica es la mano derecha de Evelyn en el grupo de mercenarios \"Atalaya\". Capaz de rivalizar con cualquier soldado de elite, blande la espada con la misma precision que un cetro magico. Sabe mantener la cabeza fria en las situaciones mas delicadas y trabajar bajo presion es su especialidad."
+        infoText: "Esta guerrera mágica es la mano derecha de Evelyn en el grupo de mercenarios \"Atalaya\". Capaz de rivalizar con cualquier soldado de élite, blande la espada con la misma precisión que un cetro mágico. Sabe mantener la cabeza fría en las situaciones más delicadas y trabajar bajo presión es su especialidad."
       },
       risko: {
-        infoText: "Los Pinkerton eran una banda organizada muy conocida en la region. Como una suerte de Robin Hoods, robaban a los ricos para darselo a los pobres y la poblacion los amaba y temia a partes iguales. Un dia que Risko estaba buscando recursos por la zona, su banda, la que hubiera sido su familia durante tanto tiempo, fue masacrada por el ejercito del Sur, a modo de advertencia para todo aquel que quisiera tomarse la justicia por su mano. Consumida por la rabia y el dolor comenzo una cruzada de venganza que solo terminara cuando no quede ni un soldado en pie."
+        infoText: "Los Pinkerton eran una banda organizada muy conocida en la región. Como una suerte de Robin Hoods, robaban a los ricos para dárselo a los pobres y la población los amaba y temía a partes iguales. Un día que Risko estaba buscando recursos por la zona, su banda, la que hubiera sido su familia durante tanto tiempo, fue masacrada por el ejército del Sur, a modo de advertencia para todo aquel que quisiera tomarse la justicia por su mano. Consumida por la rabia y el dolor, comenzó una cruzada de venganza que solo terminará cuando no quede ni un soldado en pie."
       },
       friday: {
-        infoText: "El calendario indicaba que era viernes el dia que encontraron a una pequena nina que no recordaba nada y cuya existencia era un misterio. Criada por una acaudalada familia, Friday estudio en las mejores escuelas y logro entrar en la prestigiosa escuela de aviacion donde logro cumplir su sueno de surcar los cielos. Sin embargo, pequenas visiones la acechan mientras duerme, como si retazos de su pasado la advirtieran de un peligro por llegar."
+        infoText: "El calendario indicaba que era viernes el día que encontraron a una pequeña niña que no recordaba nada y cuya existencia era un misterio. Criada por una acaudalada familia, Friday estudió en las mejores escuelas y logró entrar en la prestigiosa escuela de aviación donde logró cumplir su sueño de surcar los cielos. Sin embargo, pequeñas visiones la acechan mientras duerme, como si retazos de su pasado la advirtieran de un peligro por llegar."
       }
     };
     const specialInfo = SPECIAL_CARD_INFO[cardName];
