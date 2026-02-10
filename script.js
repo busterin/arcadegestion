@@ -94,7 +94,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const introProfile = document.getElementById("introProfile");
   const introProfileImg = document.getElementById("introProfileImg");
   const introProfileName = document.getElementById("introProfileName");
-  const introCoinsValue = document.getElementById("introCoinsValue");
   const storyScreen = document.getElementById("storyScreen");
   const storyLeftChar = document.getElementById("storyLeftChar");
   const storyRightChar = document.getElementById("storyRightChar");
@@ -333,7 +332,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderCoins() {
-    if (introCoinsValue) introCoinsValue.textContent = String(coins);
     if (userCoinsValue) userCoinsValue.textContent = String(coins);
     if (recruitCoinsValue) recruitCoinsValue.textContent = String(coins);
   }
