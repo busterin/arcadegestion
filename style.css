@@ -296,21 +296,23 @@ img{ max-width:100%; height:auto; }
 
 .story-dialog{
   margin-top: 12px;
-  border-radius: 16px;
+  border-radius: 20px;
   border: 1px solid rgba(255,255,255,.14);
   background: rgba(7,12,23,.78);
   backdrop-filter: blur(5px);
-  padding: 12px;
+  padding: 20px;
+  min-height: 190px;
 }
 
 .story-speaker{
   font-weight: 900;
-  font-size: 16px;
+  font-size: 24px;
 }
 
 .story-text{
-  margin-top: 6px;
-  font-size: 14px;
+  margin-top: 10px;
+  font-size: 22px;
+  line-height: 1.35;
   color: var(--text);
 }
 
@@ -1373,9 +1375,15 @@ img{ max-width:100%; height:auto; }
   }
   .story-char.left{ left: 0; }
   .story-char.right{ right: 0; }
-  .story-dialog{ padding: 10px; }
-  .story-speaker{ font-size: 15px; }
-  .story-text{ font-size: 13px; }
+  .story-dialog{
+    padding: 14px;
+    min-height: 170px;
+  }
+  .story-speaker{ font-size: 20px; }
+  .story-text{
+    font-size: 18px;
+    line-height: 1.35;
+  }
 
   #teamScreen .start-card{
     max-height: calc(var(--appH) - 28px);
