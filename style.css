@@ -1074,6 +1074,7 @@ img{ max-width:100%; height:auto; }
   height: 100%;
   object-fit: cover;
   object-position: center top;
+  transform: translateY(-10px);
   display: block;
 }
 .char.selected{
@@ -1455,6 +1456,9 @@ img{ max-width:100%; height:auto; }
 
   .char-photo-wrap{
     max-height: 86px;
+  }
+  .char-photo{
+    transform: translateY(-8px);
   }
   .story-dialog{
     padding: 14px;
