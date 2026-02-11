@@ -512,6 +512,55 @@ img{ max-width:100%; height:auto; }
   text-align: center;
 }
 
+/* ---------- TIENDA ---------- */
+.store-card{
+  width: min(720px, 100%);
+}
+.store-balance{
+  margin-top: 8px;
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  padding: 8px 10px;
+  font-size: 14px;
+}
+.store-grid{
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+.store-item{
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.05);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.store-item-img{
+  width: 100%;
+  height: 220px;
+  object-fit: contain;
+  border-radius: 12px;
+  background: rgba(255,255,255,.04);
+}
+.store-item-title{
+  font-weight: 900;
+  font-size: 15px;
+}
+.store-item-price{
+  color: var(--muted);
+  font-size: 13px;
+}
+.store-item-state{
+  font-size: 13px;
+}
+
 /* ---------- USUARIO ---------- */
 .user-card{
   width: min(760px, 100%);
@@ -1278,6 +1327,22 @@ img{ max-width:100%; height:auto; }
   border-color: rgba(58,208,255,.9);
   box-shadow: 0 0 0 2px rgba(58,208,255,.25);
 }
+.cardinfo-outfits{
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.cardinfo-outfits .btn{
+  padding: 8px 10px;
+}
+.cardinfo-outfits .btn.active{
+  color: #04111d;
+  border: 1px solid rgba(58,208,255,.95);
+  background: linear-gradient(180deg, #b8f4ff, #6fdbff);
+  box-shadow: 0 6px 16px rgba(58,208,255,.35);
+}
 
 /* ---------- TEAM SELECTION (6) ---------- */
 .team-top{
@@ -1564,6 +1629,7 @@ img{ max-width:100%; height:auto; }
 }
 
 #recruitScreen,
+#storeScreen,
 #userScreen,
 #startScreen,
 #teamScreen{

@@ -29,10 +29,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const USER_PROFILE_AVATAR_KEY = "arcadegestion_user_profile_avatar_v1";
   const USER_PROFILE_NAME_KEY = "arcadegestion_user_profile_name_v1";
   const COINS_STORAGE_KEY = "arcadegestion_coins_v1";
+  const STORE_PURCHASES_KEY = "arcadegestion_store_purchases_v1";
+  const WINCHESTER_OUTFIT_KEY = "arcadegestion_winchester_outfit_v1";
   const DEFAULT_PROFILE_AVATAR_SRC = "images/Evelyn2.PNG";
   const DEFAULT_PROFILE_NAME = "Usuario";
   const DEFAULT_COINS = 50;
   const RECRUIT_PACK_COST = 5;
+  const WINCHESTER_DEFAULT_IMG = "images/Winchester.PNG";
+  const WINCHESTER_ALT_IMG = "images/Winchester3.png";
+  const WINCHESTER_STORE_ITEM_ID = "winchester_outfit_3";
+  const WINCHESTER_STORE_ITEM_PRICE = 10;
 
   const MISSIONS = [
     { id: "m1", title: "Oso peligroso", internalTags: ["cuerpoacuerpo", "adistancia"], img: "misiones/misionoso.png", text: "Un oso ha atacado en repetidas ocasiones un pueblo de montaña. Ya no solo se trata de destrozos materiales, sino que algún aldeano ha resultado herido. Urge detenerlo." },
@@ -114,6 +120,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const recruitOddsList = document.getElementById("recruitOddsList");
   const recruitCoinsValue = document.getElementById("recruitCoinsValue");
   const recruitPriceHint = document.getElementById("recruitPriceHint");
+  const storeScreen = document.getElementById("storeScreen");
+  const storeBackBtn = document.getElementById("storeBackBtn");
+  const storeCoinsValue = document.getElementById("storeCoinsValue");
+  const storeBuyWinchesterBtn = document.getElementById("storeBuyWinchesterBtn");
+  const storeWinchesterState = document.getElementById("storeWinchesterState");
 
   const userScreen = document.getElementById("userScreen");
   const userProfileImg = document.getElementById("userProfileImg");
@@ -193,6 +204,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const cardInfoImg = document.getElementById("cardInfoImg");
   const cardInfoInfoBtn = document.getElementById("cardInfoInfoBtn");
   const cardInfoSkillsBtn = document.getElementById("cardInfoSkillsBtn");
+  const cardInfoOutfitsBtn = document.getElementById("cardInfoOutfitsBtn");
+  const cardInfoOutfitsPanel = document.getElementById("cardInfoOutfitsPanel");
+  const cardInfoOutfitDefaultBtn = document.getElementById("cardInfoOutfitDefaultBtn");
+  const cardInfoOutfitAltBtn = document.getElementById("cardInfoOutfitAltBtn");
   const closeCardInfoBtn = document.getElementById("closeCardInfoBtn");
 
   const specialModal = document.getElementById("specialModal");
@@ -250,6 +265,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let unlockedRecruitCharIds = new Set(loadUnlockedRecruitCharIds());
   let currentCardInfoData = null;
   let coins = loadCoins();
+  let purchasedStoreItems = new Set(loadPurchasedStoreItems());
+  let selectedWinchesterOutfit = loadWinchesterOutfit();
   let isEditingUserName = false;
   let tutorialPending = false;
   let tutorialStep = 0;
@@ -280,6 +297,7 @@ document.addEventListener("DOMContentLoaded", () => {
     { key: "versus", label: "VERSUS", img: "images/versus.png" },
     { key: "historia", label: "HISTORIA", img: "images/historia.png" },
     { key: "reclutar", label: "RECLUTAR", img: "images/reclutar.png" },
+    { key: "tienda", label: "TIENDA", img: "images/tienda.png" },
     { key: "cuenta", label: "CUENTA", img: "images/cuenta.png" }
   ];
   const STORY_PRE_COMBAT_SCENES = [
@@ -507,6 +525,57 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function loadPurchasedStoreItems() {
+    try {
+      const raw = window.localStorage?.getItem(STORE_PURCHASES_KEY);
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed.filter((id) => typeof id === "string") : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function persistPurchasedStoreItems() {
+    try {
+      window.localStorage?.setItem(STORE_PURCHASES_KEY, JSON.stringify([...purchasedStoreItems]));
+    } catch {
+      // ignore storage errors
+    }
+  }
+
+  function loadWinchesterOutfit() {
+    try {
+      const raw = String(window.localStorage?.getItem(WINCHESTER_OUTFIT_KEY) || "default");
+      return raw === "alt" ? "alt" : "default";
+    } catch {
+      return "default";
+    }
+  }
+
+  function persistWinchesterOutfit() {
+    try {
+      window.localStorage?.setItem(WINCHESTER_OUTFIT_KEY, selectedWinchesterOutfit);
+    } catch {
+      // ignore storage errors
+    }
+  }
+
+  function normalizeWinchesterOutfit() {
+    const hasAlt = purchasedStoreItems.has(WINCHESTER_STORE_ITEM_ID);
+    if (selectedWinchesterOutfit === "alt" && !hasAlt) selectedWinchesterOutfit = "default";
+  }
+
+  function getWinchesterImage() {
+    normalizeWinchesterOutfit();
+    return selectedWinchesterOutfit === "alt" ? WINCHESTER_ALT_IMG : WINCHESTER_DEFAULT_IMG;
+  }
+
+  function getResolvedCardImage(card) {
+    if (!card) return "";
+    if (String(card.name || "").toLowerCase() === "winchester") return getWinchesterImage();
+    return card.img || "";
+  }
+
   function persistCoins() {
     try {
       window.localStorage?.setItem(COINS_STORAGE_KEY, String(coins));
@@ -518,6 +587,38 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderCoins() {
     if (userCoinsValue) userCoinsValue.textContent = String(coins);
     if (recruitCoinsValue) recruitCoinsValue.textContent = String(coins);
+    if (storeCoinsValue) storeCoinsValue.textContent = String(coins);
+  }
+
+  function renderStore() {
+    renderCoins();
+    if (!storeBuyWinchesterBtn || !storeWinchesterState) return;
+    const purchased = purchasedStoreItems.has(WINCHESTER_STORE_ITEM_ID);
+    if (purchased) {
+      storeWinchesterState.textContent = "Comprado";
+      storeBuyWinchesterBtn.textContent = "Comprado";
+      storeBuyWinchesterBtn.disabled = true;
+      return;
+    }
+    storeWinchesterState.textContent = `No comprado (${WINCHESTER_STORE_ITEM_PRICE} monedas)`;
+    storeBuyWinchesterBtn.textContent = coins >= WINCHESTER_STORE_ITEM_PRICE ? "Comprar" : "Sin monedas";
+    storeBuyWinchesterBtn.disabled = coins < WINCHESTER_STORE_ITEM_PRICE;
+  }
+
+  function applyWinchesterOutfitEverywhere() {
+    if (Array.isArray(availableCards) && availableCards.length) {
+      availableCards = availableCards.map((card) => ({
+        ...card,
+        img: getResolvedCardImage(card)
+      }));
+    }
+    if (teamScreen && !teamScreen.classList.contains("hidden")) renderTeamSelection();
+    if (gameRoot && !gameRoot.classList.contains("hidden")) renderTeamBar();
+    if (userScreen && !userScreen.classList.contains("hidden")) {
+      renderUserAvatarPicker();
+      renderUserCollection();
+    }
+    renderStore();
   }
 
   function setCoins(next) {
@@ -544,7 +645,10 @@ document.addEventListener("DOMContentLoaded", () => {
     return [
       ...CARDS,
       ...RECRUITABLE_CARDS.filter((card) => unlockedRecruitCharIds.has(card.charId))
-    ];
+    ].map((card) => ({
+      ...card,
+      img: getResolvedCardImage(card)
+    }));
   }
 
   function getAvailableAvatars() {
@@ -619,6 +723,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!recruitScreen) return;
     introScreen.classList.add("hidden");
     storyScreen?.classList.add("hidden");
+    storeScreen?.classList.add("hidden");
     userScreen?.classList.add("hidden");
     startScreen.classList.add("hidden");
     teamScreen.classList.add("hidden");
@@ -678,6 +783,40 @@ document.addEventListener("DOMContentLoaded", () => {
         recruitingInProgress = false;
       }
     }, 160);
+  }
+
+  function goToStoreScreen() {
+    if (!storeScreen) return;
+    introScreen.classList.add("hidden");
+    storyScreen?.classList.add("hidden");
+    recruitScreen?.classList.add("hidden");
+    userScreen?.classList.add("hidden");
+    startScreen.classList.add("hidden");
+    teamScreen.classList.add("hidden");
+    gameRoot.classList.add("hidden");
+    storeScreen.classList.remove("hidden");
+    renderStore();
+  }
+
+  function setWinchesterOutfit(mode) {
+    selectedWinchesterOutfit = mode === "alt" ? "alt" : "default";
+    normalizeWinchesterOutfit();
+    persistWinchesterOutfit();
+    applyWinchesterOutfitEverywhere();
+  }
+
+  function buyWinchesterOutfit() {
+    if (purchasedStoreItems.has(WINCHESTER_STORE_ITEM_ID)) {
+      renderStore();
+      return;
+    }
+    if (!spendCoins(WINCHESTER_STORE_ITEM_PRICE)) {
+      renderStore();
+      return;
+    }
+    purchasedStoreItems.add(WINCHESTER_STORE_ITEM_ID);
+    persistPurchasedStoreItems();
+    renderStore();
   }
 
   function loadUserProfileName() {
@@ -762,10 +901,10 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     getAvailableAvatars().forEach((a) => pushUnique(a.accountSrc || a.src, a.name));
-    CARDS.forEach((c) => pushUnique(c.img, c.name));
+    CARDS.forEach((c) => pushUnique(getResolvedCardImage(c), c.name));
     RECRUITABLE_CARDS
       .filter((c) => unlockedRecruitCharIds.has(c.charId))
-      .forEach((c) => pushUnique(c.img, c.name));
+      .forEach((c) => pushUnique(getResolvedCardImage(c), c.name));
 
     return opts;
   }
@@ -821,7 +960,9 @@ document.addEventListener("DOMContentLoaded", () => {
         return { ...a, src: a.accountSrc || a.src, isUnlocked };
       })
       .sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
-    const secondaryCards = [...CARDS, ...RECRUITABLE_CARDS].sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
+    const secondaryCards = [...CARDS, ...RECRUITABLE_CARDS]
+      .map((card) => ({ ...card, img: getResolvedCardImage(card) }))
+      .sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
 
     mainCharacters.forEach((ch) => {
       const item = document.createElement("div");
@@ -863,6 +1004,7 @@ document.addEventListener("DOMContentLoaded", () => {
     introScreen.classList.add("hidden");
     storyScreen?.classList.add("hidden");
     recruitScreen?.classList.add("hidden");
+    storeScreen?.classList.add("hidden");
     startScreen.classList.add("hidden");
     teamScreen.classList.add("hidden");
     gameRoot.classList.add("hidden");
@@ -979,6 +1121,7 @@ document.addEventListener("DOMContentLoaded", () => {
       introScreen.classList.add("hidden");
       storyScreen?.classList.remove("hidden");
       recruitScreen?.classList.add("hidden");
+      storeScreen?.classList.add("hidden");
       userScreen?.classList.add("hidden");
       startScreen.classList.add("hidden");
       teamScreen.classList.add("hidden");
@@ -1101,6 +1244,7 @@ document.addEventListener("DOMContentLoaded", () => {
     introScreen.classList.remove("hidden");
     storyScreen?.classList.add("hidden");
     recruitScreen?.classList.add("hidden");
+    storeScreen?.classList.add("hidden");
     userScreen?.classList.add("hidden");
     startScreen.classList.add("hidden");
     teamScreen.classList.add("hidden");
@@ -1144,6 +1288,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (current.key === "versus") goToStartScreen("versus");
     if (current.key === "historia") goToStoryScreen();
     if (current.key === "reclutar") goToRecruitScreen();
+    if (current.key === "tienda") goToStoreScreen();
     if (current.key === "cuenta") goToUserScreen();
   }
 
@@ -1152,6 +1297,7 @@ document.addEventListener("DOMContentLoaded", () => {
     introScreen.classList.add("hidden");
     storyScreen?.classList.add("hidden");
     recruitScreen?.classList.add("hidden");
+    storeScreen?.classList.add("hidden");
     userScreen?.classList.add("hidden");
     startScreen.classList.remove("hidden");
     startTutorialBtn?.classList.toggle("hidden", selectedMode !== "arcade");
@@ -1174,6 +1320,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function goToStoryScreen() {
     introScreen.classList.add("hidden");
     recruitScreen?.classList.add("hidden");
+    storeScreen?.classList.add("hidden");
     userScreen?.classList.add("hidden");
     startScreen.classList.add("hidden");
     teamScreen.classList.add("hidden");
@@ -1348,7 +1495,10 @@ document.addEventListener("DOMContentLoaded", () => {
   function applyTeamFromCardIds(cardIds) {
     const allCards = [...CARDS, ...RECRUITABLE_CARDS];
     const allCharacters = [...CHARACTERS, ...RECRUITABLE_CHARACTERS];
-    const selectedCards = cardIds.map((id) => allCards.find((c) => c.id === id)).filter(Boolean);
+    const selectedCards = cardIds
+      .map((id) => allCards.find((c) => c.id === id))
+      .filter(Boolean)
+      .map((card) => ({ ...card, img: getResolvedCardImage(card) }));
     const selectedNames = new Set(selectedCards.map((c) => c.name));
 
     availableCards = selectedCards;
@@ -2640,15 +2790,32 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     };
     const specialInfo = SPECIAL_CARD_INFO[cardName];
+    const isWinchester = cardName === "winchester";
+    const winchesterAltOwned = purchasedStoreItems.has(WINCHESTER_STORE_ITEM_ID);
     currentCardInfoData = {
       infoText: specialInfo?.infoText || cardData?.infoText || "En construcción",
-      skillsText: specialInfo?.skillsText || cardData?.skillsText || "En construcción"
+      skillsText: specialInfo?.skillsText || cardData?.skillsText || "En construcción",
+      outfitsEnabled: isWinchester,
+      winchesterAltOwned
     };
     cardInfoTitle.textContent = cardData.name;
-    cardInfoImg.src = cardData.img;
+    cardInfoImg.src = isWinchester ? getWinchesterImage() : cardData.img;
     cardInfoImg.alt = cardData.name;
     cardInfoInfoBtn?.classList.add("active");
     cardInfoSkillsBtn?.classList.remove("active");
+    cardInfoOutfitsBtn?.classList.toggle("hidden", !isWinchester);
+    cardInfoOutfitsBtn?.classList.remove("active");
+    cardInfoOutfitsPanel?.classList.add("hidden");
+    if (cardInfoOutfitAltBtn) {
+      cardInfoOutfitAltBtn.disabled = !winchesterAltOwned;
+      cardInfoOutfitAltBtn.textContent = winchesterAltOwned ? "Winchester3" : "Winchester3 (No comprado)";
+    }
+    if (cardInfoOutfitDefaultBtn) {
+      cardInfoOutfitDefaultBtn.classList.toggle("active", selectedWinchesterOutfit !== "alt");
+    }
+    if (cardInfoOutfitAltBtn) {
+      cardInfoOutfitAltBtn.classList.toggle("active", selectedWinchesterOutfit === "alt");
+    }
     cardInfoText.textContent = currentCardInfoData.infoText;
     showModal(cardInfoModal);
   }
@@ -2705,6 +2872,7 @@ document.addEventListener("DOMContentLoaded", () => {
       introScreen.classList.add("hidden");
       storyScreen?.classList.remove("hidden");
       recruitScreen?.classList.add("hidden");
+      storeScreen?.classList.add("hidden");
       userScreen?.classList.add("hidden");
       startScreen.classList.add("hidden");
       teamScreen.classList.add("hidden");
@@ -2836,6 +3004,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   recruitPackBtn?.addEventListener("click", recruitRandomCharacter);
   recruitBackBtn?.addEventListener("click", setIntroVisible);
+  storeBackBtn?.addEventListener("click", setIntroVisible);
+  storeBuyWinchesterBtn?.addEventListener("click", buyWinchesterOutfit);
   userAvatarToggleBtn?.addEventListener("click", toggleUserAvatarPicker);
   userNameEditBtn?.addEventListener("click", () => {
     if (isEditingUserName) {
@@ -2917,13 +3087,40 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!currentCardInfoData) return;
     cardInfoInfoBtn.classList.add("active");
     cardInfoSkillsBtn?.classList.remove("active");
+    cardInfoOutfitsBtn?.classList.remove("active");
+    cardInfoOutfitsPanel?.classList.add("hidden");
     cardInfoText.textContent = currentCardInfoData.infoText;
   });
   cardInfoSkillsBtn?.addEventListener("click", () => {
     if (!currentCardInfoData) return;
     cardInfoSkillsBtn.classList.add("active");
     cardInfoInfoBtn?.classList.remove("active");
+    cardInfoOutfitsBtn?.classList.remove("active");
+    cardInfoOutfitsPanel?.classList.add("hidden");
     cardInfoText.textContent = currentCardInfoData.skillsText;
+  });
+  cardInfoOutfitsBtn?.addEventListener("click", () => {
+    if (!currentCardInfoData?.outfitsEnabled) return;
+    cardInfoOutfitsBtn.classList.add("active");
+    cardInfoInfoBtn?.classList.remove("active");
+    cardInfoSkillsBtn?.classList.remove("active");
+    cardInfoOutfitsPanel?.classList.remove("hidden");
+    cardInfoText.textContent = currentCardInfoData.winchesterAltOwned
+      ? "Elige el atuendo que quieres usar en el juego."
+      : "Aún no has comprado el atuendo alternativo en la tienda.";
+  });
+  cardInfoOutfitDefaultBtn?.addEventListener("click", () => {
+    setWinchesterOutfit("default");
+    cardInfoImg.src = getWinchesterImage();
+    cardInfoOutfitDefaultBtn.classList.add("active");
+    cardInfoOutfitAltBtn?.classList.remove("active");
+  });
+  cardInfoOutfitAltBtn?.addEventListener("click", () => {
+    if (!purchasedStoreItems.has(WINCHESTER_STORE_ITEM_ID)) return;
+    setWinchesterOutfit("alt");
+    cardInfoImg.src = getWinchesterImage();
+    cardInfoOutfitAltBtn.classList.add("active");
+    cardInfoOutfitDefaultBtn?.classList.remove("active");
   });
   cardInfoModal.addEventListener("click", (e) => { if (e.target === cardInfoModal) closeCardInfo(); });
 
@@ -2989,6 +3186,8 @@ document.addEventListener("DOMContentLoaded", () => {
   renderAvatarCarousel(0);
   renderIntroMenu(0);
   setCoins(loadCoins());
+  normalizeWinchesterOutfit();
+  renderStore();
   renderRecruitUnlockedState();
   setUserProfileAvatar(loadUserProfileAvatar() || DEFAULT_PROFILE_AVATAR_SRC);
   const initialProfileName = normalizeUserProfileName(loadUserProfileName() || DEFAULT_PROFILE_NAME);

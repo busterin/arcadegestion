@@ -5,7 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Protocolo Argo</title>
-<link href="style.css?v=20260211-11" rel="stylesheet"/>
+<link href="style.css?v=20260211-12" rel="stylesheet"/>
 </head>
 <body>
 <div class="app">
@@ -77,6 +77,29 @@
 </div>
 <div class="modal-actions end" style="margin-top:12px;">
 <button class="btn btn-ghost" id="recruitBackBtn" type="button">Volver al menú</button>
+</div>
+</div>
+</section>
+<!-- TIENDA -->
+<section class="start hidden" id="storeScreen">
+<div class="start-card store-card">
+<div class="start-title">Tienda</div>
+<div class="start-subtitle">Compra mejoras estéticas con monedas.</div>
+<div class="store-balance">
+<span>Saldo actual:</span>
+<b id="storeCoinsValue">50</b>
+</div>
+<div class="store-grid">
+<article class="store-item">
+<img alt="Nuevo atuendo para Winchester" class="store-item-img" src="images/Winchester3.png"/>
+<div class="store-item-title">Nuevo atuendo para Winchester</div>
+<div class="store-item-price">Precio: 10 monedas</div>
+<div class="store-item-state" id="storeWinchesterState">No comprado</div>
+<button class="btn" id="storeBuyWinchesterBtn" type="button">Comprar</button>
+</article>
+</div>
+<div class="modal-actions end" style="margin-top:12px;">
+<button class="btn btn-ghost" id="storeBackBtn" type="button">Volver al menú</button>
 </div>
 </div>
 </section>
@@ -300,6 +323,14 @@
 <span aria-hidden="true">✦</span>
 <span>Habilidades</span>
 </button>
+<button class="cardinfo-action hidden" data-type="outfits" id="cardInfoOutfitsBtn" type="button">
+<span aria-hidden="true">🧥</span>
+<span>Atuendos</span>
+</button>
+</div>
+<div class="cardinfo-outfits hidden" id="cardInfoOutfitsPanel">
+<button class="btn btn-ghost" id="cardInfoOutfitDefaultBtn" type="button">Original</button>
+<button class="btn btn-ghost" id="cardInfoOutfitAltBtn" type="button">Winchester3</button>
 </div>
 <div class="modal-text" id="cardInfoText">En construcción</div>
 </div>
@@ -342,6 +373,6 @@
 </div>
 </div>
 </div>
-<script src="script.js?v=20260211-17"></script>
+<script src="script.js?v=20260211-18"></script>
 </body>
 </html>
