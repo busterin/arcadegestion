@@ -283,6 +283,9 @@ img{ max-width:100%; height:auto; }
   right: 3%;
   transform: scaleX(-1) scale(var(--char-scale));
 }
+.story-char.right.no-mirror{
+  transform: scale(var(--char-scale));
+}
 
 .story-char.active{
   opacity: 1;
@@ -292,6 +295,9 @@ img{ max-width:100%; height:auto; }
 
 .story-char.right.active{
   transform: scaleX(-1) scale(calc(var(--char-scale) * 1.03));
+}
+.story-char.right.no-mirror.active{
+  transform: scale(calc(var(--char-scale) * 1.03));
 }
 
 .story-dialog{

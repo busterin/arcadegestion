@@ -302,7 +302,8 @@ document.addEventListener("DOMContentLoaded", () => {
       background: "historia/1fondopueblo.PNG",
       active: "left",
       leftSrc: "images/Evelyn.png",
-      rightSrc: "images/Camus.PNG",
+      rightSrc: "historia/Camus2.png",
+      rightMirror: false,
       showChars: true
     },
     {
@@ -311,7 +312,8 @@ document.addEventListener("DOMContentLoaded", () => {
       background: "historia/1fondopueblo.PNG",
       active: "right",
       leftSrc: "images/Evelyn.png",
-      rightSrc: "images/Camus.PNG",
+      rightSrc: "historia/Camus2.png",
+      rightMirror: false,
       showChars: true
     },
     {
@@ -320,7 +322,8 @@ document.addEventListener("DOMContentLoaded", () => {
       background: "historia/1fondopueblo.PNG",
       active: "left",
       leftSrc: "images/Evelyn.png",
-      rightSrc: "images/Camus.PNG",
+      rightSrc: "historia/Camus2.png",
+      rightMirror: false,
       showChars: true
     },
     {
@@ -329,7 +332,8 @@ document.addEventListener("DOMContentLoaded", () => {
       background: "historia/1fondopueblo.PNG",
       active: "right",
       leftSrc: "images/Evelyn.png",
-      rightSrc: "images/Camus.PNG",
+      rightSrc: "historia/Camus2.png",
+      rightMirror: false,
       showChars: true
     },
     {
@@ -338,7 +342,8 @@ document.addEventListener("DOMContentLoaded", () => {
       background: "historia/1fondopueblo.PNG",
       active: "left",
       leftSrc: "images/Evelyn.png",
-      rightSrc: "images/Camus.PNG",
+      rightSrc: "historia/Camus2.png",
+      rightMirror: false,
       showChars: true
     },
     {
@@ -347,7 +352,8 @@ document.addEventListener("DOMContentLoaded", () => {
       background: "historia/1fondopueblo.PNG",
       active: "right",
       leftSrc: "images/Evelyn.png",
-      rightSrc: "images/Camus.PNG",
+      rightSrc: "historia/Camus2.png",
+      rightMirror: false,
       showChars: true
     },
     {
@@ -871,6 +877,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (storyLeftChar) setImageWithFallback(storyLeftChar, scene.leftSrc, "images/Evelyn.png");
     if (storyRightChar) setImageWithFallback(storyRightChar, scene.rightSrc, "images/Landom.png?v=20260210-4");
+    storyRightChar?.classList.toggle("no-mirror", scene.rightMirror === false);
     storyLeftChar?.classList.toggle("active", scene.active === "left");
     storyRightChar?.classList.toggle("active", scene.active === "right");
     applyStoryCharacterNormalization();
