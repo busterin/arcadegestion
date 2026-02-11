@@ -820,6 +820,12 @@ img{ max-width:100%; height:auto; }
 
 .hud{ display:flex; gap:10px; align-items:center; }
 .hud .btn{ white-space: nowrap; }
+.hud-story-hint{
+  max-width: min(360px, 48vw);
+  font-size: 12px;
+  line-height: 1.25;
+  color: rgba(233,238,252,.9);
+}
 
 .hud-card{
   background: rgba(201,163,50,.22);
@@ -1375,6 +1381,11 @@ img{ max-width:100%; height:auto; }
 
   .topbar{ flex-direction:column; align-items:stretch; }
   .hud{ justify-content:space-between; }
+  .hud-story-hint{
+    max-width: none;
+    width: 100%;
+    font-size: 11px;
+  }
 
   .intro-logo{ max-height: 38vh; }
   .intro-title{ font-size: clamp(40px, 9vw, 70px); }

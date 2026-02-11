@@ -152,6 +152,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const rivalImg = document.getElementById("rivalImg");
   const progressEl = document.getElementById("progress");
   const hudLabelEl = document.querySelector(".hud-label");
+  const hudStoryHintEl = document.getElementById("hudStoryHint");
   const teamBar = document.getElementById("teamBar");
   const rivalTeamBtn = document.getElementById("rivalTeamBtn");
 
@@ -1062,9 +1063,29 @@ document.addEventListener("DOMContentLoaded", () => {
     if (currentMode === "versus") {
       if (hudLabelEl) hudLabelEl.textContent = "Marcador";
       progressEl.textContent = `${localWins} - ${rivalWins}`;
+      if (hudStoryHintEl) {
+        hudStoryHintEl.textContent = "";
+        hudStoryHintEl.classList.add("hidden");
+      }
     } else {
       if (hudLabelEl) hudLabelEl.textContent = "Misiones";
-      progressEl.textContent = String(score) + "/" + String(getCurrentArcadeWinTarget());
+      if (storyCombatActive && storyCombatStage === 2) {
+        progressEl.textContent = String(score);
+      } else {
+        progressEl.textContent = String(score) + "/" + String(getCurrentArcadeWinTarget());
+      }
+      if (hudStoryHintEl) {
+        if (storyCombatActive && storyCombatStage === 1) {
+          hudStoryHintEl.textContent = "Completa 3 misiones para superar el tutorial.";
+          hudStoryHintEl.classList.remove("hidden");
+        } else if (storyCombatActive && storyCombatStage === 2) {
+          hudStoryHintEl.textContent = "Encuentra la guarida de Jack el tuerto y acaba con él.";
+          hudStoryHintEl.classList.remove("hidden");
+        } else {
+          hudStoryHintEl.textContent = "";
+          hudStoryHintEl.classList.add("hidden");
+        }
+      }
     }
     rivalTeamBtn?.classList.toggle("hidden", currentMode !== "versus");
   }
