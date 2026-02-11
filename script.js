@@ -302,17 +302,59 @@ document.addEventListener("DOMContentLoaded", () => {
       background: "historia/1fondopueblo.PNG",
       active: "left",
       leftSrc: "images/Evelyn.png",
-      rightSrc: "historia/Marcus2.png",
+      rightSrc: "images/Camus.PNG",
       showChars: true
     },
     {
-      speaker: "Marcus",
+      speaker: "Camus",
       text: "¿Has vuelto a tener ese sueño?",
       background: "historia/1fondopueblo.PNG",
       active: "right",
       leftSrc: "images/Evelyn.png",
-      rightSrc: "historia/Marcus2.png",
+      rightSrc: "images/Camus.PNG",
       showChars: true
+    },
+    {
+      speaker: "Evelyn",
+      text: "Sí... pero era solo eso, un sueño...",
+      background: "historia/1fondopueblo.PNG",
+      active: "left",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "images/Camus.PNG",
+      showChars: true
+    },
+    {
+      speaker: "Camus",
+      text: "A veces los sueños buscan darnos pistas, pero no te preocupes. Yo no le daría muchas vueltas, por ahora...",
+      background: "historia/1fondopueblo.PNG",
+      active: "right",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "images/Camus.PNG",
+      showChars: true
+    },
+    {
+      speaker: "Evelyn",
+      text: "Tú sí que sabes tranquilizar a un amigo, Camus...",
+      background: "historia/1fondopueblo.PNG",
+      active: "left",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "images/Camus.PNG",
+      showChars: true
+    },
+    {
+      speaker: "Camus",
+      text: "*Se ríe* Vayamos con el resto, nos están esperando.",
+      background: "historia/1fondopueblo.PNG",
+      active: "right",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "images/Camus.PNG",
+      showChars: true
+    },
+    {
+      speaker: "",
+      text: "Somos Atalaya, un grupo de mercenarios que completa cualquier tipo de misión por dinero. Aunque preferimos acabar con grupos de bandidos o rescatar a personas en apuros, no tenemos ningún problema en realizar misiones menos éticas. De algo hay que vivir...",
+      background: "historia/1grupocharla.PNG",
+      showChars: false
     }
   ];
   const TUTORIAL_STEPS = [
