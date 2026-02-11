@@ -274,14 +274,26 @@ img{ max-width:100%; height:auto; }
   opacity: .32;
   transition: opacity .2s ease, transform .2s ease, filter .2s ease;
 }
+.story-char.support{
+  width: min(30vw, 240px);
+  max-height: 66vh;
+  opacity: .2;
+  z-index: 1;
+}
 
 .story-char.left{
   left: 3%;
   transform: scale(var(--char-scale));
 }
+.story-char.left.support{
+  left: 19%;
+}
 .story-char.right{
   right: 3%;
   transform: scaleX(-1) scale(var(--char-scale));
+}
+.story-char.right.support{
+  right: 19%;
 }
 .story-char.right.no-mirror{
   transform: scale(var(--char-scale));
@@ -298,6 +310,9 @@ img{ max-width:100%; height:auto; }
 }
 .story-char.right.no-mirror.active{
   transform: scale(calc(var(--char-scale) * 1.03));
+}
+.story-char.support.active{
+  opacity: .92;
 }
 
 .story-dialog{
@@ -960,6 +975,14 @@ img{ max-width:100%; height:auto; }
   box-shadow: 0 0 0 0 rgba(255,213,74,.92);
 }
 .point.ready::after{ border-color: rgba(255,213,74,.85); }
+.point.special-blue{
+  background: #3aa9ff;
+  box-shadow: 0 0 0 0 rgba(58,169,255,.8);
+  animation: pulseBlue 1.05s infinite;
+}
+.point.special-blue::after{
+  border-color: rgba(58,169,255,.72);
+}
 
 /* ---------- MODALS ---------- */
 .modal{
@@ -1291,6 +1314,11 @@ img{ max-width:100%; height:auto; }
   70%{ box-shadow: 0 0 0 16px rgba(255,213,74,0); opacity:1; }
   100%{ box-shadow: 0 0 0 0 rgba(255,213,74,0); opacity:.9; }
 }
+@keyframes pulseBlue{
+  0%{ box-shadow: 0 0 0 0 rgba(58,169,255,.8); opacity:1; }
+  70%{ box-shadow: 0 0 0 15px rgba(58,169,255,0); opacity:1; }
+  100%{ box-shadow: 0 0 0 0 rgba(58,169,255,0); opacity:.9; }
+}
 @keyframes megaBlinkYellow{
   0%{ transform: translate(-50%, -50%) scale(1); filter: brightness(1); }
   50%{ transform: translate(-50%, -50%) scale(1.65); filter: brightness(2.15); }
@@ -1384,8 +1412,14 @@ img{ max-width:100%; height:auto; }
     width: min(46vw, 230px);
     max-height: 62vh;
   }
+  .story-char.support{
+    width: min(34vw, 170px);
+    max-height: 50vh;
+  }
   .story-char.left{ left: 0; }
   .story-char.right{ right: 0; }
+  .story-char.left.support{ left: 12%; }
+  .story-char.right.support{ right: 12%; }
   .story-dialog{
     padding: 14px;
     min-height: 170px;

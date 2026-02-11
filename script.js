@@ -17,6 +17,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const SCORE_LOSE = 0;
 
   const ARCADE_WIN_TARGET = 8;
+  const STORY_COMBAT_WIN_TARGET = 3;
+  const STORY_JACK_MISSION_ID = "m5";
+  const STORY_JACK_DELAY_MS = 2 * 60 * 1000;
 
   const VERSUS_WIN_TARGET = 8;
   const VERSUS_WS_PATH = "/versus";
@@ -38,6 +41,8 @@ document.addEventListener("DOMContentLoaded", () => {
     { id: "m4", title: "Entrega urgente", internalTags: ["volar", "exploracion"], img: "images/mision.png", text: "Un pequeño pueblo montañoso se ha quedado sin medicinas y la salud de muchos de sus habitantes comienza a ser preocupante. Es necesario entregar el paquete lo más rápido posible." },
     { id: "m5", title: "La banda de Jack el Tuerto", internalTags: ["cuerpoacuerpo", "adistancia", "magia"], img: "images/mision.png", text: "El famoso bandido Jack el Tuerto tiene aterrorizado a todo el condado de Veiran y nadie se atreve a hacerle frente. ¡Alguien debe detenerlo! Pero cuidado, no será un combate fácil.", maxChars: 3, matchBonus: 0.4 }
   ];
+  const STORY_BASE_MISSIONS = MISSIONS.filter((m) => m.id !== STORY_JACK_MISSION_ID);
+  const STORY_JACK_MISSION = MISSIONS.find((m) => m.id === STORY_JACK_MISSION_ID) || null;
 
   const CHARACTERS = [
     { id: "c1", name: "Winchester", tags: ["magia", "adistancia", "cuerpoacuerpo"] },
@@ -88,6 +93,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const storyStage = document.getElementById("storyStage");
   const storyLeftChar = document.getElementById("storyLeftChar");
   const storyRightChar = document.getElementById("storyRightChar");
+  const storyLeftSupportChar = document.getElementById("storyLeftSupportChar");
+  const storyRightSupportChar = document.getElementById("storyRightSupportChar");
   const storySpeaker = document.getElementById("storySpeaker");
   const storyText = document.getElementById("storyText");
   const storyNextBtn = document.getElementById("storyNextBtn");
@@ -168,6 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const finalModal = document.getElementById("finalModal");
   const finalTitleEl = document.getElementById("finalTitle");
   const finalScoreEl = document.getElementById("finalScore");
+  const finalLabelEl = finalModal?.querySelector(".final-label") || null;
   const playAgainBtn = document.getElementById("playAgainBtn");
 
   const cardInfoModal = document.getElementById("cardInfoModal");
@@ -264,7 +272,6 @@ document.addEventListener("DOMContentLoaded", () => {
     { key: "reclutar", label: "RECLUTAR", img: "images/reclutar.png" },
     { key: "cuenta", label: "CUENTA", img: "images/cuenta.png" }
   ];
-  const STORY_COMBAT_WIN_TARGET = 3;
   const STORY_PRE_COMBAT_SCENES = [
     {
       speaker: "",
@@ -361,6 +368,72 @@ document.addEventListener("DOMContentLoaded", () => {
       text: "Somos Atalaya, un grupo de mercenarios que completa cualquier tipo de misión por dinero. Aunque preferimos acabar con grupos de bandidos o rescatar a personas en apuros, no tenemos ningún problema en realizar misiones menos éticas. De algo hay que vivir...",
       background: "historia/1grupocharla.PNG",
       showChars: false
+    },
+    {
+      speaker: "",
+      text: "Atalaya estaba formada por cuatro miembros: Camus, el mago de la corte exiliado, que ahoga su dolor en el campo de batalla; Winchester, una de las pocas Magas Guerreras que quedan en el reino, una rama de combate casi extinta; Jane, la seria y letal cazadora con un corazón de oro, y yo, Evelyn, guerrera por imposición desde que tenía uso de razón, fundadora de este peculiar grupo.",
+      background: "historia/1grupocharla.PNG",
+      showChars: false
+    },
+    {
+      speaker: "Evelyn",
+      text: "¿Algún nuevo encargo para hoy?",
+      background: "historia/1fondopueblo.PNG",
+      active: "left",
+      leftSrc: "images/Evelyn.png",
+      leftSupportSrc: "historia/Winchester2.png",
+      rightSrc: "historia/Camus2.png",
+      rightMirror: false,
+      rightSupportSrc: "historia/Jane2.png",
+      rightSupportMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Camus",
+      text: "Parece que hay un grupo de bandidos atemorizando la zona. Se hacen llamar la banda de Jack, el tuerto.",
+      background: "historia/1fondopueblo.PNG",
+      active: "right",
+      leftSrc: "images/Evelyn.png",
+      leftSupportSrc: "historia/Winchester2.png",
+      rightSrc: "historia/Camus2.png",
+      rightMirror: false,
+      rightSupportSrc: "historia/Jane2.png",
+      rightSupportMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Winchester",
+      text: "Son unos don nadie que han tenido la suerte de dar con un pueblo que apenas puede defenderse. Vayamos resolviendo encargos menores, como siempre, hasta que demos con su escondite.",
+      background: "historia/1fondopueblo.PNG",
+      active: "left-support",
+      leftSrc: "images/Evelyn.png",
+      leftSupportSrc: "historia/Winchester2.png",
+      rightSrc: "historia/Camus2.png",
+      rightMirror: false,
+      rightSupportSrc: "historia/Jane2.png",
+      rightSupportMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Jane",
+      text: "Probarán mis flechas...",
+      background: "historia/1fondopueblo.PNG",
+      active: "right-support",
+      leftSrc: "images/Evelyn.png",
+      leftSupportSrc: "historia/Winchester2.png",
+      rightSrc: "historia/Camus2.png",
+      rightMirror: false,
+      rightSupportSrc: "historia/Jane2.png",
+      rightSupportMirror: false,
+      showChars: true
+    }
+  ];
+  const STORY_EPILOGUE_SCENES = [
+    {
+      speaker: "",
+      text: "",
+      background: "historia/1combatebandidos.PNG",
+      showChars: false
     }
   ];
   const TUTORIAL_STEPS = [
@@ -373,6 +446,13 @@ document.addEventListener("DOMContentLoaded", () => {
   let storyStep = 0;
   let storyPhase = "pre";
   let storyCombatActive = false;
+  let storyCombatStage = 0;
+  let storyJackSpawnTimer = null;
+  let storyJackUnlocked = false;
+  let storyJackCompleted = false;
+  let storyCombatStartAt = 0;
+  let failedMissionsCount = 0;
+  let finalModalPrimaryAction = null;
 
   function loadUnlockedRecruitCharIds() {
     try {
@@ -832,11 +912,87 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function getCurrentArcadeWinTarget() {
-    return storyCombatActive ? STORY_COMBAT_WIN_TARGET : ARCADE_WIN_TARGET;
+    if (storyCombatActive && storyCombatStage === 1) return STORY_COMBAT_WIN_TARGET;
+    return ARCADE_WIN_TARGET;
   }
 
   function getStorySceneList() {
-    return storyPhase === "post" ? STORY_POST_COMBAT_SCENES : STORY_PRE_COMBAT_SCENES;
+    if (storyPhase === "post") return STORY_POST_COMBAT_SCENES;
+    if (storyPhase === "epilogue") return STORY_EPILOGUE_SCENES;
+    return STORY_PRE_COMBAT_SCENES;
+  }
+
+  function getMissionPoolForCurrentMode() {
+    if (!storyCombatActive) return MISSIONS;
+    if (storyCombatStage === 1) return STORY_BASE_MISSIONS;
+    if (storyCombatStage === 2) {
+      if (storyJackUnlocked && STORY_JACK_MISSION) return [...STORY_BASE_MISSIONS, STORY_JACK_MISSION];
+      return STORY_BASE_MISSIONS;
+    }
+    return MISSIONS;
+  }
+
+  function refillPendingMissions() {
+    const pool = getMissionPoolForCurrentMode();
+    pendingMissions = pool.filter((m) => !completedMissionIds.has(m.id) && !activePoints.has(m.id));
+  }
+
+  function formatDuration(ms) {
+    const totalSec = Math.max(0, Math.floor(ms / 1000));
+    const min = Math.floor(totalSec / 60);
+    const sec = totalSec % 60;
+    return `${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+  }
+
+  function setFinalModalPrimaryAction(label, onClick) {
+    if (playAgainBtn) playAgainBtn.textContent = label || "Jugar otra vez";
+    finalModalPrimaryAction = typeof onClick === "function" ? onClick : null;
+  }
+
+  function showStoryMissionCompletedLayout() {
+    stopGameLoops();
+    hideModal(missionModal);
+    hideModal(rouletteModal);
+    hideModal(cardInfoModal);
+    hideModal(specialModal);
+
+    const elapsedMs = storyCombatStartAt > 0 ? (performance.now() - storyCombatStartAt) : 0;
+    finalTitleEl.textContent = "MISIÓN COMPLETADA";
+    if (finalLabelEl) finalLabelEl.textContent = "Misiones completadas";
+    finalScoreEl.textContent = String(score);
+    const finalText = finalModal.querySelector(".modal-text");
+    if (finalText) {
+      finalText.innerHTML = `La banda de Jack el Tuerto ha sido derrotada.<br/>Fallos: <b>${failedMissionsCount}</b><br/>Tiempo: <b>${formatDuration(elapsedMs)}</b>`;
+    }
+    setFinalModalPrimaryAction("Continuar", () => {
+      resetGame();
+      storyCombatActive = false;
+      storyCombatStage = 0;
+      storyPhase = "epilogue";
+      storyStep = 0;
+      introScreen.classList.add("hidden");
+      storyScreen?.classList.remove("hidden");
+      recruitScreen?.classList.add("hidden");
+      userScreen?.classList.add("hidden");
+      startScreen.classList.add("hidden");
+      teamScreen.classList.add("hidden");
+      gameRoot.classList.add("hidden");
+      renderStoryStep();
+    });
+
+    setGlobalPause(true);
+    showModal(finalModal);
+  }
+
+  function startStoryJackCountdown() {
+    clearTimeout(storyJackSpawnTimer);
+    storyJackSpawnTimer = null;
+    if (!storyCombatActive || storyCombatStage !== 2 || !STORY_JACK_MISSION) return;
+    storyJackSpawnTimer = setTimeout(() => {
+      storyJackUnlocked = true;
+      refillPendingMissions();
+      scheduleNextSpawn();
+    }, STORY_JACK_DELAY_MS);
   }
 
   function setImageWithFallback(el, src, fallback) {
@@ -857,7 +1013,8 @@ document.addEventListener("DOMContentLoaded", () => {
   function applyStoryScene(scene) {
     if (!scene) return;
     const showChars = scene.showChars !== false;
-    const isGroupTalkScene = String(scene.background || "").toLowerCase().includes("1grupocharla.png");
+    const bgLower = String(scene.background || "").toLowerCase();
+    const isWidePanScene = bgLower.includes("1grupocharla.png") || bgLower.includes("1combatebandidos.png");
 
     if (storySpeaker) {
       storySpeaker.textContent = scene.speaker || "";
@@ -869,19 +1026,35 @@ document.addEventListener("DOMContentLoaded", () => {
       storyScreen.style.background = scene.background
         ? `url("${scene.background}") center center / cover no-repeat`
         : 'url("images/portadainicio.PNG") center center / cover no-repeat';
-      storyScreen.classList.toggle("story-pan-group-mobile", isGroupTalkScene);
+      storyScreen.classList.toggle("story-pan-group-mobile", isWidePanScene);
     }
     if (storyStage) storyStage.style.background = "";
 
     storyLeftChar?.classList.toggle("hidden", !showChars);
     storyRightChar?.classList.toggle("hidden", !showChars);
-    if (!showChars) return;
+    const showLeftSupport = showChars && !!scene.leftSupportSrc;
+    const showRightSupport = showChars && !!scene.rightSupportSrc;
+    storyLeftSupportChar?.classList.toggle("hidden", !showLeftSupport);
+    storyRightSupportChar?.classList.toggle("hidden", !showRightSupport);
+
+    if (!showChars) {
+      storyLeftChar?.classList.remove("active");
+      storyRightChar?.classList.remove("active");
+      storyLeftSupportChar?.classList.remove("active");
+      storyRightSupportChar?.classList.remove("active");
+      return;
+    }
 
     if (storyLeftChar) setImageWithFallback(storyLeftChar, scene.leftSrc, "images/Evelyn.png");
     if (storyRightChar) setImageWithFallback(storyRightChar, scene.rightSrc, "images/Landom.png?v=20260210-4");
+    if (storyLeftSupportChar) setImageWithFallback(storyLeftSupportChar, scene.leftSupportSrc, "historia/Winchester2.png");
+    if (storyRightSupportChar) setImageWithFallback(storyRightSupportChar, scene.rightSupportSrc, "historia/Jane2.png");
     storyRightChar?.classList.toggle("no-mirror", scene.rightMirror === false);
+    storyRightSupportChar?.classList.toggle("no-mirror", scene.rightSupportMirror === false);
     storyLeftChar?.classList.toggle("active", scene.active === "left");
     storyRightChar?.classList.toggle("active", scene.active === "right");
+    storyLeftSupportChar?.classList.toggle("active", scene.active === "left-support");
+    storyRightSupportChar?.classList.toggle("active", scene.active === "right-support");
     applyStoryCharacterNormalization();
   }
 
@@ -965,10 +1138,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const scene = scenes[storyStep] || scenes[0];
     applyStoryScene(scene);
     const isLast = storyStep >= scenes.length - 1;
-    if (storySkipBtn) storySkipBtn.classList.toggle("hidden", storyPhase === "post");
-    if (storyMenuBtn) storyMenuBtn.classList.toggle("hidden", !(storyPhase === "post" && isLast));
+    if (storySkipBtn) storySkipBtn.classList.toggle("hidden", storyPhase !== "pre");
+    if (storyMenuBtn) storyMenuBtn.classList.toggle("hidden", !(storyPhase === "epilogue" && isLast));
     if (storyNextBtn) {
-      storyNextBtn.textContent = isLast && storyPhase === "post" ? "Fin" : "Siguiente";
+      storyNextBtn.textContent = isLast && storyPhase === "epilogue" ? "Fin" : "Siguiente";
     }
   }
 
@@ -981,29 +1154,42 @@ document.addEventListener("DOMContentLoaded", () => {
     gameRoot.classList.add("hidden");
     storyScreen?.classList.remove("hidden");
     storyCombatActive = false;
+    storyCombatStage = 0;
+    storyJackUnlocked = false;
+    storyJackCompleted = false;
     storyPhase = "pre";
     storyStep = 0;
     renderStoryStep();
   }
 
-  function startStoryCombat() {
+  function startStoryCombat(stage = 1) {
     resetGame();
     selectedMode = "arcade";
     currentMode = "arcade";
     storyCombatActive = true;
+    storyCombatStage = stage;
     storyPhase = "combat";
+    storyCombatStartAt = performance.now();
 
     const avatars = clampAvatarIndex();
     const evelynIdx = avatars.findIndex((a) => a.key === "evelyn");
     if (evelynIdx >= 0) avatarIndex = evelynIdx;
     renderAvatarCarousel(0);
 
-    selectedTeamCardIds = new Set(["card_celia", "card_castri", "card_lorena"]);
+    if (stage === 1) {
+      selectedTeamCardIds = new Set(["card_celia", "card_castri", "card_lorena"]);
+    } else {
+      selectedTeamCardIds = new Set(["card_celia", "card_castri", "card_lorena"]);
+    }
     if (!applyTeamFromCardIds([...selectedTeamCardIds])) {
       goToTeamScreen();
       return;
     }
-    tutorialPending = true;
+    tutorialPending = stage === 1;
+    storyJackUnlocked = false;
+    storyJackCompleted = false;
+    refillPendingMissions();
+    if (stage === 2) startStoryJackCountdown();
 
     introScreen.classList.add("hidden");
     storyScreen?.classList.add("hidden");
@@ -1022,7 +1208,17 @@ document.addEventListener("DOMContentLoaded", () => {
       renderStoryStep();
       return;
     }
-    if (storyPhase === "pre") startStoryCombat();
+    if (storyPhase === "pre") {
+      startStoryCombat(1);
+      return;
+    }
+    if (storyPhase === "post") {
+      startStoryCombat(2);
+      return;
+    }
+    if (storyPhase === "epilogue") {
+      setIntroVisible();
+    }
   }
 
   function goToTeamScreen() {
@@ -1318,7 +1514,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const req = ++storyNormalizeReq;
     const targets = [
       [storyLeftChar, storyLeftChar?.src],
-      [storyRightChar, storyRightChar?.src]
+      [storyRightChar, storyRightChar?.src],
+      [storyLeftSupportChar, storyLeftSupportChar?.src],
+      [storyRightSupportChar, storyRightSupportChar?.src]
     ];
 
     for (const [el, src] of targets) {
@@ -1812,6 +2010,8 @@ document.addEventListener("DOMContentLoaded", () => {
   function stopGameLoops() {
     clearInterval(lifeTicker);
     clearTimeout(spawnTimer);
+    clearTimeout(storyJackSpawnTimer);
+    storyJackSpawnTimer = null;
     clearInterval(gameClockTimer);
     gameClockTimer = null;
     gameRunning = false;
@@ -1935,6 +2135,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     point.style.left = `${xPct}%`;
     point.style.top = `${yPct}%`;
+    if (options.forceBlue) {
+      point.classList.add("special-blue");
+    }
 
     const state = {
       mission,
@@ -2004,6 +2207,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (completedMissionIds.has(missionId)) return;
 
     if (currentMode === "versus") completedMissionIds.add(missionId);
+    if (currentMode !== "versus") failedMissionsCount += 1;
     setScore(SCORE_LOSE);
     releaseCharsForMission(missionId);
     removePoint(missionId);
@@ -2016,12 +2220,18 @@ document.addEventListener("DOMContentLoaded", () => {
     if (completedMissionIds.has(missionId)) return;
 
     completedMissionIds.add(missionId);
+    if (missionId === STORY_JACK_MISSION_ID) storyJackCompleted = true;
     setScore(SCORE_WIN);
     releaseCharsForMission(missionId);
     removePoint(missionId);
 
     if (currentMode === "versus") {
       localWins += 1;
+    } else if (storyCombatActive && storyCombatStage === 2) {
+      if (missionId === STORY_JACK_MISSION_ID) {
+        showStoryMissionCompletedLayout();
+        return;
+      }
     } else if (score >= getCurrentArcadeWinTarget()) {
       finishArcadeVictory();
       return;
@@ -2042,8 +2252,21 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    if (
+      storyCombatActive &&
+      storyCombatStage === 2 &&
+      storyJackUnlocked &&
+      STORY_JACK_MISSION &&
+      !completedMissionIds.has(STORY_JACK_MISSION_ID) &&
+      !activePoints.has(STORY_JACK_MISSION_ID)
+    ) {
+      createMissionPoint(STORY_JACK_MISSION, { forceBlue: true });
+      spawnTimer = setTimeout(scheduleNextSpawn, 500);
+      return;
+    }
+
     if (pendingMissions.length === 0) {
-      pendingMissions = MISSIONS.filter((m) => !completedMissionIds.has(m.id) && !activePoints.has(m.id));
+      refillPendingMissions();
       if (pendingMissions.length === 0) {
         spawnTimer = setTimeout(scheduleNextSpawn, 1000);
         return;
@@ -2375,15 +2598,22 @@ document.addEventListener("DOMContentLoaded", () => {
     finalTitleEl.textContent = "Fin de la partida";
     const finalText = finalModal.querySelector(".modal-text");
     if (finalText) finalText.textContent = "¡Tiempo!";
+    if (finalLabelEl) finalLabelEl.textContent = "Puntuación final";
     finalScoreEl.textContent = String(score);
+    setFinalModalPrimaryAction("Jugar otra vez", null);
     setGlobalPause(true);
     showModal(finalModal);
   }
 
   function finishArcadeVictory() {
     if (storyCombatActive) {
+      if (storyCombatStage === 2) {
+        showStoryMissionCompletedLayout();
+        return;
+      }
       resetGame();
       storyCombatActive = false;
+      storyCombatStage = 0;
       storyPhase = "post";
       storyStep = 0;
       introScreen.classList.add("hidden");
@@ -2407,7 +2637,9 @@ document.addEventListener("DOMContentLoaded", () => {
     finalTitleEl.textContent = "Victoria";
     const finalText = finalModal.querySelector(".modal-text");
     if (finalText) finalText.textContent = "Has completado 8 misiones con éxito.";
+    if (finalLabelEl) finalLabelEl.textContent = "Puntuación final";
     finalScoreEl.textContent = String(score);
+    setFinalModalPrimaryAction("Jugar otra vez", null);
     setGlobalPause(true);
     showModal(finalModal);
   }
@@ -2421,6 +2653,7 @@ document.addEventListener("DOMContentLoaded", () => {
     hideModal(specialModal);
 
     finalTitleEl.textContent = isWinner ? "Victoria" : "Derrota";
+    if (finalLabelEl) finalLabelEl.textContent = "Puntuación final";
     finalScoreEl.textContent = `${localWins} - ${rivalWins}`;
 
     const finalText = finalModal.querySelector(".modal-text");
@@ -2430,6 +2663,7 @@ document.addEventListener("DOMContentLoaded", () => {
       versusSend({ type: "vs_match_end", from: versus.clientId, to: versus.opponentId, ts: Date.now() });
     }
 
+    setFinalModalPrimaryAction("Jugar otra vez", null);
     setGlobalPause(true);
     showModal(finalModal);
   }
@@ -2469,10 +2703,17 @@ document.addEventListener("DOMContentLoaded", () => {
     setSpecialArmedUI(false);
     tutorialPending = false;
     tutorialStep = 0;
+    storyJackUnlocked = false;
+    storyJackCompleted = false;
+    storyCombatStartAt = 0;
+    failedMissionsCount = 0;
+    finalModalPrimaryAction = null;
 
     if (teamBar) teamBar.innerHTML = "";
     const finalText = finalModal.querySelector(".modal-text");
     if (finalText) finalText.textContent = "¡Tiempo!";
+    if (finalLabelEl) finalLabelEl.textContent = "Puntuación final";
+    if (playAgainBtn) playAgainBtn.textContent = "Jugar otra vez";
 
     clearMatchmakingState();
 
@@ -2624,6 +2865,13 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   playAgainBtn.addEventListener("click", () => {
+    if (finalModalPrimaryAction) {
+      const action = finalModalPrimaryAction;
+      finalModalPrimaryAction = null;
+      hideModal(finalModal);
+      action();
+      return;
+    }
     const wasVersus = currentMode === "versus";
     if (wasVersus && versus.opponentId) {
       versusSend({ type: "vs_leave", from: versus.clientId, to: versus.opponentId, ts: Date.now() });
