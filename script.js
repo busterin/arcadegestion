@@ -1163,11 +1163,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function startStoryCombat(stage = 1) {
+    const normalizedStage = stage === 2 ? 2 : 1;
     resetGame();
     selectedMode = "arcade";
     currentMode = "arcade";
     storyCombatActive = true;
-    storyCombatStage = stage;
+    storyCombatStage = normalizedStage;
     storyPhase = "combat";
     storyCombatStartAt = performance.now();
 
@@ -1176,7 +1177,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (evelynIdx >= 0) avatarIndex = evelynIdx;
     renderAvatarCarousel(0);
 
-    if (stage === 1) {
+    if (normalizedStage === 1) {
       selectedTeamCardIds = new Set(["card_celia", "card_castri", "card_lorena"]);
     } else {
       selectedTeamCardIds = new Set(["card_celia", "card_castri", "card_lorena"]);
@@ -1185,11 +1186,11 @@ document.addEventListener("DOMContentLoaded", () => {
       goToTeamScreen();
       return;
     }
-    tutorialPending = stage === 1;
+    tutorialPending = normalizedStage === 1;
     storyJackUnlocked = false;
     storyJackCompleted = false;
     refillPendingMissions();
-    if (stage === 2) startStoryJackCountdown();
+    if (normalizedStage === 2) startStoryJackCountdown();
 
     introScreen.classList.add("hidden");
     storyScreen?.classList.add("hidden");
@@ -2769,7 +2770,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   storyNextBtn?.addEventListener("click", nextStoryStep);
   storyMenuBtn?.addEventListener("click", setIntroVisible);
-  storySkipBtn?.addEventListener("click", startStoryCombat);
+  storySkipBtn?.addEventListener("click", () => startStoryCombat(1));
   userBackBtn?.addEventListener("click", setIntroVisible);
 
   document.addEventListener("click", (e) => {
