@@ -2808,7 +2808,7 @@ document.addEventListener("DOMContentLoaded", () => {
     cardInfoOutfitsPanel?.classList.add("hidden");
     if (cardInfoOutfitAltBtn) {
       cardInfoOutfitAltBtn.disabled = !winchesterAltOwned;
-      cardInfoOutfitAltBtn.textContent = winchesterAltOwned ? "Winchester3" : "Winchester3 (No comprado)";
+      cardInfoOutfitAltBtn.textContent = winchesterAltOwned ? "Caballera Blanca" : "Caballera Blanca (No comprado)";
     }
     if (cardInfoOutfitDefaultBtn) {
       cardInfoOutfitDefaultBtn.classList.toggle("active", selectedWinchesterOutfit !== "alt");
