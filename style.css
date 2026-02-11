@@ -329,6 +329,11 @@ img{ max-width:100%; height:auto; }
   justify-content:flex-end;
 }
 
+@keyframes storyPanGroupMobile {
+  0% { background-position: left center; }
+  100% { background-position: right center; }
+}
+
 /* ---------- RECLUTAR ---------- */
 .recruit-card{
   width: min(620px, 100%);
@@ -1389,6 +1394,12 @@ img{ max-width:100%; height:auto; }
   .story-text{
     font-size: 18px;
     line-height: 1.35;
+  }
+
+  .story-screen.story-pan-group-mobile{
+    background-size: auto 100% !important;
+    background-position: left center !important;
+    animation: storyPanGroupMobile 16s ease-in-out infinite alternate;
   }
 
   #teamScreen .start-card{

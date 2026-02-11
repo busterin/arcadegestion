@@ -857,6 +857,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function applyStoryScene(scene) {
     if (!scene) return;
     const showChars = scene.showChars !== false;
+    const isGroupTalkScene = String(scene.background || "").toLowerCase().includes("1grupocharla.png");
 
     if (storySpeaker) {
       storySpeaker.textContent = scene.speaker || "";
@@ -868,6 +869,7 @@ document.addEventListener("DOMContentLoaded", () => {
       storyScreen.style.background = scene.background
         ? `url("${scene.background}") center center / cover no-repeat`
         : 'url("images/portadainicio.PNG") center center / cover no-repeat';
+      storyScreen.classList.toggle("story-pan-group-mobile", isGroupTalkScene);
     }
     if (storyStage) storyStage.style.background = "";
 
