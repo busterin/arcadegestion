@@ -1398,7 +1398,7 @@ img{ max-width:100%; height:auto; }
 
   .story-screen.story-pan-group-mobile{
     background-size: auto 100% !important;
-    background-position: left center !important;
+    background-position: left center;
     animation: storyPanGroupMobile 16s ease-in-out infinite alternate;
   }
 
