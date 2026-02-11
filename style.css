@@ -266,7 +266,7 @@ img{ max-width:100%; height:auto; }
 .story-char{
   --char-scale: 1;
   position: absolute;
-  bottom: -18px;
+  bottom: -24px;
   width: min(42vw, 360px);
   max-height: 76vh;
   object-fit: contain;
@@ -1440,7 +1440,7 @@ img{ max-width:100%; height:auto; }
 
   .story-screen{ padding: 10px; }
   .story-char{
-    bottom: -10px;
+    bottom: -16px;
     width: min(46vw, 230px);
     max-height: 62vh;
   }
@@ -1458,7 +1458,9 @@ img{ max-width:100%; height:auto; }
   }
   .story-dialog{
     padding: 14px;
-    min-height: 170px;
+    min-height: 220px;
+    height: 220px;
+    overflow: auto;
   }
   .story-speaker{ font-size: 20px; }
   .story-text{

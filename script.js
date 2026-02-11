@@ -386,7 +386,6 @@ document.addEventListener("DOMContentLoaded", () => {
       rightSrc: "historia/Camus2.png",
       rightMirror: false,
       rightSupportSrc: "historia/Jane2.png",
-      rightSupportMirror: false,
       showChars: true
     },
     {
@@ -399,7 +398,6 @@ document.addEventListener("DOMContentLoaded", () => {
       rightSrc: "historia/Camus2.png",
       rightMirror: false,
       rightSupportSrc: "historia/Jane2.png",
-      rightSupportMirror: false,
       showChars: true
     },
     {
@@ -412,7 +410,6 @@ document.addEventListener("DOMContentLoaded", () => {
       rightSrc: "historia/Camus2.png",
       rightMirror: false,
       rightSupportSrc: "historia/Jane2.png",
-      rightSupportMirror: false,
       showChars: true
     },
     {
@@ -425,7 +422,6 @@ document.addEventListener("DOMContentLoaded", () => {
       rightSrc: "historia/Camus2.png",
       rightMirror: false,
       rightSupportSrc: "historia/Jane2.png",
-      rightSupportMirror: false,
       showChars: true
     }
   ];
