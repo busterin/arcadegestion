@@ -270,13 +270,14 @@ img{ max-width:100%; height:auto; }
   width: min(42vw, 360px);
   max-height: 76vh;
   object-fit: contain;
+  transform-origin: center bottom;
   filter: drop-shadow(0 18px 32px rgba(0,0,0,.45));
   opacity: .32;
   transition: opacity .2s ease, transform .2s ease, filter .2s ease;
 }
 .story-char.support{
-  width: min(39vw, 320px);
-  max-height: 74vh;
+  width: min(42vw, 360px);
+  max-height: 76vh;
   opacity: .2;
   z-index: 1;
 }
@@ -286,14 +287,14 @@ img{ max-width:100%; height:auto; }
   transform: scale(var(--char-scale));
 }
 .story-char.left.support{
-  left: 19%;
+  left: 16%;
 }
 .story-char.right{
   right: 3%;
   transform: scaleX(-1) scale(var(--char-scale));
 }
 .story-char.right.support{
-  right: 19%;
+  right: 16%;
 }
 .story-char.right.no-mirror{
   transform: scale(var(--char-scale));
@@ -1043,7 +1044,7 @@ img{ max-width:100%; height:auto; }
   border-radius: 16px;
   border: 1px solid rgba(255,255,255,.14);
   background: rgba(255,255,255,.04);
-  padding: 10px;
+  padding: 8px;
   cursor:pointer;
   transition: transform .12s ease, border-color .12s ease, background .12s ease, opacity .12s ease;
   display:flex;
@@ -1057,6 +1058,7 @@ img{ max-width:100%; height:auto; }
 .char-photo-wrap{
   width: 100%;
   aspect-ratio: 1 / 1;
+  max-height: 110px;
   border-radius: 12px;
   overflow: hidden;
   background: rgba(255,255,255,.04);
@@ -1397,6 +1399,10 @@ img{ max-width:100%; height:auto; }
   .recruit-odds{ width: min(320px, 90vw); }
 
   .grid{ grid-template-columns: 1fr; }
+  #charactersGrid.grid{
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
   .buster-img{ width: 190px; }
   .rival-img{ width: 190px; }
 
@@ -1427,13 +1433,17 @@ img{ max-width:100%; height:auto; }
     max-height: 62vh;
   }
   .story-char.support{
-    width: min(42vw, 215px);
-    max-height: 60vh;
+    width: min(46vw, 230px);
+    max-height: 62vh;
   }
   .story-char.left{ left: 0; }
   .story-char.right{ right: 0; }
-  .story-char.left.support{ left: 12%; }
-  .story-char.right.support{ right: 12%; }
+  .story-char.left.support{ left: 8%; }
+  .story-char.right.support{ right: 8%; }
+
+  .char-photo-wrap{
+    max-height: 86px;
+  }
   .story-dialog{
     padding: 14px;
     min-height: 170px;
