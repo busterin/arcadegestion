@@ -2375,10 +2375,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
     availableCharacters.forEach((ch) => {
       const locked = lockedCharIds.has(ch.id);
+      const cardMatch = availableCards.find((c) => c.name === ch.name)
+        || CARDS.find((c) => c.name === ch.name)
+        || RECRUITABLE_CARDS.find((c) => c.name === ch.name);
+      const avatarMatch = AVATARS.find((a) => a.name === ch.name);
+      const imgSrc = cardMatch?.img || avatarMatch?.src || "images/mision.png";
       const card = document.createElement("div");
       card.className = "char" + (locked ? " locked" : "");
+      card.setAttribute("aria-label", ch.name);
       card.innerHTML = `
-        <div><div class="name">${ch.name}</div></div>
+        <div class="char-photo-wrap">
+          <img class="char-photo" src="${imgSrc}" alt="${ch.name}" />
+        </div>
         <div class="pill">${locked ? "Ocupado" : "Elegir"}</div>
       `;
 
