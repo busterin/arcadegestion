@@ -161,6 +161,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const missionBarHint = document.getElementById("missionBarHint");
   const missionBarCancelBtn = document.getElementById("missionBarCancelBtn");
   const missionBarConfirmBtn = document.getElementById("missionBarConfirmBtn");
+  const missionMapPreview = document.getElementById("missionMapPreview");
+  const missionMapPreviewImg = document.getElementById("missionMapPreviewImg");
 
   const missionModal = document.getElementById("missionModal");
   const missionChooseTitle = document.getElementById("missionChooseTitle");
@@ -1626,6 +1628,11 @@ document.addEventListener("DOMContentLoaded", () => {
     missionPickFromBarActive = true;
     if (missionBarTitle) missionBarTitle.textContent = st.mission?.title || "Misión";
     if (missionBarText) missionBarText.textContent = st.mission?.text || "Selecciona personajes desde la barra inferior.";
+    if (missionMapPreviewImg) {
+      missionMapPreviewImg.src = st.mission?.img || "images/mision.png";
+      missionMapPreviewImg.alt = st.mission?.title || "Misión";
+    }
+    missionMapPreview?.classList.remove("hidden");
     const maxChars = getMissionMaxChars(st.mission);
     updateMissionBarHint(`Elige al menos 1 personaje (máximo ${maxChars}) desde la barra inferior.`);
     missionBarPicker?.classList.remove("hidden");
@@ -1638,6 +1645,7 @@ document.addEventListener("DOMContentLoaded", () => {
     currentMissionId = null;
     selectedCharIds = new Set();
     missionBarPicker?.classList.add("hidden");
+    missionMapPreview?.classList.add("hidden");
     updateMissionBarHint("");
     updateTeamBarAvailability();
     if (resume && !isAnyModalOpen()) setGlobalPause(false);
