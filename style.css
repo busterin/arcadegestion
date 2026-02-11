@@ -948,6 +948,44 @@ img{ max-width:100%; height:auto; }
   filter: grayscale(1);
   opacity: .45;
 }
+.teambar-item.pick-mode{
+  border: 1px solid rgba(255,255,255,.2);
+  background: rgba(255,255,255,.06);
+}
+.teambar-item.pick-selected{
+  border-color: rgba(85,214,255,.98);
+  box-shadow: 0 0 0 2px rgba(85,214,255,.35), 0 8px 18px rgba(58,208,255,.25);
+  transform: translateY(-1px) scale(1.03);
+}
+
+.mission-bar-picker{
+  margin: 0 14px 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(7,12,23,.82);
+  backdrop-filter: blur(6px);
+}
+.mission-bar-title{
+  font-weight: 800;
+  font-size: 14px;
+}
+.mission-bar-text{
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.mission-bar-hint{
+  margin-top: 6px;
+  font-size: 12px;
+  color: rgba(233,238,252,.95);
+}
+.mission-bar-actions{
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
 
 /* ---------- POINTS ---------- */
 .point{
@@ -1487,6 +1525,13 @@ img{ max-width:100%; height:auto; }
 
   .teambar-item{ width: 66px; height: 66px; border-radius: 14px; }
   .teambar-img{ border-radius: 14px; }
+  .mission-bar-picker{
+    margin: 0 10px 8px;
+    padding: 8px 10px;
+  }
+  .mission-bar-title{ font-size: 13px; }
+  .mission-bar-text{ font-size: 11px; }
+  .mission-bar-hint{ font-size: 11px; }
 }
 
 /* ---------- INTRO BACKGROUND ---------- */

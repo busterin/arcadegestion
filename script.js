@@ -155,6 +155,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const hudStoryHintEl = document.getElementById("hudStoryHint");
   const teamBar = document.getElementById("teamBar");
   const rivalTeamBtn = document.getElementById("rivalTeamBtn");
+  const missionBarPicker = document.getElementById("missionBarPicker");
+  const missionBarTitle = document.getElementById("missionBarTitle");
+  const missionBarText = document.getElementById("missionBarText");
+  const missionBarHint = document.getElementById("missionBarHint");
+  const missionBarCancelBtn = document.getElementById("missionBarCancelBtn");
+  const missionBarConfirmBtn = document.getElementById("missionBarConfirmBtn");
 
   const missionModal = document.getElementById("missionModal");
   const missionChooseTitle = document.getElementById("missionChooseTitle");
@@ -221,6 +227,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let currentMissionId = null;
   let selectedCharIds = new Set();
+  let missionPickFromBarActive = false;
 
   let gameEndAt = null;
   let gameClockTimer = null;
@@ -1600,8 +1607,69 @@ document.addEventListener("DOMContentLoaded", () => {
     items.forEach((item) => {
       const cid = item.getAttribute("data-char-id");
       const busy = cid && lockedCharIds.has(cid);
-      item.classList.toggle("busy", !!busy);
+      const selected = !!cid && selectedCharIds.has(cid);
+      item.classList.toggle("busy", !!busy && !selected);
+      item.classList.toggle("pick-mode", missionPickFromBarActive);
+      item.classList.toggle("pick-selected", missionPickFromBarActive && selected);
     });
+  }
+
+  function updateMissionBarHint(text) {
+    if (missionBarHint) missionBarHint.textContent = text || "";
+  }
+
+  function startMissionBarSelection(missionId) {
+    const st = activePoints.get(missionId);
+    if (!st) return;
+    currentMissionId = missionId;
+    selectedCharIds = new Set();
+    missionPickFromBarActive = true;
+    if (missionBarTitle) missionBarTitle.textContent = st.mission?.title || "Misión";
+    if (missionBarText) missionBarText.textContent = st.mission?.text || "Selecciona personajes desde la barra inferior.";
+    const maxChars = getMissionMaxChars(st.mission);
+    updateMissionBarHint(`Elige al menos 1 personaje (máximo ${maxChars}) desde la barra inferior.`);
+    missionBarPicker?.classList.remove("hidden");
+    setGlobalPause(true);
+    updateTeamBarAvailability();
+  }
+
+  function stopMissionBarSelection(resume = true) {
+    missionPickFromBarActive = false;
+    currentMissionId = null;
+    selectedCharIds = new Set();
+    missionBarPicker?.classList.add("hidden");
+    updateMissionBarHint("");
+    updateTeamBarAvailability();
+    if (resume && !isAnyModalOpen()) setGlobalPause(false);
+  }
+
+  function toggleMissionBarCharacter(charId) {
+    if (!missionPickFromBarActive || !charId) return;
+    const st = currentMissionId ? activePoints.get(currentMissionId) : null;
+    if (!st) return;
+    const maxChars = getMissionMaxChars(st.mission);
+    const isBusy = lockedCharIds.has(charId);
+
+    if (selectedCharIds.has(charId)) {
+      selectedCharIds.delete(charId);
+      updateMissionBarHint(`Seleccionados: ${selectedCharIds.size}/${maxChars}.`);
+      updateTeamBarAvailability();
+      return;
+    }
+
+    if (isBusy) {
+      updateMissionBarHint("Ese personaje está ocupado en otra misión.");
+      return;
+    }
+
+    if (selectedCharIds.size >= maxChars) {
+      updateMissionBarHint("Máximo " + maxChars + " personajes por misión.");
+      return;
+    }
+
+    selectedCharIds.add(charId);
+    updateMissionBarHint(`Seleccionados: ${selectedCharIds.size}/${maxChars}.`);
+    updateTeamBarAvailability();
   }
 
   function renderTeamBar() {
@@ -1617,7 +1685,13 @@ document.addEventListener("DOMContentLoaded", () => {
       item.className = "teambar-item";
       if (ch?.id) item.setAttribute("data-char-id", ch.id);
       item.innerHTML = `<img class="teambar-img" src="${cardData.img}" alt="${cardData.name}" />`;
-      item.addEventListener("click", () => openCardInfo(cardData));
+      item.addEventListener("click", () => {
+        if (missionPickFromBarActive) {
+          toggleMissionBarCharacter(ch?.id);
+          return;
+        }
+        openCardInfo(cardData);
+      });
       teamBar.appendChild(item);
     });
 
@@ -2008,6 +2082,9 @@ document.addEventListener("DOMContentLoaded", () => {
       selectedCharIds = new Set();
       if (!isAnyModalOpen()) setGlobalPause(false);
     }
+    if (currentMissionId === missionId && missionPickFromBarActive) {
+      stopMissionBarSelection(true);
+    }
 
     releaseCharsForMission(missionId);
     removePoint(missionId);
@@ -2185,6 +2262,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function onPointClick(missionId) {
+    if (missionPickFromBarActive) return;
     const st = activePoints.get(missionId);
     if (!st || completedMissionIds.has(missionId)) return;
 
@@ -2357,34 +2435,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function openMission(missionId) {
-    const st = activePoints.get(missionId);
-    if (!st) return;
-
-    setGlobalPause(true);
-    currentMissionId = missionId;
-    selectedCharIds = new Set();
-
-    missionTitleEl.textContent = st.mission.title;
-    missionImgEl.src = st.mission.img || "images/mision.png";
-    missionImgEl.alt = st.mission.title || "Misión";
-    missionTextEl.textContent = st.mission.text;
-
-    const maxChars = getMissionMaxChars(st.mission);
-    if (missionChooseTitle) {
-      missionChooseTitle.textContent = maxChars >= 3 ? "Elige 1, 2 o 3 personajes" : "Elige 1 o 2 personajes";
-    }
-    pickHint.textContent = "Selecciona al menos 1 personaje (máximo " + maxChars + ").";
-    pickHint.style.opacity = "1";
-
-    renderCharacters();
-    showModal(missionModal);
+    startMissionBarSelection(missionId);
   }
 
   function closeMissionModal() {
     hideModal(missionModal);
-    currentMissionId = null;
-    selectedCharIds = new Set();
-    if (!isAnyModalOpen()) setGlobalPause(false);
+    stopMissionBarSelection(true);
   }
 
   function renderCharacters() {
@@ -2447,8 +2503,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!st) return;
 
     if (selectedCharIds.size < 1) {
-      pickHint.textContent = "Debes seleccionar al menos 1 personaje.";
-      pickHint.style.opacity = "1";
+      updateMissionBarHint("Debes seleccionar al menos 1 personaje.");
       return;
     }
 
@@ -2464,10 +2519,7 @@ document.addEventListener("DOMContentLoaded", () => {
     st.pointEl.classList.add("assigned");
     st.pointEl.classList.remove("ready");
 
-    hideModal(missionModal);
-    currentMissionId = null;
-    selectedCharIds = new Set();
-    if (!isAnyModalOpen()) setGlobalPause(false);
+    stopMissionBarSelection(true);
   }
 
   function spinRoulette(chance, onDone, forcedWin = null) {
@@ -2723,6 +2775,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     currentMissionId = null;
     selectedCharIds = new Set();
+    missionPickFromBarActive = false;
+    missionBarPicker?.classList.add("hidden");
 
     specialUsed = false;
     specialArmed = false;
@@ -2847,6 +2901,8 @@ document.addEventListener("DOMContentLoaded", () => {
   closeModalBtn.addEventListener("click", closeMissionModal);
   missionModal.addEventListener("click", (e) => { if (e.target === missionModal) closeMissionModal(); });
   confirmBtn.addEventListener("click", confirmMission);
+  missionBarCancelBtn?.addEventListener("click", () => stopMissionBarSelection(true));
+  missionBarConfirmBtn?.addEventListener("click", confirmMission);
 
   closeCardInfoBtn.addEventListener("click", closeCardInfo);
   cardInfoInfoBtn?.addEventListener("click", () => {
