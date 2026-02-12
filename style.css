@@ -364,9 +364,45 @@ img{ max-width:100%; height:auto; }
   margin-bottom: 8px;
   position: relative;
   display: flex;
+  flex-direction: column;
+  gap: 14px;
   align-items: center;
   justify-content: center;
   min-height: 360px;
+  border-radius: 22px;
+  border: 1px solid rgba(106, 72, 38, .55);
+  background:
+    radial-gradient(125% 85% at 25% 12%, rgba(255, 248, 224, .62) 0%, rgba(255, 248, 224, 0) 48%),
+    radial-gradient(95% 70% at 78% 88%, rgba(159, 112, 52, .28) 0%, rgba(159, 112, 52, 0) 62%),
+    linear-gradient(160deg, #e8d0a0 0%, #d4ae74 48%, #c6965c 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 240, 199, .42),
+    inset 0 22px 38px rgba(255, 246, 221, .28),
+    inset 0 -24px 38px rgba(95, 61, 30, .22),
+    0 8px 22px rgba(0, 0, 0, .18);
+  overflow: hidden;
+}
+
+.recruit-zone::before{
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border-radius: 16px;
+  border: 1px dashed rgba(113, 74, 40, .42);
+  pointer-events: none;
+}
+
+.recruit-chest-copy{
+  width: min(360px, 84vw);
+  margin-top: 10px;
+  color: #5a3619;
+  font-weight: 900;
+  font-size: 16px;
+  line-height: 1.3;
+  text-align: center;
+  text-shadow: 0 1px 0 rgba(255, 245, 218, .6);
+  position: relative;
+  z-index: 1;
 }
 
 .recruit-pack{
@@ -1446,6 +1482,7 @@ img{ max-width:100%; height:auto; }
 
 
 .team-card{
+  position: relative;
   width: 158px;
   height: 146px;
   border-radius: 16px;
@@ -1476,9 +1513,29 @@ img{ max-width:100%; height:auto; }
 .team-card .pill{ display:none; }
 
 .team-card.selected{
-  border-color: rgba(58,208,255,.85);
-  background: rgba(85,214,255,.10);
-  box-shadow: 0 10px 26px rgba(58,208,255,.12);
+  transform: translateY(-2px) scale(1.03);
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, .92),
+    0 0 0 6px rgba(58,208,255,.55),
+    0 14px 28px rgba(58,208,255,.4);
+  filter: saturate(1.2) brightness(1.08);
+}
+
+.team-card.selected::after{
+  content: "YA SELECCIONADO";
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  border-radius: 999px;
+  padding: 4px 8px;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .6px;
+  color: #05202b;
+  background: linear-gradient(180deg, #ebfbff 0%, #8de8ff 100%);
+  box-shadow: 0 2px 10px rgba(26, 168, 214, .45);
 }
 
 .rival-team-grid{
