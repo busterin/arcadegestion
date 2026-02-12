@@ -480,6 +480,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let storyCombatStartAt = 0;
   let failedMissionsCount = 0;
   let finalModalPrimaryAction = null;
+  const modalFocusReturnMap = new WeakMap();
 
   function loadUnlockedRecruitCharIds() {
     try {
@@ -1028,13 +1029,30 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function showModal(el) {
+    if (!el) return;
+    const active = document.activeElement;
+    if (active instanceof HTMLElement) modalFocusReturnMap.set(el, active);
     el.classList.add("show");
     el.setAttribute("aria-hidden", "false");
+    requestAnimationFrame(() => {
+      if (!el.classList.contains("show")) return;
+      const focusable = el.querySelector(
+        "button:not([disabled]), [href], input:not([disabled]):not([type='hidden']), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex='-1'])"
+      );
+      if (focusable instanceof HTMLElement) focusable.focus({ preventScroll: true });
+    });
   }
 
   function hideModal(el) {
+    if (!el) return;
     el.classList.remove("show");
     el.setAttribute("aria-hidden", "true");
+    if (!isAnyModalOpen()) {
+      const returnTo = modalFocusReturnMap.get(el);
+      if (returnTo instanceof HTMLElement && returnTo.isConnected) {
+        returnTo.focus({ preventScroll: true });
+      }
+    }
   }
 
   function isAnyModalOpen() {
@@ -1134,6 +1152,7 @@ document.addEventListener("DOMContentLoaded", () => {
       startScreen.classList.add("hidden");
       teamScreen.classList.add("hidden");
       gameRoot.classList.add("hidden");
+      resetViewportTop();
       renderStoryStep();
     });
 
@@ -1247,6 +1266,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function setIntroVisible() {
+    if (isEditingUserName) endUserNameEdit(true);
     const targetMenuKey = resolveIntroMenuKeyFromContext();
     const targetIndex = INTRO_MENU_OPTIONS.findIndex((option) => option.key === targetMenuKey);
     introMenuIndex = targetIndex >= 0 ? targetIndex : 0;
@@ -1279,17 +1299,37 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function resetViewportTop() {
-    window.scrollTo(0, 0);
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
-    if (introScreen) introScreen.scrollTop = 0;
-    if (storyScreen) storyScreen.scrollTop = 0;
-    if (recruitScreen) recruitScreen.scrollTop = 0;
-    if (storeScreen) storeScreen.scrollTop = 0;
-    if (userScreen) userScreen.scrollTop = 0;
-    if (startScreen) startScreen.scrollTop = 0;
-    if (teamScreen) teamScreen.scrollTop = 0;
-    if (gameRoot) gameRoot.scrollTop = 0;
+    const resetElementScroll = (el) => {
+      if (!el) return;
+      el.scrollTop = 0;
+      el.scrollLeft = 0;
+    };
+    const resetScrollableTree = (root) => {
+      if (!root) return;
+      resetElementScroll(root);
+      root.querySelectorAll("*").forEach((node) => {
+        if (!(node instanceof HTMLElement)) return;
+        if (node.scrollHeight > node.clientHeight || node.scrollWidth > node.clientWidth) {
+          resetElementScroll(node);
+        }
+      });
+    };
+    const applyReset = () => {
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      resetScrollableTree(introScreen);
+      resetScrollableTree(storyScreen);
+      resetScrollableTree(recruitScreen);
+      resetScrollableTree(storeScreen);
+      resetScrollableTree(userScreen);
+      resetScrollableTree(startScreen);
+      resetScrollableTree(teamScreen);
+      resetScrollableTree(gameRoot);
+    };
+    applyReset();
+    requestAnimationFrame(applyReset);
+    setTimeout(applyReset, 60);
   }
 
   function renderIntroMenu(direction = 0) {
@@ -3004,6 +3044,7 @@ document.addEventListener("DOMContentLoaded", () => {
       startScreen.classList.add("hidden");
       teamScreen.classList.add("hidden");
       gameRoot.classList.add("hidden");
+      resetViewportTop();
       renderStoryStep();
       return;
     }
@@ -3133,6 +3174,7 @@ document.addEventListener("DOMContentLoaded", () => {
   introProfile?.addEventListener("click", goToUserScreen);
 
   recruitPackBtn?.addEventListener("click", recruitRandomCharacter);
+  recruitOddsBtn?.addEventListener("click", toggleRecruitOdds);
   recruitBackBtn?.addEventListener("click", setIntroVisible);
   storeBackBtn?.addEventListener("click", setIntroVisible);
   storeBuyWinchesterBtn?.addEventListener("click", buyWinchesterOutfit);
@@ -3155,6 +3197,14 @@ document.addEventListener("DOMContentLoaded", () => {
       endUserNameEdit(false);
     }
   });
+  userNameInput?.addEventListener("input", () => {
+    if (!isEditingUserName) return;
+    const preview = normalizeUserProfileName(userNameInput.value);
+    setUserProfileName(preview);
+  });
+  userNameInput?.addEventListener("blur", () => {
+    if (isEditingUserName) endUserNameEdit(true);
+  });
   storyNextBtn?.addEventListener("click", nextStoryStep);
   storyMenuBtn?.addEventListener("click", setIntroVisible);
   storySkipBtn?.addEventListener("click", () => startStoryCombat(1));
@@ -3164,16 +3214,59 @@ document.addEventListener("DOMContentLoaded", () => {
     const target = e.target;
     if (!(target instanceof Element)) return;
     if (target.id === "introMenuImg" || target.id === "introMenuFallback") activateIntroMenuOption();
-    if (target.id === "recruitPackBtn") recruitRandomCharacter();
-    if (target.id === "recruitOddsBtn") toggleRecruitOdds();
-    if (target.id === "recruitBackBtn") setIntroVisible();
-    if (target.id === "userBackBtn") setIntroVisible();
   });
 
   prevAvatarBtn.addEventListener("click", prevAvatar);
   nextAvatarBtn.addEventListener("click", nextAvatar);
 
   document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      if (missionPickFromBarActive) {
+        e.preventDefault();
+        stopMissionBarSelection(true);
+        return;
+      }
+      if (specialModal.classList.contains("show")) {
+        e.preventDefault();
+        cancelSpecial();
+        return;
+      }
+      if (cardInfoModal.classList.contains("show")) {
+        e.preventDefault();
+        closeCardInfo();
+        return;
+      }
+      if (missionModal.classList.contains("show")) {
+        e.preventDefault();
+        closeMissionModal();
+        return;
+      }
+      if (rivalTeamModal.classList.contains("show")) {
+        e.preventDefault();
+        hideModal(rivalTeamModal);
+        if (!isAnyModalOpen()) setGlobalPause(false);
+        return;
+      }
+      if (tutorialModal.classList.contains("show")) {
+        e.preventDefault();
+        hideModal(tutorialModal);
+        tutorialPending = false;
+        tutorialStep = 0;
+        if (tutorialReturnToAvatar) {
+          tutorialReturnToAvatar = false;
+          backToAvatarSelection();
+        }
+        if (!isAnyModalOpen()) setGlobalPause(false);
+        return;
+      }
+      if (matchmakingModal.classList.contains("show")) {
+        e.preventDefault();
+        clearMatchmakingState();
+        hideModal(matchmakingModal);
+        return;
+      }
+    }
+
     if (!introScreen.classList.contains("hidden")) {
       if (e.key === "ArrowLeft") prevIntroMenuOption();
       if (e.key === "ArrowRight") nextIntroMenuOption();
