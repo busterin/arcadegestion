@@ -1571,9 +1571,13 @@ img{ max-width:100%; height:auto; }
   .buster-img{ width: 190px; }
   .rival-img{ width: 190px; }
   .mission-map-preview{
-    width: min(200px, 52vw);
-    top: 8px;
-    right: 8px;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: auto;
+    border-radius: 0;
+    border: 0;
   }
 
   .carousel{ grid-template-columns: 48px 1fr 48px; }
