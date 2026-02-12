@@ -738,6 +738,7 @@ document.addEventListener("DOMContentLoaded", () => {
     renderCoins();
     renderRecruitUnlockedState();
     renderRecruitOdds();
+    resetViewportTop();
   }
 
   function recruitRandomCharacter() {
@@ -799,6 +800,7 @@ document.addEventListener("DOMContentLoaded", () => {
     gameRoot.classList.add("hidden");
     storeScreen.classList.remove("hidden");
     renderStore();
+    resetViewportTop();
   }
 
   function setWinchesterOutfit(mode) {
@@ -1022,6 +1024,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (userNameEditBtn) userNameEditBtn.textContent = "Editar nombre";
     renderUserAvatarPicker();
     renderUserCollection();
+    resetViewportTop();
   }
 
   function showModal(el) {
@@ -1244,7 +1247,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function setIntroVisible() {
-    introMenuIndex = 0;
+    const targetMenuKey = resolveIntroMenuKeyFromContext();
+    const targetIndex = INTRO_MENU_OPTIONS.findIndex((option) => option.key === targetMenuKey);
+    introMenuIndex = targetIndex >= 0 ? targetIndex : 0;
     renderIntroMenu(0);
     introScreen.classList.remove("hidden");
     storyScreen?.classList.add("hidden");
@@ -1254,6 +1259,37 @@ document.addEventListener("DOMContentLoaded", () => {
     startScreen.classList.add("hidden");
     teamScreen.classList.add("hidden");
     gameRoot.classList.add("hidden");
+    resetViewportTop();
+  }
+
+  function resolveIntroMenuKeyFromContext() {
+    if (storyScreen && !storyScreen.classList.contains("hidden")) return "historia";
+    if (recruitScreen && !recruitScreen.classList.contains("hidden")) return "reclutar";
+    if (storeScreen && !storeScreen.classList.contains("hidden")) return "tienda";
+    if (userScreen && !userScreen.classList.contains("hidden")) return "cuenta";
+
+    const inPlayflow = !startScreen.classList.contains("hidden") || !teamScreen.classList.contains("hidden") || !gameRoot.classList.contains("hidden");
+    if (inPlayflow) {
+      if (storyCombatActive) return "historia";
+      if (selectedMode === "versus" || currentMode === "versus") return "versus";
+      return "arcade";
+    }
+
+    return INTRO_MENU_OPTIONS[introMenuIndex]?.key || "arcade";
+  }
+
+  function resetViewportTop() {
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    if (introScreen) introScreen.scrollTop = 0;
+    if (storyScreen) storyScreen.scrollTop = 0;
+    if (recruitScreen) recruitScreen.scrollTop = 0;
+    if (storeScreen) storeScreen.scrollTop = 0;
+    if (userScreen) userScreen.scrollTop = 0;
+    if (startScreen) startScreen.scrollTop = 0;
+    if (teamScreen) teamScreen.scrollTop = 0;
+    if (gameRoot) gameRoot.scrollTop = 0;
   }
 
   function renderIntroMenu(direction = 0) {
@@ -1308,6 +1344,7 @@ document.addEventListener("DOMContentLoaded", () => {
     startTutorialBtn?.classList.toggle("hidden", selectedMode !== "arcade");
     teamScreen.classList.add("hidden");
     gameRoot.classList.add("hidden");
+    resetViewportTop();
   }
 
   function renderStoryStep() {
@@ -1338,6 +1375,7 @@ document.addEventListener("DOMContentLoaded", () => {
     storyPhase = "pre";
     storyStep = 0;
     renderStoryStep();
+    resetViewportTop();
   }
 
   function startStoryCombat(stage = 1) {
@@ -1404,11 +1442,13 @@ document.addEventListener("DOMContentLoaded", () => {
     startScreen.classList.add("hidden");
     teamScreen.classList.remove("hidden");
     renderTeamSelection();
+    resetViewportTop();
   }
 
   function backToAvatarSelection() {
     teamScreen.classList.add("hidden");
     startScreen.classList.remove("hidden");
+    resetViewportTop();
   }
 
   function animateCarousel(direction) {
