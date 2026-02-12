@@ -1879,6 +1879,34 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 2200);
   }
 
+  function finishGameNoCharacters() {
+    stopGameLoops();
+    hideModal(missionModal);
+    hideModal(rouletteModal);
+    hideModal(cardInfoModal);
+    hideModal(specialModal);
+    hideModal(tutorialModal);
+    hideModal(matchmakingModal);
+    hideModal(rivalTeamModal);
+
+    finalTitleEl.textContent = "Fin de la partida";
+    if (finalLabelEl) finalLabelEl.textContent = "Misiones completadas";
+    finalScoreEl.textContent = String(score);
+    const finalText = finalModal.querySelector(".modal-text");
+    if (finalText) finalText.textContent = "Te has quedado sin personajes disponibles.";
+    setFinalModalPrimaryAction("Volver al menú", () => {
+      resetGame();
+      currentMode = "arcade";
+      selectedMode = "arcade";
+      avatarIndex = 0;
+      renderAvatarCarousel(0);
+      setIntroVisible();
+    });
+
+    setGlobalPause(true);
+    showModal(finalModal);
+  }
+
   function applyInjuryFromFailedMission(st) {
     const assigned = [...(st?.assignedCharIds || [])].filter((cid) => availableCharacters.some((ch) => ch.id === cid));
     if (!assigned.length) return;
@@ -1898,6 +1926,9 @@ document.addEventListener("DOMContentLoaded", () => {
       availableCards = availableCards.filter((card) => !removedNames.has(card.name));
       renderTeamBar();
       showGameStatusNotice(`${injuredName} ha sido eliminado del combate.`, "danger");
+      if (availableCharacters.length === 0) {
+        finishGameNoCharacters();
+      }
       return;
     }
 
