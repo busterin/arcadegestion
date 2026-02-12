@@ -1866,12 +1866,27 @@ document.addEventListener("DOMContentLoaded", () => {
     updateTeamBarAvailability();
   }
 
+  function showGameStatusNotice(message, tone = "warn") {
+    if (!gameRoot || !message) return;
+    const note = document.createElement("div");
+    note.className = `game-status-notice ${tone}`;
+    note.textContent = message;
+    gameRoot.appendChild(note);
+    requestAnimationFrame(() => note.classList.add("show"));
+    setTimeout(() => {
+      note.classList.remove("show");
+      setTimeout(() => note.remove(), 260);
+    }, 2200);
+  }
+
   function applyInjuryFromFailedMission(st) {
     const assigned = [...(st?.assignedCharIds || [])].filter((cid) => availableCharacters.some((ch) => ch.id === cid));
     if (!assigned.length) return;
 
     const injuredId = assigned[randInt(0, assigned.length - 1)];
     if (!injuredId || eliminatedCharIds.has(injuredId)) return;
+    const injuredChar = availableCharacters.find((ch) => ch.id === injuredId);
+    const injuredName = injuredChar?.name || "Un personaje";
 
     if (injuredCharIds.has(injuredId)) {
       injuredCharIds.delete(injuredId);
@@ -1882,11 +1897,13 @@ document.addEventListener("DOMContentLoaded", () => {
       availableCharacters = availableCharacters.filter((ch) => ch.id !== injuredId);
       availableCards = availableCards.filter((card) => !removedNames.has(card.name));
       renderTeamBar();
+      showGameStatusNotice(`${injuredName} ha sido eliminado del combate.`, "danger");
       return;
     }
 
     injuredCharIds.add(injuredId);
     updateTeamBarAvailability();
+    showGameStatusNotice(`${injuredName} ha quedado herido.`, "warn");
   }
 
   function getLocalProfile() {

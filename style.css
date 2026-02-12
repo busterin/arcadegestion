@@ -991,6 +991,33 @@ img{ max-width:100%; height:auto; }
   justify-content:center;
   align-items:center;
 }
+.game-status-notice{
+  position: absolute;
+  left: 50%;
+  top: 16px;
+  transform: translate(-50%, -12px);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 30;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-weight: 900;
+  font-size: 14px;
+  border: 1px solid rgba(255,255,255,.25);
+  color: #fff;
+  backdrop-filter: blur(4px);
+  transition: transform .22s ease, opacity .22s ease;
+}
+.game-status-notice.warn{
+  background: rgba(180,132,10,.88);
+}
+.game-status-notice.danger{
+  background: rgba(150,24,24,.88);
+}
+.game-status-notice.show{
+  transform: translate(-50%, 0);
+  opacity: 1;
+}
 
 .teambar-item{
   position: relative;
