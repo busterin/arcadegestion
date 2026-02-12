@@ -251,6 +251,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let lifeTicker = null;
   let spawnTimer = null;
   let gameRunning = false;
+  let gamePaused = false;
   let noSpawnRect = null;
 
   let selectedTeamCardIds = new Set();
@@ -1044,6 +1045,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function setGlobalPause(paused) {
+    gamePaused = !!paused;
+    mapEl?.classList.toggle("points-hidden", gamePaused);
     const now = performance.now();
     for (const st of activePoints.values()) {
       st.isPaused = paused;
@@ -2500,6 +2503,10 @@ document.addEventListener("DOMContentLoaded", () => {
   function scheduleNextSpawn() {
     clearTimeout(spawnTimer);
     if (!gameRunning) return;
+    if (gamePaused) {
+      spawnTimer = setTimeout(scheduleNextSpawn, 250);
+      return;
+    }
 
     if (getRedPointsCount() >= MAX_ACTIVE_POINTS) {
       spawnTimer = setTimeout(scheduleNextSpawn, 800);
@@ -2980,6 +2987,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (rivalImg) rivalImg.classList.add("hidden");
 
     updateHud();
+    mapEl?.classList.remove("points-hidden");
     setGlobalPause(false);
   }
 
