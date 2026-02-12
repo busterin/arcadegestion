@@ -1102,8 +1102,7 @@ img{ max-width:100%; height:auto; }
   border-color: rgba(58,169,255,.72);
 }
 .map.points-hidden .point:not(.assigned):not(.ready){
-  opacity: 0;
-  pointer-events: none;
+  display: none;
 }
 
 /* ---------- MODALS ---------- */
