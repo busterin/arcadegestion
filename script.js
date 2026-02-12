@@ -241,6 +241,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let remoteResolvedMissionIds = new Set();
   let queuedVersusEvents = [];
   let lockedCharIds = new Set();
+  let injuredCharIds = new Set();
+  let eliminatedCharIds = new Set();
 
   let currentMissionId = null;
   let selectedCharIds = new Set();
@@ -1763,9 +1765,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const cid = item.getAttribute("data-char-id");
       const busy = cid && lockedCharIds.has(cid);
       const selected = !!cid && selectedCharIds.has(cid);
+      const injured = !!cid && injuredCharIds.has(cid);
+      const eliminated = !!cid && eliminatedCharIds.has(cid);
       item.classList.toggle("busy", !!busy && !selected);
       item.classList.toggle("pick-mode", missionPickFromBarActive);
       item.classList.toggle("pick-selected", missionPickFromBarActive && selected);
+      item.classList.toggle("injured", injured);
+      item.classList.toggle("eliminated", eliminated);
     });
   }
 
@@ -1845,7 +1851,8 @@ document.addEventListener("DOMContentLoaded", () => {
       item.type = "button";
       item.className = "teambar-item";
       if (ch?.id) item.setAttribute("data-char-id", ch.id);
-      item.innerHTML = `<img class="teambar-img" src="${cardData.img}" alt="${cardData.name}" />`;
+      const injured = !!(ch?.id && injuredCharIds.has(ch.id));
+      item.innerHTML = `<img class="teambar-img" src="${cardData.img}" alt="${cardData.name}" />${injured ? '<span class="teambar-status teambar-status-injured" title="Herido">🩹</span>' : ""}`;
       item.addEventListener("click", () => {
         if (missionPickFromBarActive) {
           toggleMissionBarCharacter(ch?.id);
@@ -1856,6 +1863,29 @@ document.addEventListener("DOMContentLoaded", () => {
       teamBar.appendChild(item);
     });
 
+    updateTeamBarAvailability();
+  }
+
+  function applyInjuryFromFailedMission(st) {
+    const assigned = [...(st?.assignedCharIds || [])].filter((cid) => availableCharacters.some((ch) => ch.id === cid));
+    if (!assigned.length) return;
+
+    const injuredId = assigned[randInt(0, assigned.length - 1)];
+    if (!injuredId || eliminatedCharIds.has(injuredId)) return;
+
+    if (injuredCharIds.has(injuredId)) {
+      injuredCharIds.delete(injuredId);
+      eliminatedCharIds.add(injuredId);
+      lockedCharIds.delete(injuredId);
+      selectedCharIds.delete(injuredId);
+      const removedNames = new Set(availableCharacters.filter((ch) => ch.id === injuredId).map((ch) => ch.name));
+      availableCharacters = availableCharacters.filter((ch) => ch.id !== injuredId);
+      availableCards = availableCards.filter((card) => !removedNames.has(card.name));
+      renderTeamBar();
+      return;
+    }
+
+    injuredCharIds.add(injuredId);
     updateTeamBarAvailability();
   }
 
@@ -2462,9 +2492,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function failMission(missionId) {
     if (completedMissionIds.has(missionId)) return;
+    const st = activePoints.get(missionId);
 
     if (currentMode === "versus") completedMissionIds.add(missionId);
     if (currentMode !== "versus") failedMissionsCount += 1;
+    if (st) applyInjuryFromFailedMission(st);
     setScore(SCORE_LOSE);
     releaseCharsForMission(missionId);
     removePoint(missionId);
@@ -2955,6 +2987,8 @@ document.addEventListener("DOMContentLoaded", () => {
     remoteResolvedMissionIds = new Set();
     queuedVersusEvents = [];
     lockedCharIds = new Set();
+    injuredCharIds = new Set();
+    eliminatedCharIds = new Set();
 
     currentMissionId = null;
     selectedCharIds = new Set();

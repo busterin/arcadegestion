@@ -973,7 +973,7 @@ img{ max-width:100%; height:auto; }
 }
 @media (min-width: 821px){
   .mission-map-preview{
-    width: min(420px, 54vw);
+    width: min(560px, 64vw);
   }
 }
 @keyframes specialGlow{
@@ -993,6 +993,7 @@ img{ max-width:100%; height:auto; }
 }
 
 .teambar-item{
+  position: relative;
   width: 64px;
   height: 64px;
   border-radius: 16px;
@@ -1014,6 +1015,22 @@ img{ max-width:100%; height:auto; }
   object-fit: cover;
   border-radius: 16px;
   display:block;
+}
+.teambar-status{
+  position: absolute;
+  right: -4px;
+  top: -6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  background: rgba(160,29,29,.92);
+  border: 1px solid rgba(255,255,255,.5);
+}
+.teambar-item.injured .teambar-img{
+  box-shadow: 0 0 0 2px rgba(255,86,86,.55);
 }
 
 /* ✅ Ocupado = descolorido */
@@ -1299,7 +1316,7 @@ img{ max-width:100%; height:auto; }
 }
 @media (min-width: 821px){
   .mission-img{
-    max-height: 520px;
+    max-height: 700px;
   }
 }
 
