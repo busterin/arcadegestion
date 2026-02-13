@@ -710,12 +710,25 @@ document.addEventListener("DOMContentLoaded", () => {
     recruitOddsList.innerHTML = "";
     RECRUITABLE_CHARACTERS.forEach((ch) => {
       const pct = pool.some((p) => p.id === ch.id) ? (100 / pool.length) : 0;
-      const row = document.createElement("div");
+      const card = RECRUITABLE_CARDS.find((c) => c.charId === ch.id) || null;
+      const avatar = AVATARS.find((a) => a.unlockRecruitCharId === ch.id || a.name.toLowerCase() === ch.name.toLowerCase()) || null;
+      const imgSrc = card?.img || avatar?.accountSrc || avatar?.src || "images/mision.png";
+      const row = document.createElement("button");
+      row.type = "button";
       row.className = "recruit-odds-row";
       row.innerHTML = `
-        <span class="recruit-odds-name">${ch.name}</span>
+        <span class="recruit-odds-left">
+          <img class="recruit-odds-thumb" src="${imgSrc}" alt="${ch.name}" />
+          <span class="recruit-odds-name">${ch.name}</span>
+        </span>
         <span class="recruit-odds-pct">${pct.toFixed(1)}%</span>
       `;
+      row.addEventListener("click", () => {
+        openCardInfo({
+          name: ch.name,
+          img: imgSrc
+        });
+      });
       recruitOddsList.appendChild(row);
     });
   }
@@ -3182,6 +3195,9 @@ document.addEventListener("DOMContentLoaded", () => {
   storeBackBtn?.addEventListener("click", setIntroVisible);
   storeBuyWinchesterBtn?.addEventListener("click", buyWinchesterOutfit);
   userAvatarToggleBtn?.addEventListener("click", toggleUserAvatarPicker);
+  userNameEditBtn?.addEventListener("pointerdown", (e) => {
+    if (isEditingUserName) e.preventDefault();
+  });
   userNameEditBtn?.addEventListener("click", () => {
     if (isEditingUserName) {
       endUserNameEdit(true);

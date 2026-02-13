@@ -356,6 +356,10 @@ img{ max-width:100%; height:auto; }
   display: flex;
   flex-direction: column;
   align-items: center;
+  border: none;
+  background: transparent;
+  backdrop-filter: none;
+  box-shadow: none;
 }
 
 .recruit-zone{
@@ -369,27 +373,15 @@ img{ max-width:100%; height:auto; }
   align-items: center;
   justify-content: center;
   min-height: 360px;
-  border-radius: 22px;
-  border: 1px solid rgba(106, 72, 38, .55);
-  background:
-    radial-gradient(125% 85% at 25% 12%, rgba(255, 248, 224, .62) 0%, rgba(255, 248, 224, 0) 48%),
-    radial-gradient(95% 70% at 78% 88%, rgba(159, 112, 52, .28) 0%, rgba(159, 112, 52, 0) 62%),
-    linear-gradient(160deg, #e8d0a0 0%, #d4ae74 48%, #c6965c 100%);
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 240, 199, .42),
-    inset 0 22px 38px rgba(255, 246, 221, .28),
-    inset 0 -24px 38px rgba(95, 61, 30, .22),
-    0 8px 22px rgba(0, 0, 0, .18);
+  border-radius: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
   overflow: hidden;
 }
 
 .recruit-zone::before{
-  content: "";
-  position: absolute;
-  inset: 6px;
-  border-radius: 16px;
-  border: 1px dashed rgba(113, 74, 40, .42);
-  pointer-events: none;
+  content: none;
 }
 
 .recruit-chest-copy{
@@ -502,11 +494,39 @@ img{ max-width:100%; height:auto; }
 }
 
 .recruit-odds-row{
+  width: 100%;
+  appearance: none;
+  font: inherit;
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-size: 13px;
   color: var(--text);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 10px;
+  background: rgba(255,255,255,.04);
+  padding: 6px 8px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.recruit-odds-row:hover{
+  border-color: rgba(255,255,255,.28);
+  background: rgba(255,255,255,.08);
+}
+
+.recruit-odds-left{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.recruit-odds-thumb{
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: rgba(0,0,0,.2);
 }
 
 .recruit-odds-name{
