@@ -178,6 +178,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const progressEl = document.getElementById("progress");
   const hudLabelEl = document.querySelector(".hud-label");
   const hudStoryHintEl = document.getElementById("hudStoryHint");
+  const activeEffectBtn = document.getElementById("activeEffectBtn");
   const teamBar = document.getElementById("teamBar");
   const rivalTeamBtn = document.getElementById("rivalTeamBtn");
   const missionBarPicker = document.getElementById("missionBarPicker");
@@ -229,6 +230,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const closeSpecialBtn = document.getElementById("closeSpecialBtn");
   const specialCancelBtn = document.getElementById("specialCancelBtn");
   const specialAcceptBtn = document.getElementById("specialAcceptBtn");
+  const effectModal = document.getElementById("effectModal");
+  const effectTitle = document.getElementById("effectTitle");
+  const effectText = document.getElementById("effectText");
+  const closeEffectBtn = document.getElementById("closeEffectBtn");
+  const effectOkBtn = document.getElementById("effectOkBtn");
   const tutorialModal = document.getElementById("tutorialModal");
   const tutorialRightChar = document.getElementById("tutorialRightChar");
   const tutorialText = document.getElementById("tutorialText");
@@ -503,13 +509,43 @@ document.addEventListener("DOMContentLoaded", () => {
     "Si la ruleta se detiene en la zona verde, completarás la misión con éxito. Si se detiene en el color rojo, fallarás. El porcentaje de verde o rojo depende de los personajes que hayas enviado a la misión. Completa suficientes misiones para superar la fase.",
     "Todos los líderes tienen una habilidad especial, pulsa sobre ellos para activarla. ¡Buena suerte!"
   ];
-  const BATTLE_BACKGROUND_IMAGES = [
-    "misiones/fondobosque.png",
-    "misiones/fondobarco.png",
-    "misiones/fondociudad.png",
-    "misiones/fondopueblo.png",
-    "misiones/fondocastillo.png",
-    "misiones/fondotren.png"
+  const BATTLE_EFFECTS = [
+    {
+      key: "bosque",
+      place: "bosque",
+      image: "misiones/fondobosque.png",
+      description: "Los personajes expertos en sigilo y exploración tienen +20% de probabilidad de éxito, pero las misiones de sigilo o exploración son un 20% más complicadas."
+    },
+    {
+      key: "barco",
+      place: "barco",
+      image: "misiones/fondobarco.png",
+      description: "Solo puedes enviar a 1 personaje por misión."
+    },
+    {
+      key: "ciudad",
+      place: "ciudad",
+      image: "misiones/fondociudad.png",
+      description: "Las misiones completadas con éxito otorgan el doble de experiencia."
+    },
+    {
+      key: "pueblo",
+      place: "pueblo",
+      image: "misiones/fondopueblo.png",
+      description: "Ganas un 10% extra de probabilidad en todas las misiones."
+    },
+    {
+      key: "castillo",
+      place: "castillo",
+      image: "misiones/fondocastillo.png",
+      description: "Cada misión completada con éxito te otorga 5 monedas extra."
+    },
+    {
+      key: "tren",
+      place: "tren",
+      image: "misiones/fondotren.png",
+      description: "Cada minuto, el tren llega a una parada y elimina todas las misiones aún no iniciadas."
+    }
   ];
   let storyStep = 0;
   let storyPhase = "pre";
@@ -520,7 +556,10 @@ document.addEventListener("DOMContentLoaded", () => {
   let storyJackCompleted = false;
   let storyCombatStartAt = 0;
   let failedMissionsCount = 0;
-  let lastBattleBackgroundIndex = -1;
+  let lastBattleEffectIndex = -1;
+  let activeBattleEffect = null;
+  let pendingBattleEffectKey = null;
+  let trainEffectTimer = null;
   let storyCharacterProgress = storyProgress.createInitialProgress();
   let storyLevelUpQueue = [];
   let storyContinueSnapshot = loadStoryContinueSnapshot();
@@ -620,6 +659,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (current.level > prevLevel) enqueueStoryLevelUp(charId, current.level);
   }
 
+  function addStoryCharacterSuccessPoints(charId, amount) {
+    const total = Math.max(0, Math.floor(Number(amount) || 0));
+    for (let i = 0; i < total; i++) addStoryCharacterSuccessPoint(charId);
+  }
+
   function awardStoryMissionSuccessPoints(st) {
     if (!storyCombatActive || !st?.assignedCharIds) return;
     const assigned = [...st.assignedCharIds];
@@ -630,10 +674,12 @@ document.addEventListener("DOMContentLoaded", () => {
       assigned[0] === winchester.id &&
       storyProgress.isSkillUnlocked(storyCharacterProgress, winchester.id)
     );
+    const cityMultiplier = isBattleEffectActive("ciudad") ? 2 : 1;
 
     assigned.forEach((charId) => {
-      addStoryCharacterSuccessPoint(charId);
-      if (winchesterSoloBonus && charId === winchester.id) addStoryCharacterSuccessPoint(charId);
+      let gainedPoints = 1;
+      if (winchesterSoloBonus && charId === winchester.id) gainedPoints = 2;
+      addStoryCharacterSuccessPoints(charId, gainedPoints * cityMultiplier);
     });
   }
 
@@ -911,6 +957,7 @@ document.addEventListener("DOMContentLoaded", () => {
         currentMissionId,
         selectedCharIds: [...selectedCharIds],
         elapsedCombatMs,
+        activeBattleEffectKey: activeBattleEffect?.key || null,
         storyCharacterProgress
       }
     };
@@ -963,6 +1010,7 @@ document.addEventListener("DOMContentLoaded", () => {
     tutorialPending = !!state?.tutorialPending;
     storyStep = Math.max(0, Math.floor(Number(state?.storyStep) || 0));
     storyCombatStartAt = performance.now() - Math.max(0, Number(state?.elapsedCombatMs) || 0);
+    pendingBattleEffectKey = typeof state?.activeBattleEffectKey === "string" ? state.activeBattleEffectKey : null;
 
     const savedTeamIds = Array.isArray(state?.selectedTeamCardIds) ? state.selectedTeamCardIds : [];
     if (!applyTeamFromCardIds(savedTeamIds)) {
@@ -1612,6 +1660,7 @@ document.addEventListener("DOMContentLoaded", () => {
       finalModal.classList.contains("show") ||
       cardInfoModal.classList.contains("show") ||
       specialModal.classList.contains("show") ||
+      effectModal?.classList.contains("show") ||
       tutorialModal.classList.contains("show") ||
       rivalTeamModal.classList.contains("show") ||
       storyEntryModal?.classList.contains("show") ||
@@ -1682,6 +1731,7 @@ document.addEventListener("DOMContentLoaded", () => {
     hideModal(rouletteModal);
     hideModal(cardInfoModal);
     hideModal(specialModal);
+    hideModal(effectModal);
 
     const elapsedMs = storyCombatStartAt > 0 ? (performance.now() - storyCombatStartAt) : 0;
     finalTitleEl.textContent = "MISIÓN COMPLETADA";
@@ -1739,14 +1789,70 @@ document.addEventListener("DOMContentLoaded", () => {
     el.src = primary;
   }
 
-  function pickRandomBattleBackground() {
-    if (!mapEl || BATTLE_BACKGROUND_IMAGES.length < 1) return;
-    let idx = randInt(0, BATTLE_BACKGROUND_IMAGES.length - 1);
-    if (BATTLE_BACKGROUND_IMAGES.length > 1 && idx === lastBattleBackgroundIndex) {
-      idx = (idx + 1 + randInt(0, BATTLE_BACKGROUND_IMAGES.length - 2)) % BATTLE_BACKGROUND_IMAGES.length;
+  function getActiveBattleEffect() {
+    if (currentMode === "versus") return null;
+    return activeBattleEffect;
+  }
+
+  function isBattleEffectActive(effectKey) {
+    return getActiveBattleEffect()?.key === effectKey;
+  }
+
+  function updateActiveEffectButton() {
+    if (!activeEffectBtn) return;
+    const effect = getActiveBattleEffect();
+    if (!gameRunning || !effect) {
+      activeEffectBtn.classList.add("hidden");
+      return;
     }
-    lastBattleBackgroundIndex = idx;
-    mapEl.style.setProperty("--battle-bg-image", `url("${BATTLE_BACKGROUND_IMAGES[idx]}")`);
+    activeEffectBtn.textContent = `Efecto activo ${effect.place}`;
+    activeEffectBtn.classList.remove("hidden");
+  }
+
+  function applyTrainStopEffect() {
+    if (!isBattleEffectActive("tren") || !gameRunning) return;
+    let removedCount = 0;
+    for (const [missionId, st] of activePoints.entries()) {
+      const isCurrentMissionSelecting = missionPickFromBarActive && currentMissionId === missionId;
+      if (st?.phase !== "spawned" || isCurrentMissionSelecting) continue;
+      removePoint(missionId);
+      removedCount += 1;
+    }
+    if (removedCount > 0) {
+      showGameStatusNotice(`Parada del tren: ${removedCount} misión(es) no iniciada(s) eliminada(s).`, "danger");
+    }
+  }
+
+  function restartTrainEffectTimer() {
+    clearInterval(trainEffectTimer);
+    trainEffectTimer = null;
+    if (!gameRunning || !isBattleEffectActive("tren")) return;
+    trainEffectTimer = setInterval(() => {
+      applyTrainStopEffect();
+    }, 60 * 1000);
+  }
+
+  function pickRandomBattleBackground(preferredEffectKey = null) {
+    if (!mapEl || BATTLE_EFFECTS.length < 1) return;
+    let effect = null;
+    if (preferredEffectKey) {
+      effect = BATTLE_EFFECTS.find((item) => item.key === preferredEffectKey) || null;
+    }
+    if (!effect) {
+      let idx = randInt(0, BATTLE_EFFECTS.length - 1);
+      if (BATTLE_EFFECTS.length > 1 && idx === lastBattleEffectIndex) {
+        idx = (idx + 1 + randInt(0, BATTLE_EFFECTS.length - 2)) % BATTLE_EFFECTS.length;
+      }
+      lastBattleEffectIndex = idx;
+      effect = BATTLE_EFFECTS[idx];
+    } else {
+      const idx = BATTLE_EFFECTS.findIndex((item) => item.key === effect.key);
+      if (idx >= 0) lastBattleEffectIndex = idx;
+    }
+    activeBattleEffect = effect || null;
+    mapEl.style.setProperty("--battle-bg-image", `url("${effect?.image || "misiones/fondobosque.png"}")`);
+    updateActiveEffectButton();
+    restartTrainEffectTimer();
   }
 
   function applyStoryScene(scene) {
@@ -1826,6 +1932,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
     rivalTeamBtn?.classList.toggle("hidden", currentMode !== "versus");
+    updateActiveEffectButton();
   }
 
   function setIntroVisible() {
@@ -2271,10 +2378,26 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
+    if (isBattleEffectActive("bosque")) {
+      participants.forEach((cid) => {
+        const ch = availableCharacters.find((c) => c.id === cid);
+        if (!ch) return;
+        const tags = Array.isArray(ch.tags) ? ch.tags : [ch.tags];
+        const normalizedTags = tags.map(normalizeTag);
+        if (normalizedTags.includes("sigilo") || normalizedTags.includes("exploracion")) {
+          p += 0.2;
+        }
+      });
+      if (missionTags.includes("sigilo") || missionTags.includes("exploracion")) p -= 0.2;
+    }
+
+    if (isBattleEffectActive("pueblo")) p += 0.1;
+
     return clamp(p, 0, 1);
   }
 
   function getMissionMaxChars(mission) {
+    if (isBattleEffectActive("barco")) return 1;
     const raw = Number(mission?.maxChars);
     return Number.isFinite(raw) && raw >= 1 ? Math.floor(raw) : 2;
   }
@@ -2581,6 +2704,7 @@ document.addEventListener("DOMContentLoaded", () => {
     hideModal(rouletteModal);
     hideModal(cardInfoModal);
     hideModal(specialModal);
+    hideModal(effectModal);
     hideModal(tutorialModal);
     hideModal(matchmakingModal);
     hideModal(rivalTeamModal);
@@ -3050,8 +3174,11 @@ document.addEventListener("DOMContentLoaded", () => {
     clearTimeout(storyJackSpawnTimer);
     storyJackSpawnTimer = null;
     clearInterval(gameClockTimer);
+    clearInterval(trainEffectTimer);
     gameClockTimer = null;
+    trainEffectTimer = null;
     gameRunning = false;
+    updateActiveEffectButton();
     if (versus.spawnWatchdogTimer) {
       clearInterval(versus.spawnWatchdogTimer);
       versus.spawnWatchdogTimer = null;
@@ -3100,6 +3227,7 @@ document.addEventListener("DOMContentLoaded", () => {
     hideModal(rouletteModal);
     hideModal(cardInfoModal);
     hideModal(specialModal);
+    hideModal(effectModal);
 
     finishArcadeByTime();
   }
@@ -3107,7 +3235,8 @@ document.addEventListener("DOMContentLoaded", () => {
   function startGame() {
     teamScreen.classList.add("hidden");
     gameRoot.classList.remove("hidden");
-    pickRandomBattleBackground();
+    pickRandomBattleBackground(pendingBattleEffectKey);
+    pendingBattleEffectKey = null;
 
     specialUsed = false;
     specialArmed = false;
@@ -3124,6 +3253,8 @@ document.addEventListener("DOMContentLoaded", () => {
     updateHud();
 
     gameRunning = true;
+    updateActiveEffectButton();
+    restartTrainEffectTimer();
 
     if (currentMode === "arcade") clearInterval(gameClockTimer);
     else clearInterval(gameClockTimer);
@@ -3264,6 +3395,10 @@ document.addEventListener("DOMContentLoaded", () => {
     completedMissionIds.add(missionId);
     if (missionId === STORY_JACK_MISSION_ID) storyJackCompleted = true;
     if (st && storyCombatActive) awardStoryMissionSuccessPoints(st);
+    if (isBattleEffectActive("castillo") && currentMode !== "versus") {
+      setCoins(coins + 5);
+      showGameStatusNotice("+5 monedas por completar la misión.", "warn");
+    }
     setScore(SCORE_WIN);
     releaseCharsForMission(missionId);
     removePoint(missionId);
@@ -3648,6 +3783,20 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!isAnyModalOpen()) setGlobalPause(false);
   }
 
+  function openEffectInfoModal() {
+    const effect = getActiveBattleEffect();
+    if (!effect) return;
+    if (effectTitle) effectTitle.textContent = `Efecto activo ${effect.place}`;
+    if (effectText) effectText.textContent = effect.description;
+    setGlobalPause(true);
+    showModal(effectModal);
+  }
+
+  function closeEffectInfoModal() {
+    hideModal(effectModal);
+    if (!isAnyModalOpen()) setGlobalPause(false);
+  }
+
   function openSpecialModal() {
     if (specialUsed) return;
     setGlobalPause(true);
@@ -3711,6 +3860,7 @@ document.addEventListener("DOMContentLoaded", () => {
     hideModal(rouletteModal);
     hideModal(cardInfoModal);
     hideModal(specialModal);
+    hideModal(effectModal);
 
     finalTitleEl.textContent = "Victoria";
     const finalText = finalModal.querySelector(".modal-text");
@@ -3729,6 +3879,7 @@ document.addEventListener("DOMContentLoaded", () => {
     hideModal(rouletteModal);
     hideModal(cardInfoModal);
     hideModal(specialModal);
+    hideModal(effectModal);
 
     finalTitleEl.textContent = isWinner ? "Victoria" : "Derrota";
     if (finalLabelEl) finalLabelEl.textContent = "Puntuación final";
@@ -3752,6 +3903,7 @@ document.addEventListener("DOMContentLoaded", () => {
     hideModal(finalModal);
     hideModal(cardInfoModal);
     hideModal(specialModal);
+    hideModal(effectModal);
     hideModal(tutorialModal);
     hideModal(matchmakingModal);
     hideModal(rivalTeamModal);
@@ -3789,6 +3941,8 @@ document.addEventListener("DOMContentLoaded", () => {
     storyLevelUpQueue = [];
     storyJackUnlocked = false;
     storyJackCompleted = false;
+    activeBattleEffect = null;
+    pendingBattleEffectKey = null;
     storyCombatStartAt = 0;
     failedMissionsCount = 0;
     finalModalPrimaryAction = null;
@@ -3890,6 +4044,11 @@ document.addEventListener("DOMContentLoaded", () => {
       if (specialModal.classList.contains("show")) {
         e.preventDefault();
         cancelSpecial();
+        return;
+      }
+      if (effectModal?.classList.contains("show")) {
+        e.preventDefault();
+        closeEffectInfoModal();
         return;
       }
       if (cardInfoModal.classList.contains("show")) {
@@ -4031,6 +4190,12 @@ document.addEventListener("DOMContentLoaded", () => {
   specialCancelBtn.addEventListener("click", cancelSpecial);
   specialAcceptBtn.addEventListener("click", acceptSpecial);
   specialModal.addEventListener("click", (e) => { if (e.target === specialModal) cancelSpecial(); });
+  activeEffectBtn?.addEventListener("click", openEffectInfoModal);
+  closeEffectBtn?.addEventListener("click", closeEffectInfoModal);
+  effectOkBtn?.addEventListener("click", closeEffectInfoModal);
+  effectModal?.addEventListener("click", (e) => {
+    if (e.target === effectModal) closeEffectInfoModal();
+  });
   tutorialNextBtn?.addEventListener("click", nextTutorialStep);
   storyNewGameBtn?.addEventListener("click", () => {
     hideModal(storyEntryModal);

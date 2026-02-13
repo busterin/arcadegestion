@@ -186,6 +186,7 @@
 <div class="hud-value" id="progress">0</div>
 </div>
 <div class="hud-story-hint hidden" id="hudStoryHint"></div>
+<button class="btn btn-ghost hidden" id="activeEffectBtn" type="button">Efecto activo</button>
 <button class="btn btn-ghost hidden" id="rivalTeamBtn" type="button">Rival</button>
 </div>
 </header>
@@ -356,6 +357,22 @@
 </div>
 </div>
 </div>
+<!-- EFECTO ACTIVO -->
+<div aria-hidden="true" class="modal" id="effectModal">
+<div aria-labelledby="effectTitle" aria-modal="true" class="modal-card modal-card-small" role="dialog">
+<div class="modal-head">
+<div>
+<div class="modal-title" id="effectTitle">Efecto activo</div>
+<div class="modal-text" id="effectText">Descripción del efecto.</div>
+</div>
+<button aria-label="Cerrar" class="icon-btn" id="closeEffectBtn" type="button">✕</button>
+</div>
+<div class="divider"></div>
+<div class="modal-actions end">
+<button class="btn" id="effectOkBtn" type="button">Entendido</button>
+</div>
+</div>
+</div>
 <!-- TUTORIAL -->
 <div aria-hidden="true" class="modal" id="tutorialModal">
 <div aria-labelledby="tutorialTitle" aria-modal="true" class="modal-card modal-card-small" role="dialog">
@@ -434,6 +451,6 @@
 </div>
 </div>
 <script src="storyProgress.js?v=20260213-1"></script>
-<script src="script.js?v=20260213-27"></script>
+<script src="script.js?v=20260213-28"></script>
 </body>
 </html>
