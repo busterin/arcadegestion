@@ -797,6 +797,23 @@ img{ max-width:100%; height:auto; }
   line-height: 1.25;
   color: rgba(233,238,252,.9);
 }
+.hud-train-counter{
+  font-size: 12px;
+  font-weight: 800;
+  color: #d8f7ff;
+  border: 1px solid rgba(126,240,255,.36);
+  border-radius: 10px;
+  background: rgba(14, 44, 64, .55);
+  padding: 6px 10px;
+  white-space: nowrap;
+  transition: box-shadow .2s ease, border-color .2s ease, background .2s ease;
+}
+.hud-train-counter.alert{
+  border-color: rgba(255,232,123,.95);
+  background: rgba(128,95,16,.8);
+  box-shadow: 0 0 16px rgba(255,232,123,.45);
+  color: #fff8c3;
+}
 
 .hud-card{
   background: rgba(201,163,50,.22);

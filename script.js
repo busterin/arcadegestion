@@ -172,6 +172,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const hudLabelEl = document.querySelector(".hud-label");
   const hudStoryHintEl = document.getElementById("hudStoryHint");
   const activeEffectBtn = document.getElementById("activeEffectBtn");
+  const trainEffectCounter = document.getElementById("trainEffectCounter");
   const teamBar = document.getElementById("teamBar");
   const rivalTeamBtn = document.getElementById("rivalTeamBtn");
   const missionBarPicker = document.getElementById("missionBarPicker");
@@ -557,6 +558,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let activeBattleEffect = null;
   let pendingBattleEffectKey = null;
   let trainEffectTimer = null;
+  let trainEffectElapsedSec = 0;
+  let trainEffectAlertTimer = null;
   let storyCharacterProgress = storyProgress.createInitialProgress();
   let storyLevelUpQueue = [];
   let storyContinueSnapshot = loadStoryContinueSnapshot();
@@ -1800,6 +1803,27 @@ document.addEventListener("DOMContentLoaded", () => {
     activeEffectBtn.classList.remove("hidden");
   }
 
+  function updateTrainEffectCounterUI() {
+    if (!trainEffectCounter) return;
+    const isVisible = gameRunning && isBattleEffectActive("tren");
+    trainEffectCounter.classList.toggle("hidden", !isVisible);
+    if (!isVisible) {
+      trainEffectCounter.classList.remove("alert");
+      return;
+    }
+    const secs = clamp(trainEffectElapsedSec, 0, 60);
+    trainEffectCounter.textContent = `Parada del tren: 00:${String(secs).padStart(2, "0")} / 01:00`;
+  }
+
+  function triggerTrainEffectCounterAlert() {
+    if (!trainEffectCounter) return;
+    clearTimeout(trainEffectAlertTimer);
+    trainEffectCounter.classList.add("alert");
+    trainEffectAlertTimer = setTimeout(() => {
+      trainEffectCounter.classList.remove("alert");
+    }, 700);
+  }
+
   function applyTrainStopEffect() {
     if (!isBattleEffectActive("tren") || !gameRunning) return;
     let removedCount = 0;
@@ -1817,10 +1841,21 @@ document.addEventListener("DOMContentLoaded", () => {
   function restartTrainEffectTimer() {
     clearInterval(trainEffectTimer);
     trainEffectTimer = null;
+    clearTimeout(trainEffectAlertTimer);
+    trainEffectAlertTimer = null;
+    trainEffectElapsedSec = 0;
+    updateTrainEffectCounterUI();
     if (!gameRunning || !isBattleEffectActive("tren")) return;
     trainEffectTimer = setInterval(() => {
-      applyTrainStopEffect();
-    }, 60 * 1000);
+      if (!gameRunning || !isBattleEffectActive("tren")) return;
+      trainEffectElapsedSec += 1;
+      if (trainEffectElapsedSec >= 60) {
+        triggerTrainEffectCounterAlert();
+        applyTrainStopEffect();
+        trainEffectElapsedSec = 0;
+      }
+      updateTrainEffectCounterUI();
+    }, 1000);
   }
 
   function pickRandomBattleBackground(preferredEffectKey = null) {
@@ -1850,6 +1885,7 @@ document.addEventListener("DOMContentLoaded", () => {
     activeBattleEffect = effect || null;
     mapEl.style.setProperty("--battle-bg-image", `url("${effect?.image || "misiones/fondobosque.png"}")`);
     updateActiveEffectButton();
+    updateTrainEffectCounterUI();
     restartTrainEffectTimer();
   }
 
@@ -1998,6 +2034,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     rivalTeamBtn?.classList.toggle("hidden", currentMode !== "versus");
     updateActiveEffectButton();
+    updateTrainEffectCounterUI();
   }
 
   function setIntroVisible() {
@@ -3254,14 +3291,18 @@ document.addEventListener("DOMContentLoaded", () => {
     clearTimeout(spawnTimer);
     clearTimeout(storyJackSpawnTimer);
     clearTimeout(storyChapterSplashTimer);
+    clearTimeout(trainEffectAlertTimer);
     storyJackSpawnTimer = null;
     storyChapterSplashTimer = null;
+    trainEffectAlertTimer = null;
     clearInterval(gameClockTimer);
     clearInterval(trainEffectTimer);
     gameClockTimer = null;
     trainEffectTimer = null;
+    trainEffectElapsedSec = 0;
     gameRunning = false;
     updateActiveEffectButton();
+    updateTrainEffectCounterUI();
     if (versus.spawnWatchdogTimer) {
       clearInterval(versus.spawnWatchdogTimer);
       versus.spawnWatchdogTimer = null;
