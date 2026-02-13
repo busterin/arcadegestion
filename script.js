@@ -1011,6 +1011,7 @@ document.addEventListener("DOMContentLoaded", () => {
     storyStep = Math.max(0, Math.floor(Number(state?.storyStep) || 0));
     storyCombatStartAt = performance.now() - Math.max(0, Number(state?.elapsedCombatMs) || 0);
     pendingBattleEffectKey = typeof state?.activeBattleEffectKey === "string" ? state.activeBattleEffectKey : null;
+    if (!pendingBattleEffectKey) pendingBattleEffectKey = stage === 2 ? "pueblo" : "none";
 
     const savedTeamIds = Array.isArray(state?.selectedTeamCardIds) ? state.selectedTeamCardIds : [];
     if (!applyTeamFromCardIds(savedTeamIds)) {
@@ -1834,6 +1835,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function pickRandomBattleBackground(preferredEffectKey = null) {
     if (!mapEl || BATTLE_EFFECTS.length < 1) return;
+    if (preferredEffectKey === "none") {
+      activeBattleEffect = null;
+      mapEl.style.setProperty("--battle-bg-image", "none");
+      updateActiveEffectButton();
+      restartTrainEffectTimer();
+      return;
+    }
     let effect = null;
     if (preferredEffectKey) {
       effect = BATTLE_EFFECTS.find((item) => item.key === preferredEffectKey) || null;
@@ -2138,6 +2146,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       selectedTeamCardIds = new Set(["card_celia", "card_castri", "card_lorena"]);
     }
+    pendingBattleEffectKey = normalizedStage === 2 ? "pueblo" : "none";
     if (!applyTeamFromCardIds([...selectedTeamCardIds])) {
       goToTeamScreen();
       return;
