@@ -206,6 +206,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const cardInfoModal = document.getElementById("cardInfoModal");
   const cardInfoTitle = document.getElementById("cardInfoTitle");
+  const cardInfoLevel = document.getElementById("cardInfoLevel");
   const cardInfoText = document.getElementById("cardInfoText");
   const cardInfoImg = document.getElementById("cardInfoImg");
   const cardInfoInfoBtn = document.getElementById("cardInfoInfoBtn");
@@ -585,6 +586,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const avatar = AVATARS.find((a) => a.name === char.name);
     const img = card?.img || avatar?.accountSrc || avatar?.src || "images/mision.png";
     return { name: char.name, img };
+  }
+
+  function getStoryCharacterLevelByName(name) {
+    const target = String(name || "").trim().toLowerCase();
+    if (!target) return 1;
+    const ch = getAllStoryCharacters().find((item) => item.name.toLowerCase() === target);
+    if (!ch) return 1;
+    const level = Number(storyCharacterProgress?.[ch.id]?.level);
+    return Number.isFinite(level) && level >= 1 ? Math.floor(level) : 1;
   }
 
   function enqueueStoryLevelUp(charId, nextLevel) {
@@ -3553,6 +3563,13 @@ document.addEventListener("DOMContentLoaded", () => {
       winchesterAltOwned
     };
     cardInfoTitle.textContent = cardData.name;
+    if (cardInfoLevel) {
+      const showLevel = isStoryContextVisible();
+      if (showLevel) {
+        cardInfoLevel.textContent = `Nivel ${getStoryCharacterLevelByName(cardData.name)}`;
+      }
+      cardInfoLevel.classList.toggle("hidden", !showLevel);
+    }
     cardInfoImg.src = isWinchester ? getWinchesterImage() : cardData.img;
     cardInfoImg.alt = cardData.name;
     cardInfoInfoBtn?.classList.add("active");
