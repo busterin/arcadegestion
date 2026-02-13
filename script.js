@@ -2683,6 +2683,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!injuredId || eliminatedCharIds.has(injuredId)) return;
     const injuredChar = availableCharacters.find((ch) => ch.id === injuredId);
     const injuredName = injuredChar?.name || "Un personaje";
+    const femaleNames = new Set(["Winchester", "Jane", "Pendergast", "Friday", "Lisa", "Risko"]);
+    const isFemale = femaleNames.has(injuredName);
+    const eliminatedText = isFemale ? "ha sido eliminada del combate." : "ha sido eliminado del combate.";
+    const injuredText = isFemale ? "ha quedado herida." : "ha quedado herido.";
 
     if (injuredCharIds.has(injuredId)) {
       injuredCharIds.delete(injuredId);
@@ -2693,7 +2697,7 @@ document.addEventListener("DOMContentLoaded", () => {
       availableCharacters = availableCharacters.filter((ch) => ch.id !== injuredId);
       availableCards = availableCards.filter((card) => !removedNames.has(card.name));
       renderTeamBar();
-      showGameStatusNotice(`${injuredName} ha sido eliminado del combate.`, "danger");
+      showGameStatusNotice(`${injuredName} ${eliminatedText}`, "danger");
       if (availableCharacters.length === 0) {
         finishGameNoCharacters();
       }
@@ -2702,7 +2706,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     injuredCharIds.add(injuredId);
     updateTeamBarAvailability();
-    showGameStatusNotice(`${injuredName} ha quedado herido.`, "warn");
+    showGameStatusNotice(`${injuredName} ${injuredText}`, "warn");
   }
 
   function getLocalProfile() {
