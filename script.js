@@ -540,6 +540,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   ];
   let storyStep = 0;
+  let storySceneTextPages = [];
+  let storySceneTextPageIndex = 0;
+  let lastRenderedStorySceneKey = "";
   let storyPhase = "pre";
   let storyCombatActive = false;
   let storyCombatStage = 0;
@@ -1776,7 +1779,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!mapEl || BATTLE_EFFECTS.length < 1) return;
     if (preferredEffectKey === "none") {
       activeBattleEffect = null;
-      mapEl.style.setProperty("--battle-bg-image", "none");
+      mapEl.style.setProperty("--battle-bg-image", "linear-gradient(0deg, rgba(0,0,0,0), rgba(0,0,0,0))");
       updateActiveEffectButton();
       restartTrainEffectTimer();
       return;
@@ -1848,6 +1851,73 @@ document.addEventListener("DOMContentLoaded", () => {
     storyLeftSupportChar?.classList.toggle("active", scene.active === "left-support");
     storyRightSupportChar?.classList.toggle("active", scene.active === "right-support");
     applyStoryCharacterNormalization();
+  }
+
+  function isMobileStoryViewport() {
+    return window.matchMedia("(max-width: 820px)").matches;
+  }
+
+  function splitLongTextByWords(text, maxChars) {
+    const clean = String(text || "").trim();
+    if (!clean) return [""];
+    const words = clean.split(/\s+/);
+    const out = [];
+    let current = "";
+    words.forEach((word) => {
+      const candidate = current ? `${current} ${word}` : word;
+      if (candidate.length <= maxChars) {
+        current = candidate;
+      } else {
+        if (current) out.push(current);
+        current = word;
+      }
+    });
+    if (current) out.push(current);
+    return out.length ? out : [clean];
+  }
+
+  function splitStorySceneTextForMobile(text) {
+    const clean = String(text || "").trim();
+    if (!clean) return [""];
+    const viewportW = Math.max(320, window.innerWidth || 390);
+    let maxChars = 150;
+    if (viewportW <= 360) maxChars = 110;
+    else if (viewportW <= 430) maxChars = 130;
+
+    const chunks = clean.split(/(?<=[.!?…])\s+/).filter(Boolean);
+    if (chunks.length < 2 && clean.length <= maxChars) return [clean];
+    if (chunks.length < 2) return splitLongTextByWords(clean, maxChars);
+
+    const pages = [];
+    let current = "";
+    chunks.forEach((chunk) => {
+      const candidate = current ? `${current} ${chunk}` : chunk;
+      if (candidate.length <= maxChars) {
+        current = candidate;
+      } else {
+        if (current) {
+          pages.push(current);
+          current = chunk;
+          if (current.length > maxChars) {
+            const split = splitLongTextByWords(current, maxChars);
+            pages.push(...split.slice(0, -1));
+            current = split[split.length - 1] || "";
+          }
+        } else {
+          const split = splitLongTextByWords(chunk, maxChars);
+          pages.push(...split.slice(0, -1));
+          current = split[split.length - 1] || "";
+        }
+      }
+    });
+    if (current) pages.push(current);
+    return pages.length ? pages : [clean];
+  }
+
+  function getStorySceneTextPages(scene) {
+    if (!scene) return [""];
+    if (!isMobileStoryViewport()) return [String(scene.text || "")];
+    return splitStorySceneTextForMobile(scene.text || "");
   }
 
   function updateHud() {
@@ -2035,12 +2105,21 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderStoryStep() {
     const scenes = getStorySceneList();
     const scene = scenes[storyStep] || scenes[0];
-    applyStoryScene(scene);
+    const sceneKey = `${storyPhase}:${storyStep}`;
+    if (sceneKey !== lastRenderedStorySceneKey) {
+      storySceneTextPageIndex = 0;
+      lastRenderedStorySceneKey = sceneKey;
+    }
+    storySceneTextPages = getStorySceneTextPages(scene);
+    storySceneTextPageIndex = clamp(storySceneTextPageIndex, 0, Math.max(0, storySceneTextPages.length - 1));
+    const pagedScene = { ...scene, text: storySceneTextPages[storySceneTextPageIndex] || "" };
+    applyStoryScene(pagedScene);
     const isLast = storyStep >= scenes.length - 1;
+    const isLastPage = storySceneTextPageIndex >= storySceneTextPages.length - 1;
     if (storySkipBtn) storySkipBtn.classList.toggle("hidden", storyPhase !== "pre");
     if (storyMenuBtn) storyMenuBtn.classList.toggle("hidden", !(storyPhase === "epilogue" && isLast));
     if (storyNextBtn) {
-      storyNextBtn.textContent = isLast && storyPhase === "epilogue" ? "Fin" : "Siguiente";
+      storyNextBtn.textContent = isLast && isLastPage && storyPhase === "epilogue" ? "Fin" : "Siguiente";
     }
   }
 
@@ -2107,9 +2186,15 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function nextStoryStep() {
+    if (storySceneTextPageIndex < storySceneTextPages.length - 1) {
+      storySceneTextPageIndex += 1;
+      renderStoryStep();
+      return;
+    }
     const scenes = getStorySceneList();
     if (storyStep < scenes.length - 1) {
       storyStep += 1;
+      storySceneTextPageIndex = 0;
       renderStoryStep();
       return;
     }

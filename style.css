@@ -1468,12 +1468,14 @@ img{ max-width:100%; height:auto; }
   display:flex;
   flex-direction:column;
   overflow:hidden;
+  overflow-x: hidden;
 }
 #teamGrid{
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
+  overscroll-behavior-x: none;
   -webkit-overflow-scrolling: touch;
   padding: 8px 6px 10px;
   align-content: start;
@@ -1706,7 +1708,7 @@ img{ max-width:100%; height:auto; }
     padding: 14px;
     min-height: 220px;
     height: 220px;
-    overflow: auto;
+    overflow: hidden;
   }
   .story-speaker{ font-size: 20px; }
   .story-text{
@@ -1723,6 +1725,20 @@ img{ max-width:100%; height:auto; }
   #teamScreen .start-card{
     max-height: calc(var(--appH) - 28px);
     max-height: calc(100dvh - 28px);
+    overflow-x: hidden;
+  }
+
+  #teamGrid{
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    justify-content: stretch;
+    overflow-x: hidden;
+  }
+
+  .team-card{
+    width: 100%;
+    max-width: 158px;
+    justify-self: center;
   }
 
   .teambar-item{ width: 66px; height: 66px; border-radius: 14px; }
