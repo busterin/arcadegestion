@@ -26,6 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const DEFAULT_VERSUS_WS_URL = "wss://arcadegestion.onrender.com/versus";
   const RECRUIT_STORAGE_KEY = "arcadegestion_recruits_v1";
   const RECRUIT_LAST_STORAGE_KEY = "arcadegestion_last_recruit_v1";
+  const STORY_SAVE_SLOTS_KEY = "arcadegestion_story_save_slots_v1";
   const USER_PROFILE_AVATAR_KEY = "arcadegestion_user_profile_avatar_v1";
   const USER_PROFILE_NAME_KEY = "arcadegestion_user_profile_name_v1";
   const COINS_STORAGE_KEY = "arcadegestion_coins_v1";
@@ -39,6 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const WINCHESTER_ALT_IMG = "images/Winchester3.png";
   const WINCHESTER_STORE_ITEM_ID = "winchester_outfit_3";
   const WINCHESTER_STORE_ITEM_PRICE = 10;
+  const STORY_SAVE_SLOT_COUNT = 3;
 
   const MISSIONS = [
     { id: "m1", title: "Oso peligroso", internalTags: ["cuerpoacuerpo", "adistancia"], img: "misiones/misionoso.png", text: "Un oso ha atacado en repetidas ocasiones un pueblo de montaña. Ya no solo se trata de destrozos materiales, sino que algún aldeano ha resultado herido. Urge detenerlo." },
@@ -221,6 +223,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const tutorialRightChar = document.getElementById("tutorialRightChar");
   const tutorialText = document.getElementById("tutorialText");
   const tutorialNextBtn = document.getElementById("tutorialNextBtn");
+  const storyEntryModal = document.getElementById("storyEntryModal");
+  const storyNewGameBtn = document.getElementById("storyNewGameBtn");
+  const storyLoadGameBtn = document.getElementById("storyLoadGameBtn");
+  const storyEntryBackBtn = document.getElementById("storyEntryBackBtn");
+  const storyLoadPanel = document.getElementById("storyLoadPanel");
+  const storyLoadList = document.getElementById("storyLoadList");
+  const storyLoadEmpty = document.getElementById("storyLoadEmpty");
+  const storySavePromptModal = document.getElementById("storySavePromptModal");
+  const storySavePromptText = document.getElementById("storySavePromptText");
+  const storySaveNowBtn = document.getElementById("storySaveNowBtn");
+  const storySaveLaterBtn = document.getElementById("storySaveLaterBtn");
 
   const matchmakingModal = document.getElementById("matchmakingModal");
   const matchmakingText = document.getElementById("matchmakingText");
@@ -482,6 +495,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let storyJackCompleted = false;
   let storyCombatStartAt = 0;
   let failedMissionsCount = 0;
+  let storySaveSlots = loadStorySaveSlots();
   let finalModalPrimaryAction = null;
   const modalFocusReturnMap = new WeakMap();
 
@@ -519,6 +533,173 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch {
       // ignore storage errors
     }
+  }
+
+  function getEmptyStorySaveSlots() {
+    return Array.from({ length: STORY_SAVE_SLOT_COUNT }, () => null);
+  }
+
+  function normalizeStorySaveSlot(raw) {
+    if (!raw || typeof raw !== "object") return null;
+    const savedAt = Number(raw.savedAt);
+    const phase = String(raw?.state?.storyPhase || "");
+    const step = Number(raw?.state?.storyStep);
+    const stage = Number(raw?.state?.storyCombatStage);
+    const validPhase = ["pre", "post", "epilogue", "combat"].includes(phase) ? phase : "pre";
+    return {
+      savedAt: Number.isFinite(savedAt) ? savedAt : Date.now(),
+      label: String(raw.label || "Partida guardada"),
+      state: {
+        storyPhase: validPhase,
+        storyStep: Number.isFinite(step) ? Math.max(0, Math.floor(step)) : 0,
+        storyCombatActive: !!raw?.state?.storyCombatActive,
+        storyCombatStage: stage === 2 ? 2 : 1
+      }
+    };
+  }
+
+  function loadStorySaveSlots() {
+    try {
+      const raw = window.localStorage?.getItem(STORY_SAVE_SLOTS_KEY);
+      const parsed = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(parsed)) return getEmptyStorySaveSlots();
+      const normalized = parsed
+        .slice(0, STORY_SAVE_SLOT_COUNT)
+        .map((slot) => normalizeStorySaveSlot(slot));
+      while (normalized.length < STORY_SAVE_SLOT_COUNT) normalized.push(null);
+      return normalized;
+    } catch {
+      return getEmptyStorySaveSlots();
+    }
+  }
+
+  function persistStorySaveSlots() {
+    try {
+      window.localStorage?.setItem(STORY_SAVE_SLOTS_KEY, JSON.stringify(storySaveSlots));
+    } catch {
+      // ignore storage errors
+    }
+  }
+
+  function formatStorySaveDate(ts) {
+    const date = new Date(ts);
+    if (!Number.isFinite(date.getTime())) return "Fecha desconocida";
+    return date.toLocaleString("es-ES", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  }
+
+  function findAutoStorySaveSlotIndex() {
+    const emptyIdx = storySaveSlots.findIndex((slot) => !slot);
+    if (emptyIdx >= 0) return emptyIdx;
+    let oldestIdx = 0;
+    let oldestAt = Number(storySaveSlots[0]?.savedAt || Date.now());
+    storySaveSlots.forEach((slot, idx) => {
+      const at = Number(slot?.savedAt || Date.now());
+      if (at < oldestAt) {
+        oldestAt = at;
+        oldestIdx = idx;
+      }
+    });
+    return oldestIdx;
+  }
+
+  function buildCurrentStorySaveState() {
+    return {
+      storyPhase,
+      storyStep,
+      storyCombatActive,
+      storyCombatStage: storyCombatStage === 2 ? 2 : 1
+    };
+  }
+
+  function saveStoryProgress(label = "Partida guardada") {
+    const idx = findAutoStorySaveSlotIndex();
+    storySaveSlots[idx] = {
+      savedAt: Date.now(),
+      label,
+      state: buildCurrentStorySaveState()
+    };
+    persistStorySaveSlots();
+    return idx;
+  }
+
+  function applyStorySaveState(state) {
+    const normalized = normalizeStorySaveSlot({ savedAt: Date.now(), label: "", state });
+    if (!normalized) return false;
+    const payload = normalized.state;
+
+    if (payload.storyCombatActive) {
+      startStoryCombat(payload.storyCombatStage);
+      return true;
+    }
+
+    resetGame();
+    selectedMode = "arcade";
+    currentMode = "arcade";
+    storyCombatActive = false;
+    storyCombatStage = 0;
+    storyJackUnlocked = false;
+    storyJackCompleted = false;
+    storyPhase = payload.storyPhase === "combat" ? "pre" : payload.storyPhase;
+    const scenes = getStorySceneList();
+    storyStep = clamp(payload.storyStep, 0, Math.max(0, scenes.length - 1));
+
+    introScreen.classList.add("hidden");
+    recruitScreen?.classList.add("hidden");
+    storeScreen?.classList.add("hidden");
+    userScreen?.classList.add("hidden");
+    startScreen.classList.add("hidden");
+    teamScreen.classList.add("hidden");
+    gameRoot.classList.add("hidden");
+    storyScreen?.classList.remove("hidden");
+    renderStoryStep();
+    resetViewportTop();
+    return true;
+  }
+
+  function renderStoryLoadSlots() {
+    if (!storyLoadList) return;
+    storyLoadList.innerHTML = "";
+    storySaveSlots.forEach((slot, idx) => {
+      const row = document.createElement("div");
+      row.className = "story-save-row";
+      if (!slot) {
+        row.innerHTML = `
+          <div class="story-save-meta">
+            <div class="story-save-title">Archivo ${idx + 1}</div>
+            <div class="story-save-sub">Vacío</div>
+          </div>
+          <button class="btn btn-ghost" type="button" disabled>Cargar</button>
+        `;
+        storyLoadList.appendChild(row);
+        return;
+      }
+      row.innerHTML = `
+        <div class="story-save-meta">
+          <div class="story-save-title">Archivo ${idx + 1}: ${slot.label}</div>
+          <div class="story-save-sub">${formatStorySaveDate(slot.savedAt)}</div>
+        </div>
+        <button class="btn btn-ghost story-load-slot-btn" data-slot-index="${idx}" type="button">Cargar</button>
+      `;
+      storyLoadList.appendChild(row);
+    });
+    const hasAnySlot = storySaveSlots.some(Boolean);
+    storyLoadEmpty?.classList.toggle("hidden", hasAnySlot);
+
+    storyLoadList.querySelectorAll(".story-load-slot-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const idx = Number(btn.getAttribute("data-slot-index"));
+        const slot = storySaveSlots[idx];
+        if (!slot?.state) return;
+        hideModal(storyEntryModal);
+        applyStorySaveState(slot.state);
+      });
+    });
   }
 
   function loadCoins() {
@@ -1079,7 +1260,9 @@ document.addEventListener("DOMContentLoaded", () => {
       cardInfoModal.classList.contains("show") ||
       specialModal.classList.contains("show") ||
       tutorialModal.classList.contains("show") ||
-      rivalTeamModal.classList.contains("show")
+      rivalTeamModal.classList.contains("show") ||
+      storyEntryModal?.classList.contains("show") ||
+      storySavePromptModal?.classList.contains("show")
     );
   }
 
@@ -1383,10 +1566,35 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!current) return;
     if (current.key === "arcade") goToStartScreen("arcade");
     if (current.key === "versus") goToStartScreen("versus");
-    if (current.key === "historia") goToStoryScreen();
+    if (current.key === "historia") openStoryEntryModal();
     if (current.key === "reclutar") goToRecruitScreen();
     if (current.key === "tienda") goToStoreScreen();
     if (current.key === "cuenta") goToUserScreen();
+  }
+
+  function openStoryEntryModal() {
+    storySaveSlots = loadStorySaveSlots();
+    storyLoadPanel?.classList.add("hidden");
+    if (storyLoadGameBtn) storyLoadGameBtn.textContent = "Cargar partida";
+    showModal(storyEntryModal);
+  }
+
+  function toggleStoryLoadPanel() {
+    if (!storyLoadPanel) return;
+    const willShow = storyLoadPanel.classList.contains("hidden");
+    storyLoadPanel.classList.toggle("hidden");
+    if (storyLoadGameBtn) {
+      storyLoadGameBtn.textContent = willShow ? "Ocultar archivos" : "Cargar partida";
+    }
+    if (willShow) renderStoryLoadSlots();
+  }
+
+  function openStorySavePrompt() {
+    if (!storySavePromptModal) return;
+    if (storySavePromptText) {
+      storySavePromptText.textContent = "¿Quieres guardar partida?";
+    }
+    showModal(storySavePromptModal);
   }
 
   function goToStartScreen(mode) {
@@ -1984,6 +2192,8 @@ document.addEventListener("DOMContentLoaded", () => {
     hideModal(tutorialModal);
     hideModal(matchmakingModal);
     hideModal(rivalTeamModal);
+    hideModal(storyEntryModal);
+    hideModal(storySavePromptModal);
 
     finalTitleEl.textContent = "Fin de la partida";
     if (finalLabelEl) finalLabelEl.textContent = "Misiones completadas";
@@ -3062,6 +3272,7 @@ document.addEventListener("DOMContentLoaded", () => {
       gameRoot.classList.add("hidden");
       resetViewportTop();
       renderStoryStep();
+      openStorySavePrompt();
       return;
     }
 
@@ -3284,6 +3495,16 @@ document.addEventListener("DOMContentLoaded", () => {
         hideModal(matchmakingModal);
         return;
       }
+      if (storySavePromptModal?.classList.contains("show")) {
+        e.preventDefault();
+        hideModal(storySavePromptModal);
+        return;
+      }
+      if (storyEntryModal?.classList.contains("show")) {
+        e.preventDefault();
+        hideModal(storyEntryModal);
+        return;
+      }
     }
 
     if (!introScreen.classList.contains("hidden")) {
@@ -3371,6 +3592,30 @@ document.addEventListener("DOMContentLoaded", () => {
   specialAcceptBtn.addEventListener("click", acceptSpecial);
   specialModal.addEventListener("click", (e) => { if (e.target === specialModal) cancelSpecial(); });
   tutorialNextBtn?.addEventListener("click", nextTutorialStep);
+  storyNewGameBtn?.addEventListener("click", () => {
+    hideModal(storyEntryModal);
+    goToStoryScreen();
+  });
+  storyLoadGameBtn?.addEventListener("click", toggleStoryLoadPanel);
+  storyEntryBackBtn?.addEventListener("click", () => hideModal(storyEntryModal));
+  storyEntryModal?.addEventListener("click", (e) => {
+    if (e.target === storyEntryModal) hideModal(storyEntryModal);
+  });
+  storySaveLaterBtn?.addEventListener("click", () => hideModal(storySavePromptModal));
+  storySaveNowBtn?.addEventListener("click", () => {
+    const slotIndex = saveStoryProgress("Tras batalla del tutorial");
+    if (storySavePromptText) {
+      storySavePromptText.textContent = `Partida guardada en Archivo ${slotIndex + 1}.`;
+    }
+    renderStoryLoadSlots();
+    setTimeout(() => {
+      hideModal(storySavePromptModal);
+      if (storySavePromptText) storySavePromptText.textContent = "¿Quieres guardar partida?";
+    }, 800);
+  });
+  storySavePromptModal?.addEventListener("click", (e) => {
+    if (e.target === storySavePromptModal) hideModal(storySavePromptModal);
+  });
 
   rivalTeamBtn?.addEventListener("click", () => {
     renderRivalTeam();

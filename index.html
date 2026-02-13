@@ -5,7 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Protocolo Argo</title>
-<link href="style.css?v=20260211-13" rel="stylesheet"/>
+<link href="style.css?v=20260213-14" rel="stylesheet"/>
 </head>
 <body>
 <div class="app">
@@ -374,6 +374,44 @@
 </div>
 </div>
 </div>
-<script src="script.js?v=20260211-19"></script>
+<!-- HISTORIA: NUEVO/CARGAR -->
+<div aria-hidden="true" class="modal" id="storyEntryModal">
+<div aria-labelledby="storyEntryTitle" aria-modal="true" class="modal-card modal-card-small" role="dialog">
+<div class="modal-head">
+<div>
+<div class="modal-title" id="storyEntryTitle">Historia</div>
+<div class="modal-text">Elige cómo quieres continuar.</div>
+</div>
+</div>
+<div class="divider"></div>
+<div class="story-entry-actions">
+<button class="btn" id="storyNewGameBtn" type="button">Nuevo juego</button>
+<button class="btn btn-ghost" id="storyLoadGameBtn" type="button">Cargar partida</button>
+<button class="btn btn-ghost" id="storyEntryBackBtn" type="button">Atrás</button>
+</div>
+<div class="story-load-panel hidden" id="storyLoadPanel">
+<div class="section-title">Archivos guardados</div>
+<div class="story-load-list" id="storyLoadList"></div>
+<div class="hint hidden" id="storyLoadEmpty">No hay partidas guardadas.</div>
+</div>
+</div>
+</div>
+<!-- HISTORIA: GUARDAR -->
+<div aria-hidden="true" class="modal" id="storySavePromptModal">
+<div aria-labelledby="storySavePromptTitle" aria-modal="true" class="modal-card modal-card-small" role="dialog">
+<div class="modal-head">
+<div>
+<div class="modal-title" id="storySavePromptTitle">Guardar partida</div>
+<div class="modal-text" id="storySavePromptText">¿Quieres guardar partida?</div>
+</div>
+</div>
+<div class="divider"></div>
+<div class="modal-actions end">
+<button class="btn btn-ghost" id="storySaveLaterBtn" type="button">Ahora no</button>
+<button class="btn" id="storySaveNowBtn" type="button">Sí, guardar</button>
+</div>
+</div>
+</div>
+<script src="script.js?v=20260213-20"></script>
 </body>
 </html>
