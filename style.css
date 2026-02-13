@@ -1050,8 +1050,8 @@ img{ max-width:100%; height:auto; }
 .game-status-notice{
   position: absolute;
   left: 50%;
-  top: 16px;
-  transform: translate(-50%, -12px);
+  top: 50%;
+  transform: translate(-50%, calc(-50% - 12px));
   opacity: 0;
   pointer-events: none;
   z-index: 30;
@@ -1071,7 +1071,7 @@ img{ max-width:100%; height:auto; }
   background: rgba(150,24,24,.88);
 }
 .game-status-notice.show{
-  transform: translate(-50%, 0);
+  transform: translate(-50%, -50%);
   opacity: 1;
 }
 
@@ -1842,6 +1842,9 @@ img{ max-width:100%; height:auto; }
   flex-direction:column;
   align-items:center;
 }
+#cardInfoModal .modal-head{
+  justify-content: center;
+}
 #cardInfoModal .modal-title{
   width:100%;
   text-align:center;
@@ -1860,6 +1863,38 @@ img{ max-width:100%; height:auto; }
   grid-template-columns: minmax(0, 1fr) minmax(140px, 220px);
   gap: 12px;
   align-items: center;
+}
+
+.story-levelup-card .modal-head{
+  justify-content: center;
+}
+
+.story-levelup-content{
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.story-levelup-img{
+  width: min(220px, 62vw);
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.story-levelup-name{
+  font-size: 22px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.story-levelup-level{
+  font-size: 18px;
+  font-weight: 800;
+  color: #7ef0ff;
+  text-align: center;
 }
 
 #tutorialModal .tutorial-col-text{

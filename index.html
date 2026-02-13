@@ -5,7 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Protocolo Argo</title>
-<link href="style.css?v=20260213-15" rel="stylesheet"/>
+<link href="style.css?v=20260213-16" rel="stylesheet"/>
 </head>
 <body>
 <div class="app">
@@ -335,7 +335,6 @@
 </div>
 <div class="modal-text" id="cardInfoText">En construcción</div>
 </div>
-<button aria-label="Cerrar" class="icon-btn" id="closeCardInfoBtn" type="button">✕</button>
 </div>
 </div>
 </div>
@@ -413,6 +412,25 @@
 </div>
 </div>
 </div>
-<script src="script.js?v=20260213-21"></script>
+<!-- HISTORIA: SUBIDA DE NIVEL -->
+<div aria-hidden="true" class="modal" id="storyLevelUpModal">
+<div aria-labelledby="storyLevelUpTitle" aria-modal="true" class="modal-card modal-card-small story-levelup-card" role="dialog">
+<div class="modal-head">
+<div>
+<div class="modal-title" id="storyLevelUpTitle">Subida de nivel</div>
+</div>
+</div>
+<div class="story-levelup-content">
+<img alt="Personaje que sube de nivel" class="story-levelup-img" id="storyLevelUpImg" src="images/mision.png"/>
+<div class="story-levelup-name" id="storyLevelUpName">Personaje</div>
+<div class="story-levelup-level" id="storyLevelUpLevel">Nivel 2</div>
+</div>
+<div class="divider"></div>
+<div class="modal-actions end">
+<button class="btn" id="storyLevelUpOkBtn" type="button">Continuar</button>
+</div>
+</div>
+</div>
+<script src="script.js?v=20260213-22"></script>
 </body>
 </html>

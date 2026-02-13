@@ -236,6 +236,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const storySavePromptText = document.getElementById("storySavePromptText");
   const storySaveNowBtn = document.getElementById("storySaveNowBtn");
   const storySaveLaterBtn = document.getElementById("storySaveLaterBtn");
+  const storyLevelUpModal = document.getElementById("storyLevelUpModal");
+  const storyLevelUpImg = document.getElementById("storyLevelUpImg");
+  const storyLevelUpName = document.getElementById("storyLevelUpName");
+  const storyLevelUpLevel = document.getElementById("storyLevelUpLevel");
+  const storyLevelUpOkBtn = document.getElementById("storyLevelUpOkBtn");
 
   const matchmakingModal = document.getElementById("matchmakingModal");
   const matchmakingText = document.getElementById("matchmakingText");
@@ -497,6 +502,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let storyJackCompleted = false;
   let storyCombatStartAt = 0;
   let failedMissionsCount = 0;
+  let storyCharacterProgress = createInitialStoryCharacterProgress();
+  let storyLevelUpQueue = [];
   let storyContinueSnapshot = loadStoryContinueSnapshot();
   let storySaveSlots = loadStorySaveSlots();
   let finalModalPrimaryAction = null;
@@ -542,6 +549,93 @@ document.addEventListener("DOMContentLoaded", () => {
     return Array.from({ length: STORY_SAVE_SLOT_COUNT }, () => null);
   }
 
+  function getAllStoryCharacters() {
+    return [...CHARACTERS, ...RECRUITABLE_CHARACTERS];
+  }
+
+  function createInitialStoryCharacterProgress() {
+    const base = {};
+    getAllStoryCharacters().forEach((ch) => {
+      base[ch.id] = { points: 0, level: 1 };
+    });
+    return base;
+  }
+
+  function normalizeStoryCharacterProgress(raw) {
+    const base = createInitialStoryCharacterProgress();
+    if (!raw || typeof raw !== "object") return base;
+    Object.keys(base).forEach((charId) => {
+      const points = Number(raw?.[charId]?.points);
+      const level = Number(raw?.[charId]?.level);
+      const safePoints = Number.isFinite(points) ? Math.max(0, Math.floor(points)) : 0;
+      const derivedLevel = Math.floor(safePoints / 3) + 1;
+      const safeLevel = Number.isFinite(level) ? Math.max(1, Math.floor(level)) : derivedLevel;
+      base[charId] = {
+        points: safePoints,
+        level: Math.max(safeLevel, derivedLevel)
+      };
+    });
+    return base;
+  }
+
+  function getCharacterDisplayById(charId) {
+    const char = getAllStoryCharacters().find((ch) => ch.id === charId);
+    if (!char) return { name: "Personaje", img: "images/mision.png" };
+    const card = [...CARDS, ...RECRUITABLE_CARDS].find((c) => c.name === char.name);
+    const avatar = AVATARS.find((a) => a.name === char.name);
+    const img = card?.img || avatar?.accountSrc || avatar?.src || "images/mision.png";
+    return { name: char.name, img };
+  }
+
+  function enqueueStoryLevelUp(charId, nextLevel) {
+    const display = getCharacterDisplayById(charId);
+    storyLevelUpQueue.push({
+      name: display.name,
+      img: display.img,
+      level: nextLevel
+    });
+    maybeShowNextStoryLevelUp();
+  }
+
+  function maybeShowNextStoryLevelUp() {
+    if (!storyLevelUpModal || !storyLevelUpQueue.length) return;
+    if (storyLevelUpModal.classList.contains("show")) return;
+    const current = storyLevelUpQueue[0];
+    if (storyLevelUpImg) {
+      storyLevelUpImg.src = current.img;
+      storyLevelUpImg.alt = current.name;
+    }
+    if (storyLevelUpName) storyLevelUpName.textContent = current.name;
+    if (storyLevelUpLevel) storyLevelUpLevel.textContent = `Nivel ${current.level}`;
+    setGlobalPause(true);
+    showModal(storyLevelUpModal);
+  }
+
+  function closeStoryLevelUpModal() {
+    if (!storyLevelUpModal) return;
+    if (storyLevelUpQueue.length) storyLevelUpQueue.shift();
+    hideModal(storyLevelUpModal);
+    if (storyLevelUpQueue.length) {
+      requestAnimationFrame(maybeShowNextStoryLevelUp);
+      return;
+    }
+    if (!isAnyModalOpen()) setGlobalPause(false);
+  }
+
+  function addStoryCharacterSuccessPoint(charId) {
+    if (!charId || !storyCharacterProgress[charId]) return;
+    const current = storyCharacterProgress[charId];
+    const prevLevel = current.level;
+    current.points += 1;
+    current.level = Math.floor(current.points / 3) + 1;
+    if (current.level > prevLevel) enqueueStoryLevelUp(charId, current.level);
+  }
+
+  function awardStoryMissionSuccessPoints(st) {
+    if (!storyCombatActive || !st?.assignedCharIds) return;
+    [...st.assignedCharIds].forEach((charId) => addStoryCharacterSuccessPoint(charId));
+  }
+
   function normalizeStorySaveSlot(raw) {
     if (!raw || typeof raw !== "object") return null;
     const savedAt = Number(raw.savedAt);
@@ -556,7 +650,8 @@ document.addEventListener("DOMContentLoaded", () => {
         storyPhase: validPhase,
         storyStep: Number.isFinite(step) ? Math.max(0, Math.floor(step)) : 0,
         storyCombatActive: !!raw?.state?.storyCombatActive,
-        storyCombatStage: stage === 2 ? 2 : 1
+        storyCombatStage: stage === 2 ? 2 : 1,
+        storyCharacterProgress: normalizeStoryCharacterProgress(raw?.state?.storyCharacterProgress)
       }
     };
   }
@@ -616,7 +711,8 @@ document.addEventListener("DOMContentLoaded", () => {
       storyPhase,
       storyStep,
       storyCombatActive,
-      storyCombatStage: storyCombatStage === 2 ? 2 : 1
+      storyCombatStage: storyCombatStage === 2 ? 2 : 1,
+      storyCharacterProgress
     };
   }
 
@@ -635,6 +731,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const normalized = normalizeStorySaveSlot({ savedAt: Date.now(), label: "", state });
     if (!normalized) return false;
     const payload = normalized.state;
+    storyCharacterProgress = normalizeStoryCharacterProgress(payload.storyCharacterProgress);
 
     if (payload.storyCombatActive) {
       startStoryCombat(payload.storyCombatStage);
@@ -772,7 +869,8 @@ document.addEventListener("DOMContentLoaded", () => {
           storyStep,
           storyCombatStage,
           storyJackUnlocked,
-          storyJackCompleted
+          storyJackCompleted,
+          storyCharacterProgress
         }
       };
     }
@@ -811,7 +909,8 @@ document.addEventListener("DOMContentLoaded", () => {
         missionPickFromBarActive,
         currentMissionId,
         selectedCharIds: [...selectedCharIds],
-        elapsedCombatMs
+        elapsedCombatMs,
+        storyCharacterProgress
       }
     };
   }
@@ -829,6 +928,7 @@ document.addEventListener("DOMContentLoaded", () => {
     storyCombatStage = Number(state?.storyCombatStage) === 2 ? 2 : 0;
     storyJackUnlocked = !!state?.storyJackUnlocked;
     storyJackCompleted = !!state?.storyJackCompleted;
+    storyCharacterProgress = normalizeStoryCharacterProgress(state?.storyCharacterProgress);
     storyPhase = ["pre", "post", "epilogue"].includes(state?.storyPhase) ? state.storyPhase : "pre";
     storyStep = Math.max(0, Math.floor(Number(state?.storyStep) || 0));
 
@@ -858,6 +958,7 @@ document.addEventListener("DOMContentLoaded", () => {
     storyPhase = "combat";
     storyJackUnlocked = !!state?.storyJackUnlocked;
     storyJackCompleted = !!state?.storyJackCompleted;
+    storyCharacterProgress = normalizeStoryCharacterProgress(state?.storyCharacterProgress);
     tutorialPending = !!state?.tutorialPending;
     storyStep = Math.max(0, Math.floor(Number(state?.storyStep) || 0));
     storyCombatStartAt = performance.now() - Math.max(0, Number(state?.elapsedCombatMs) || 0);
@@ -1513,7 +1614,8 @@ document.addEventListener("DOMContentLoaded", () => {
       tutorialModal.classList.contains("show") ||
       rivalTeamModal.classList.contains("show") ||
       storyEntryModal?.classList.contains("show") ||
-      storySavePromptModal?.classList.contains("show")
+      storySavePromptModal?.classList.contains("show") ||
+      storyLevelUpModal?.classList.contains("show")
     );
   }
 
@@ -1878,6 +1980,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function goToStoryScreen() {
+    storyCharacterProgress = createInitialStoryCharacterProgress();
+    storyLevelUpQueue = [];
     introScreen.classList.add("hidden");
     recruitScreen?.classList.add("hidden");
     storeScreen?.classList.add("hidden");
@@ -2448,6 +2552,7 @@ document.addEventListener("DOMContentLoaded", () => {
     hideModal(rivalTeamModal);
     hideModal(storyEntryModal);
     hideModal(storySavePromptModal);
+    hideModal(storyLevelUpModal);
 
     finalTitleEl.textContent = "Fin de la partida";
     if (finalLabelEl) finalLabelEl.textContent = "Misiones completadas";
@@ -3115,9 +3220,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function winMission(missionId) {
     if (completedMissionIds.has(missionId)) return;
+    const st = activePoints.get(missionId);
 
     completedMissionIds.add(missionId);
     if (missionId === STORY_JACK_MISSION_ID) storyJackCompleted = true;
+    if (st && storyCombatActive) awardStoryMissionSuccessPoints(st);
     setScore(SCORE_WIN);
     releaseCharsForMission(missionId);
     removePoint(missionId);
@@ -3580,6 +3687,7 @@ document.addEventListener("DOMContentLoaded", () => {
     hideModal(tutorialModal);
     hideModal(matchmakingModal);
     hideModal(rivalTeamModal);
+    hideModal(storyLevelUpModal);
 
     stopGameLoops();
 
@@ -3610,6 +3718,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setSpecialArmedUI(false);
     tutorialPending = false;
     tutorialStep = 0;
+    storyLevelUpQueue = [];
     storyJackUnlocked = false;
     storyJackCompleted = false;
     storyCombatStartAt = 0;
@@ -3754,6 +3863,11 @@ document.addEventListener("DOMContentLoaded", () => {
         hideModal(storySavePromptModal);
         return;
       }
+      if (storyLevelUpModal?.classList.contains("show")) {
+        e.preventDefault();
+        closeStoryLevelUpModal();
+        return;
+      }
       if (storyEntryModal?.classList.contains("show")) {
         e.preventDefault();
         hideModal(storyEntryModal);
@@ -3799,7 +3913,7 @@ document.addEventListener("DOMContentLoaded", () => {
   missionBarCancelBtn?.addEventListener("click", () => stopMissionBarSelection(true));
   missionBarConfirmBtn?.addEventListener("click", confirmMission);
 
-  closeCardInfoBtn.addEventListener("click", closeCardInfo);
+  closeCardInfoBtn?.addEventListener("click", closeCardInfo);
   cardInfoInfoBtn?.addEventListener("click", () => {
     if (!currentCardInfoData) return;
     cardInfoInfoBtn.classList.add("active");
@@ -3873,6 +3987,10 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   storySavePromptModal?.addEventListener("click", (e) => {
     if (e.target === storySavePromptModal) hideModal(storySavePromptModal);
+  });
+  storyLevelUpOkBtn?.addEventListener("click", closeStoryLevelUpModal);
+  storyLevelUpModal?.addEventListener("click", (e) => {
+    if (e.target === storyLevelUpModal) closeStoryLevelUpModal();
   });
 
   rivalTeamBtn?.addEventListener("click", () => {
