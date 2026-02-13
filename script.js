@@ -491,9 +491,21 @@ document.addEventListener("DOMContentLoaded", () => {
   const STORY_EPILOGUE_SCENES = [
     {
       speaker: "",
-      text: "",
+      text: "La batalla contra los bandidos fue más intensa de lo que esperábamos pero nada con lo que Atalaya no pudiera lidiar. Sin embargo, sucedió algo fuera de lo normal...",
       background: "historia/1combatebandidos.PNG",
       showChars: false
+    },
+    {
+      speaker: "Evelyn",
+      text: "Tenemos que hablar de lo que ha pasado...",
+      background: "historia/1fondopueblo.PNG",
+      active: "left",
+      leftSrc: "images/Evelyn.png",
+      leftSupportSrc: "historia/Winchester2.png",
+      rightSrc: "historia/Camus2.png",
+      rightMirror: false,
+      rightSupportSrc: "historia/Jane2.png",
+      showChars: true
     }
   ];
   const TUTORIAL_STEPS = [
