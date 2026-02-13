@@ -1912,6 +1912,59 @@ img{ max-width:100%; height:auto; }
   text-align: center;
 }
 
+.story-levelup-note{
+  margin-top: 4px;
+  font-size: 14px;
+  font-weight: 800;
+  color: #ffe75a;
+  text-align: center;
+}
+
+.card-skills{
+  width: 100%;
+  margin-top: 6px;
+  display: grid;
+  gap: 8px;
+}
+
+.card-skill{
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 12px;
+  background: rgba(255,255,255,.04);
+  padding: 9px 10px;
+}
+
+.card-skill-name{
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.card-skill-state{
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #7ef0ff;
+}
+
+.card-skill-desc{
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--muted);
+}
+
+.card-skill.locked{
+  opacity: .72;
+  border-color: rgba(170,176,190,.28);
+  background: rgba(120,130,150,.12);
+}
+
+.card-skill.locked .card-skill-name,
+.card-skill.locked .card-skill-state,
+.card-skill.locked .card-skill-desc{
+  color: #b5bcc9;
+}
+
 #tutorialModal .tutorial-col-text{
   width: 100%;
 }

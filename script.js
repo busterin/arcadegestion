@@ -241,6 +241,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const storyLevelUpImg = document.getElementById("storyLevelUpImg");
   const storyLevelUpName = document.getElementById("storyLevelUpName");
   const storyLevelUpLevel = document.getElementById("storyLevelUpLevel");
+  const storyLevelUpNote = document.getElementById("storyLevelUpNote");
   const storyLevelUpOkBtn = document.getElementById("storyLevelUpOkBtn");
 
   const matchmakingModal = document.getElementById("matchmakingModal");
@@ -554,6 +555,21 @@ document.addEventListener("DOMContentLoaded", () => {
     return [...CHARACTERS, ...RECRUITABLE_CHARACTERS];
   }
 
+  const STORY_PASSIVE_SKILLS = {
+    c7: {
+      name: "Organizar la retaguardia",
+      description: "Los personajes con etiqueta a distancia aumentan +20% su probabilidad de éxito si van acompañados de Jane."
+    },
+    c1: {
+      name: "Guerrera solitaria",
+      description: "Si Winchester va sola a una misión y tiene éxito, obtiene el doble de experiencia."
+    },
+    c3: {
+      name: "Doppelganger",
+      description: "Si Camus va a una misión y quedan huecos libres, crea copias para ocuparlos con sus mismos atributos."
+    }
+  };
+
   function createInitialStoryCharacterProgress() {
     const base = {};
     getAllStoryCharacters().forEach((ch) => {
@@ -588,10 +604,44 @@ document.addEventListener("DOMContentLoaded", () => {
     return { name: char.name, img };
   }
 
-  function getStoryCharacterLevelByName(name) {
+  function getStoryCharacterByName(name) {
     const target = String(name || "").trim().toLowerCase();
-    if (!target) return 1;
-    const ch = getAllStoryCharacters().find((item) => item.name.toLowerCase() === target);
+    if (!target) return null;
+    return getAllStoryCharacters().find((item) => item.name.toLowerCase() === target) || null;
+  }
+
+  function isStorySkillUnlocked(charId) {
+    const level = Number(storyCharacterProgress?.[charId]?.level);
+    return Number.isFinite(level) && level >= 2;
+  }
+
+  function escapeHtml(raw) {
+    return String(raw || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function getCardSkillsHtml(cardName) {
+    const ch = getStoryCharacterByName(cardName);
+    const passive = ch ? STORY_PASSIVE_SKILLS[ch.id] : null;
+    if (!passive) return null;
+    const unlocked = isStorySkillUnlocked(ch.id);
+    return `
+      <div class="card-skills">
+        <article class="card-skill${unlocked ? "" : " locked"}">
+          <div class="card-skill-name">${escapeHtml(passive.name)}</div>
+          <div class="card-skill-state">${unlocked ? "Desbloqueada" : "Bloqueada (se desbloquea en Nivel 2)"}</div>
+          <div class="card-skill-desc">${escapeHtml(passive.description)}</div>
+        </article>
+      </div>
+    `;
+  }
+
+  function getStoryCharacterLevelByName(name) {
+    const ch = getStoryCharacterByName(name);
     if (!ch) return 1;
     const level = Number(storyCharacterProgress?.[ch.id]?.level);
     return Number.isFinite(level) && level >= 1 ? Math.floor(level) : 1;
@@ -599,10 +649,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function enqueueStoryLevelUp(charId, nextLevel) {
     const display = getCharacterDisplayById(charId);
+    const unlockedSkill = nextLevel >= 2 && !!STORY_PASSIVE_SKILLS[charId];
     storyLevelUpQueue.push({
       name: display.name,
       img: display.img,
-      level: nextLevel
+      level: nextLevel,
+      unlockedSkill
     });
     maybeShowNextStoryLevelUp();
   }
@@ -617,6 +669,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (storyLevelUpName) storyLevelUpName.textContent = current.name;
     if (storyLevelUpLevel) storyLevelUpLevel.textContent = `Nivel ${current.level}`;
+    if (storyLevelUpNote) {
+      storyLevelUpNote.classList.toggle("hidden", !current.unlockedSkill);
+      storyLevelUpNote.textContent = current.unlockedSkill
+        ? "Has desbloqueado una nueva habilidad."
+        : "";
+    }
     setGlobalPause(true);
     showModal(storyLevelUpModal);
   }
@@ -643,7 +701,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function awardStoryMissionSuccessPoints(st) {
     if (!storyCombatActive || !st?.assignedCharIds) return;
-    [...st.assignedCharIds].forEach((charId) => addStoryCharacterSuccessPoint(charId));
+    const assigned = [...st.assignedCharIds];
+    const winchester = CHARACTERS.find((ch) => String(ch.name).toLowerCase() === "winchester");
+    const winchesterSoloBonus = !!(
+      winchester &&
+      assigned.length === 1 &&
+      assigned[0] === winchester.id &&
+      isStorySkillUnlocked(winchester.id)
+    );
+
+    assigned.forEach((charId) => {
+      addStoryCharacterSuccessPoint(charId);
+      if (winchesterSoloBonus && charId === winchester.id) addStoryCharacterSuccessPoint(charId);
+    });
   }
 
   function normalizeStorySaveSlot(raw) {
@@ -2235,16 +2305,39 @@ document.addEventListener("DOMContentLoaded", () => {
       : [normalizeTag(mission.internalTag)];
     const matchBonus = Number.isFinite(mission?.matchBonus) ? mission.matchBonus : 0.8;
     const missBonus = Number.isFinite(mission?.missBonus) ? mission.missBonus : 0.1;
+    const chosenList = Array.isArray(chosenIds) ? chosenIds : [...chosenIds];
+    const maxChars = getMissionMaxChars(mission);
+    const participants = [...chosenList];
+
+    const camus = CHARACTERS.find((ch) => String(ch.name).toLowerCase() === "camus");
+    const camusUnlocked = !!(storyCombatActive && camus && participants.includes(camus.id) && isStorySkillUnlocked(camus.id));
+    if (camusUnlocked && participants.length < maxChars) {
+      const clones = maxChars - participants.length;
+      for (let i = 0; i < clones; i++) participants.push(camus.id);
+    }
 
     let p = 0;
 
-    for (const cid of chosenIds) {
+    for (const cid of participants) {
       const ch = availableCharacters.find((c) => c.id === cid);
       if (!ch) continue;
       const tags = Array.isArray(ch.tags) ? ch.tags : [ch.tags];
       const normalizedTags = tags.map(normalizeTag);
       const match = normalizedTags.some((tag) => missionTags.includes(tag));
       p += match ? matchBonus : missBonus;
+    }
+
+    const jane = CHARACTERS.find((ch) => String(ch.name).toLowerCase() === "jane");
+    const janeUnlocked = !!(storyCombatActive && jane && participants.includes(jane.id) && isStorySkillUnlocked(jane.id));
+    if (janeUnlocked) {
+      participants.forEach((cid) => {
+        if (cid === jane.id) return;
+        const ch = availableCharacters.find((c) => c.id === cid);
+        if (!ch) return;
+        const tags = Array.isArray(ch.tags) ? ch.tags : [ch.tags];
+        const normalizedTags = tags.map(normalizeTag);
+        if (normalizedTags.includes("adistancia")) p += 0.2;
+      });
     }
 
     return clamp(p, 0, 1);
@@ -3556,9 +3649,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const specialInfo = SPECIAL_CARD_INFO[cardName];
     const isWinchester = cardName === "winchester";
     const winchesterAltOwned = purchasedStoreItems.has(WINCHESTER_STORE_ITEM_ID);
+    const skillsHtml = getCardSkillsHtml(cardData.name);
     currentCardInfoData = {
       infoText: specialInfo?.infoText || cardData?.infoText || "En construcción",
       skillsText: specialInfo?.skillsText || cardData?.skillsText || "En construcción",
+      skillsHtml,
       outfitsEnabled: isWinchester,
       winchesterAltOwned
     };
@@ -3945,7 +4040,11 @@ document.addEventListener("DOMContentLoaded", () => {
     cardInfoInfoBtn?.classList.remove("active");
     cardInfoOutfitsBtn?.classList.remove("active");
     cardInfoOutfitsPanel?.classList.add("hidden");
-    cardInfoText.textContent = currentCardInfoData.skillsText;
+    if (currentCardInfoData.skillsHtml) {
+      cardInfoText.innerHTML = currentCardInfoData.skillsHtml;
+    } else {
+      cardInfoText.textContent = currentCardInfoData.skillsText;
+    }
   });
   cardInfoOutfitsBtn?.addEventListener("click", () => {
     if (!currentCardInfoData?.outfitsEnabled) return;
