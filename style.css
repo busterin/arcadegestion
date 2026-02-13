@@ -961,12 +961,12 @@ img{ max-width:100%; height:auto; }
   position:relative;
   border-radius: var(--radius);
   background:
-    linear-gradient(0deg, rgba(7,12,23,.44), rgba(7,12,23,.44)),
-    url("misiones/fondobosque.png") center center / cover no-repeat,
     radial-gradient(800px 500px at 70% 30%, rgba(85,214,255,.10), transparent 55%),
     linear-gradient(0deg, rgba(255,255,255,.06), rgba(255,255,255,.06)),
     repeating-linear-gradient(90deg, rgba(255,255,255,.05), rgba(255,255,255,.05) 1px, transparent 1px, transparent 56px),
-    repeating-linear-gradient(0deg, rgba(255,255,255,.05), rgba(255,255,255,.05) 1px, transparent 1px, transparent 56px);
+    repeating-linear-gradient(0deg, rgba(255,255,255,.05), rgba(255,255,255,.05) 1px, transparent 1px, transparent 56px),
+    linear-gradient(0deg, rgba(7,12,23,.42), rgba(7,12,23,.42)),
+    url("misiones/fondobosque.png") center center / cover no-repeat;
   border: 1px solid rgba(255,255,255,.10);
   overflow:hidden;
   box-shadow: var(--shadow);
@@ -1629,11 +1629,20 @@ img{ max-width:100%; height:auto; }
 
 .team-card.selected{
   transform: none;
+  box-shadow: 0 10px 20px rgba(58,208,255,.25);
+  filter: saturate(1.2) brightness(1.08);
+}
+
+.team-card.selected::after{
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
   box-shadow:
     inset 0 0 0 2px rgba(255, 255, 255, .92),
-    inset 0 0 0 6px rgba(58,208,255,.55),
-    0 10px 20px rgba(58,208,255,.25);
-  filter: saturate(1.2) brightness(1.08);
+    inset 0 0 0 6px rgba(58,208,255,.55);
+  pointer-events: none;
+  z-index: 2;
 }
 
 .rival-team-grid{
