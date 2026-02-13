@@ -26,6 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const DEFAULT_VERSUS_WS_URL = "wss://arcadegestion.onrender.com/versus";
   const RECRUIT_STORAGE_KEY = "arcadegestion_recruits_v1";
   const RECRUIT_LAST_STORAGE_KEY = "arcadegestion_last_recruit_v1";
+  const STORY_CONTINUE_KEY = "arcadegestion_story_continue_v1";
   const STORY_SAVE_SLOTS_KEY = "arcadegestion_story_save_slots_v1";
   const USER_PROFILE_AVATAR_KEY = "arcadegestion_user_profile_avatar_v1";
   const USER_PROFILE_NAME_KEY = "arcadegestion_user_profile_name_v1";
@@ -224,6 +225,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const tutorialText = document.getElementById("tutorialText");
   const tutorialNextBtn = document.getElementById("tutorialNextBtn");
   const storyEntryModal = document.getElementById("storyEntryModal");
+  const storyContinueBtn = document.getElementById("storyContinueBtn");
   const storyNewGameBtn = document.getElementById("storyNewGameBtn");
   const storyLoadGameBtn = document.getElementById("storyLoadGameBtn");
   const storyEntryBackBtn = document.getElementById("storyEntryBackBtn");
@@ -495,6 +497,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let storyJackCompleted = false;
   let storyCombatStartAt = 0;
   let failedMissionsCount = 0;
+  let storyContinueSnapshot = loadStoryContinueSnapshot();
   let storySaveSlots = loadStorySaveSlots();
   let finalModalPrimaryAction = null;
   const modalFocusReturnMap = new WeakMap();
@@ -700,6 +703,254 @@ document.addEventListener("DOMContentLoaded", () => {
         applyStorySaveState(slot.state);
       });
     });
+  }
+
+  function loadStoryContinueSnapshot() {
+    try {
+      const raw = window.localStorage?.getItem(STORY_CONTINUE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      return parsed && typeof parsed === "object" ? parsed : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function persistStoryContinueSnapshot(snapshot) {
+    try {
+      if (!snapshot) {
+        window.localStorage?.removeItem(STORY_CONTINUE_KEY);
+        storyContinueSnapshot = null;
+        return;
+      }
+      window.localStorage?.setItem(STORY_CONTINUE_KEY, JSON.stringify(snapshot));
+      storyContinueSnapshot = snapshot;
+    } catch {
+      // ignore storage errors
+    }
+  }
+
+  function hasStoryContinueSnapshot() {
+    return !!(storyContinueSnapshot && typeof storyContinueSnapshot === "object");
+  }
+
+  function isStoryContextVisible() {
+    const storyVisible = !!(storyScreen && !storyScreen.classList.contains("hidden"));
+    const storyCombatVisible = !!(gameRoot && !gameRoot.classList.contains("hidden") && storyCombatActive);
+    return storyVisible || storyCombatVisible;
+  }
+
+  function serializeActivePointsForContinue() {
+    const out = [];
+    for (const [missionId, st] of activePoints.entries()) {
+      if (!st?.mission) continue;
+      out.push({
+        missionId,
+        xPct: st.xPct,
+        yPct: st.yPct,
+        phase: st.phase === "resolving" ? "ready" : st.phase,
+        remainingMs: Number(st.remainingMs) || 0,
+        execRemainingMs: Number(st.execRemainingMs) || 0,
+        chance: Number.isFinite(st.chance) ? st.chance : null,
+        assignedCharIds: [...(st.assignedCharIds || [])],
+        forceBlue: !!st.pointEl?.classList.contains("special-blue")
+      });
+    }
+    return out;
+  }
+
+  function buildStoryContinueSnapshot() {
+    if (!isStoryContextVisible()) return null;
+
+    if (!storyCombatActive) {
+      return {
+        v: 1,
+        mode: "story",
+        savedAt: Date.now(),
+        state: {
+          storyPhase,
+          storyStep,
+          storyCombatStage,
+          storyJackUnlocked,
+          storyJackCompleted
+        }
+      };
+    }
+
+    const pool = getMissionPoolForCurrentMode();
+    const activeMissionIds = new Set([...activePoints.keys()]);
+    const pendingMissionIds = [...pendingMissions]
+      .map((m) => m?.id)
+      .filter((id) => id && !activeMissionIds.has(id) && !completedMissionIds.has(id));
+    const elapsedCombatMs = storyCombatStartAt > 0 ? Math.max(0, performance.now() - storyCombatStartAt) : 0;
+
+    return {
+      v: 1,
+      mode: "combat",
+      savedAt: Date.now(),
+      state: {
+        storyPhase,
+        storyStep,
+        storyCombatActive,
+        storyCombatStage,
+        storyJackUnlocked,
+        storyJackCompleted,
+        tutorialPending,
+        score,
+        failedMissionsCount,
+        selectedTeamCardIds: [...selectedTeamCardIds],
+        avatarIndex,
+        specialUsed,
+        specialArmed,
+        completedMissionIds: [...completedMissionIds],
+        lockedCharIds: [...lockedCharIds],
+        injuredCharIds: [...injuredCharIds],
+        eliminatedCharIds: [...eliminatedCharIds],
+        pendingMissionIds: pendingMissionIds.filter((id) => pool.some((m) => m.id === id)),
+        activePoints: serializeActivePointsForContinue(),
+        missionPickFromBarActive,
+        currentMissionId,
+        selectedCharIds: [...selectedCharIds],
+        elapsedCombatMs
+      }
+    };
+  }
+
+  function saveStoryContinueSnapshot() {
+    const snapshot = buildStoryContinueSnapshot();
+    if (snapshot) persistStoryContinueSnapshot(snapshot);
+  }
+
+  function restoreStoryDialogState(state) {
+    resetGame();
+    selectedMode = "arcade";
+    currentMode = "arcade";
+    storyCombatActive = false;
+    storyCombatStage = Number(state?.storyCombatStage) === 2 ? 2 : 0;
+    storyJackUnlocked = !!state?.storyJackUnlocked;
+    storyJackCompleted = !!state?.storyJackCompleted;
+    storyPhase = ["pre", "post", "epilogue"].includes(state?.storyPhase) ? state.storyPhase : "pre";
+    storyStep = Math.max(0, Math.floor(Number(state?.storyStep) || 0));
+
+    introScreen.classList.add("hidden");
+    recruitScreen?.classList.add("hidden");
+    storeScreen?.classList.add("hidden");
+    userScreen?.classList.add("hidden");
+    startScreen.classList.add("hidden");
+    teamScreen.classList.add("hidden");
+    gameRoot.classList.add("hidden");
+    storyScreen?.classList.remove("hidden");
+
+    const scenes = getStorySceneList();
+    storyStep = clamp(storyStep, 0, Math.max(0, scenes.length - 1));
+    renderStoryStep();
+    resetViewportTop();
+    return true;
+  }
+
+  function restoreStoryCombatState(state) {
+    const stage = Number(state?.storyCombatStage) === 2 ? 2 : 1;
+    resetGame();
+    selectedMode = "arcade";
+    currentMode = "arcade";
+    storyCombatActive = true;
+    storyCombatStage = stage;
+    storyPhase = "combat";
+    storyJackUnlocked = !!state?.storyJackUnlocked;
+    storyJackCompleted = !!state?.storyJackCompleted;
+    tutorialPending = !!state?.tutorialPending;
+    storyStep = Math.max(0, Math.floor(Number(state?.storyStep) || 0));
+    storyCombatStartAt = performance.now() - Math.max(0, Number(state?.elapsedCombatMs) || 0);
+
+    const savedTeamIds = Array.isArray(state?.selectedTeamCardIds) ? state.selectedTeamCardIds : [];
+    if (!applyTeamFromCardIds(savedTeamIds)) {
+      if (!applyTeamFromCardIds(["card_celia", "card_castri", "card_lorena"])) {
+        goToTeamScreen();
+        return false;
+      }
+      selectedTeamCardIds = new Set(["card_celia", "card_castri", "card_lorena"]);
+    } else {
+      selectedTeamCardIds = new Set(savedTeamIds);
+    }
+
+    const avatars = clampAvatarIndex();
+    const savedAvatarIndex = Number(state?.avatarIndex);
+    avatarIndex = Number.isInteger(savedAvatarIndex) ? clamp(savedAvatarIndex, 0, Math.max(0, avatars.length - 1)) : 0;
+    renderAvatarCarousel(0);
+
+    score = Math.max(0, Math.floor(Number(state?.score) || 0));
+    failedMissionsCount = Math.max(0, Math.floor(Number(state?.failedMissionsCount) || 0));
+    completedMissionIds = new Set(Array.isArray(state?.completedMissionIds) ? state.completedMissionIds : []);
+    lockedCharIds = new Set(Array.isArray(state?.lockedCharIds) ? state.lockedCharIds : []);
+    injuredCharIds = new Set(Array.isArray(state?.injuredCharIds) ? state.injuredCharIds : []);
+    eliminatedCharIds = new Set(Array.isArray(state?.eliminatedCharIds) ? state.eliminatedCharIds : []);
+    activePoints = new Map();
+
+    const pool = getMissionPoolForCurrentMode();
+    const byId = new Map(pool.map((m) => [m.id, m]));
+    const savedPendingIds = Array.isArray(state?.pendingMissionIds) ? state.pendingMissionIds : [];
+    pendingMissions = savedPendingIds
+      .map((id) => byId.get(id))
+      .filter(Boolean);
+
+    const savedPoints = Array.isArray(state?.activePoints) ? state.activePoints : [];
+    savedPoints.forEach((entry) => {
+      const mission = byId.get(entry?.missionId);
+      if (!mission || completedMissionIds.has(mission.id)) return;
+      const created = createMissionPoint(mission, {
+        xPct: Number(entry?.xPct),
+        yPct: Number(entry?.yPct),
+        forceBlue: !!entry?.forceBlue
+      });
+      if (!created) return;
+      const st = activePoints.get(mission.id);
+      if (!st) return;
+      st.remainingMs = Math.max(0, Number(entry?.remainingMs) || MISSION_LIFETIME_MS);
+      st.execRemainingMs = Math.max(0, Number(entry?.execRemainingMs) || 0);
+      st.assignedCharIds = new Set(Array.isArray(entry?.assignedCharIds) ? entry.assignedCharIds : []);
+      st.chance = Number.isFinite(Number(entry?.chance)) ? Number(entry.chance) : null;
+      st.phase = ["spawned", "executing", "ready"].includes(entry?.phase) ? entry.phase : "spawned";
+      st.lastTickAt = performance.now();
+      st.pointEl.classList.remove("assigned", "ready");
+      if (st.phase === "executing") st.pointEl.classList.add("assigned");
+      if (st.phase === "ready") st.pointEl.classList.add("ready");
+    });
+
+    refillPendingMissions();
+
+    introScreen.classList.add("hidden");
+    storyScreen?.classList.add("hidden");
+    recruitScreen?.classList.add("hidden");
+    storeScreen?.classList.add("hidden");
+    userScreen?.classList.add("hidden");
+    startScreen.classList.add("hidden");
+    teamScreen.classList.add("hidden");
+    gameRoot.classList.remove("hidden");
+
+    startGame();
+    specialUsed = !!state?.specialUsed;
+    specialArmed = !!state?.specialArmed;
+    setSpecialArmedUI(specialArmed && !specialUsed);
+    updateHud();
+
+    if (state?.missionPickFromBarActive && state?.currentMissionId && activePoints.has(state.currentMissionId)) {
+      startMissionBarSelection(state.currentMissionId);
+      selectedCharIds = new Set(Array.isArray(state?.selectedCharIds) ? state.selectedCharIds : []);
+      updateTeamBarAvailability();
+    }
+
+    if (storyCombatActive && storyCombatStage === 2 && storyJackUnlocked && !completedMissionIds.has(STORY_JACK_MISSION_ID)) {
+      startStoryJackCountdown();
+    }
+    return true;
+  }
+
+  function continueStoryFromSnapshot() {
+    const snapshot = loadStoryContinueSnapshot();
+    if (!snapshot || typeof snapshot !== "object") return false;
+    storyContinueSnapshot = snapshot;
+    if (snapshot.mode === "combat") return restoreStoryCombatState(snapshot.state);
+    return restoreStoryDialogState(snapshot.state);
   }
 
   function loadCoins() {
@@ -1465,6 +1716,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function setIntroVisible() {
+    if (isStoryContextVisible()) saveStoryContinueSnapshot();
     if (isEditingUserName) endUserNameEdit(true);
     const targetMenuKey = resolveIntroMenuKeyFromContext();
     const targetIndex = INTRO_MENU_OPTIONS.findIndex((option) => option.key === targetMenuKey);
@@ -1573,9 +1825,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function openStoryEntryModal() {
+    storyContinueSnapshot = loadStoryContinueSnapshot();
     storySaveSlots = loadStorySaveSlots();
     storyLoadPanel?.classList.add("hidden");
     if (storyLoadGameBtn) storyLoadGameBtn.textContent = "Cargar partida";
+    storyContinueBtn?.classList.toggle("hidden", !hasStoryContinueSnapshot());
     showModal(storyEntryModal);
   }
 
@@ -3596,6 +3850,10 @@ document.addEventListener("DOMContentLoaded", () => {
     hideModal(storyEntryModal);
     goToStoryScreen();
   });
+  storyContinueBtn?.addEventListener("click", () => {
+    hideModal(storyEntryModal);
+    if (!continueStoryFromSnapshot()) goToStoryScreen();
+  });
   storyLoadGameBtn?.addEventListener("click", toggleStoryLoadPanel);
   storyEntryBackBtn?.addEventListener("click", () => hideModal(storyEntryModal));
   storyEntryModal?.addEventListener("click", (e) => {
@@ -3665,10 +3923,15 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   window.addEventListener("beforeunload", () => {
+    if (isStoryContextVisible()) saveStoryContinueSnapshot();
     if (versus.opponentId) {
       versusSend({ type: "vs_leave", from: versus.clientId, to: versus.opponentId, ts: Date.now() });
     }
   });
+
+  setInterval(() => {
+    if (isStoryContextVisible()) saveStoryContinueSnapshot();
+  }, 2500);
 
   renderAvatarCarousel(0);
   renderIntroMenu(0);
