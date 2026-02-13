@@ -3525,6 +3525,19 @@ document.addEventListener("DOMContentLoaded", () => {
     st.assignedCharIds = new Set(selectedCharIds);
     st.chance = computeChance(st.mission, st.assignedCharIds);
 
+    const maxChars = getMissionMaxChars(st.mission);
+    const camus = CHARACTERS.find((ch) => String(ch.name).toLowerCase() === "camus");
+    const camusSkillTriggered = !!(
+      storyCombatActive &&
+      camus &&
+      st.assignedCharIds.has(camus.id) &&
+      isStorySkillUnlocked(camus.id) &&
+      st.assignedCharIds.size < maxChars
+    );
+    if (camusSkillTriggered) {
+      showGameStatusNotice("Camus creará una copia de sí mismo para acompañarlo en la misión.", "warn");
+    }
+
     for (const cid of st.assignedCharIds) lockedCharIds.add(cid);
     updateTeamBarAvailability();
 
