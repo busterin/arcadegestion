@@ -92,6 +92,14 @@ document.addEventListener("DOMContentLoaded", () => {
     { key: "landom", name: "Landom", src: "images/Landom.png?v=20260210-4", accountSrc: "images/Landom2.png", alt: "Landom", unlockRecruitCharId: "c10" },
   ].sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
 
+  const storyProgress = window.createStoryProgressModule({
+    characters: CHARACTERS,
+    recruitableCharacters: RECRUITABLE_CHARACTERS,
+    cards: CARDS,
+    recruitableCards: RECRUITABLE_CARDS,
+    avatars: AVATARS
+  });
+
   const introScreen = document.getElementById("introScreen");
   const introPrevBtn = document.getElementById("introPrevBtn");
   const introNextBtn = document.getElementById("introNextBtn");
@@ -504,7 +512,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let storyJackCompleted = false;
   let storyCombatStartAt = 0;
   let failedMissionsCount = 0;
-  let storyCharacterProgress = createInitialStoryCharacterProgress();
+  let storyCharacterProgress = storyProgress.createInitialProgress();
   let storyLevelUpQueue = [];
   let storyContinueSnapshot = loadStoryContinueSnapshot();
   let storySaveSlots = loadStorySaveSlots();
@@ -551,105 +559,9 @@ document.addEventListener("DOMContentLoaded", () => {
     return Array.from({ length: STORY_SAVE_SLOT_COUNT }, () => null);
   }
 
-  function getAllStoryCharacters() {
-    return [...CHARACTERS, ...RECRUITABLE_CHARACTERS];
-  }
-
-  const STORY_PASSIVE_SKILLS = {
-    c7: {
-      name: "Organizar la retaguardia",
-      description: "Los personajes con etiqueta a distancia aumentan +20% su probabilidad de éxito si van acompañados de Jane."
-    },
-    c1: {
-      name: "Guerrera solitaria",
-      description: "Si Winchester va sola a una misión y tiene éxito, obtiene el doble de experiencia."
-    },
-    c3: {
-      name: "Doppelganger",
-      description: "Si Camus va a una misión y quedan huecos libres, crea copias para ocuparlos con sus mismos atributos."
-    }
-  };
-
-  function createInitialStoryCharacterProgress() {
-    const base = {};
-    getAllStoryCharacters().forEach((ch) => {
-      base[ch.id] = { points: 0, level: 1 };
-    });
-    return base;
-  }
-
-  function normalizeStoryCharacterProgress(raw) {
-    const base = createInitialStoryCharacterProgress();
-    if (!raw || typeof raw !== "object") return base;
-    Object.keys(base).forEach((charId) => {
-      const points = Number(raw?.[charId]?.points);
-      const level = Number(raw?.[charId]?.level);
-      const safePoints = Number.isFinite(points) ? Math.max(0, Math.floor(points)) : 0;
-      const derivedLevel = Math.floor(safePoints / 3) + 1;
-      const safeLevel = Number.isFinite(level) ? Math.max(1, Math.floor(level)) : derivedLevel;
-      base[charId] = {
-        points: safePoints,
-        level: Math.max(safeLevel, derivedLevel)
-      };
-    });
-    return base;
-  }
-
-  function getCharacterDisplayById(charId) {
-    const char = getAllStoryCharacters().find((ch) => ch.id === charId);
-    if (!char) return { name: "Personaje", img: "images/mision.png" };
-    const card = [...CARDS, ...RECRUITABLE_CARDS].find((c) => c.name === char.name);
-    const avatar = AVATARS.find((a) => a.name === char.name);
-    const img = card?.img || avatar?.accountSrc || avatar?.src || "images/mision.png";
-    return { name: char.name, img };
-  }
-
-  function getStoryCharacterByName(name) {
-    const target = String(name || "").trim().toLowerCase();
-    if (!target) return null;
-    return getAllStoryCharacters().find((item) => item.name.toLowerCase() === target) || null;
-  }
-
-  function isStorySkillUnlocked(charId) {
-    const level = Number(storyCharacterProgress?.[charId]?.level);
-    return Number.isFinite(level) && level >= 2;
-  }
-
-  function escapeHtml(raw) {
-    return String(raw || "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#39;");
-  }
-
-  function getCardSkillsHtml(cardName) {
-    const ch = getStoryCharacterByName(cardName);
-    const passive = ch ? STORY_PASSIVE_SKILLS[ch.id] : null;
-    if (!passive) return null;
-    const unlocked = isStorySkillUnlocked(ch.id);
-    return `
-      <div class="card-skills">
-        <article class="card-skill${unlocked ? "" : " locked"}">
-          <div class="card-skill-name">${escapeHtml(passive.name)}</div>
-          <div class="card-skill-state">${unlocked ? "Desbloqueada" : "Bloqueada (se desbloquea en Nivel 2)"}</div>
-          <div class="card-skill-desc">${escapeHtml(passive.description)}</div>
-        </article>
-      </div>
-    `;
-  }
-
-  function getStoryCharacterLevelByName(name) {
-    const ch = getStoryCharacterByName(name);
-    if (!ch) return 1;
-    const level = Number(storyCharacterProgress?.[ch.id]?.level);
-    return Number.isFinite(level) && level >= 1 ? Math.floor(level) : 1;
-  }
-
   function enqueueStoryLevelUp(charId, nextLevel) {
-    const display = getCharacterDisplayById(charId);
-    const unlockedSkill = nextLevel >= 2 && !!STORY_PASSIVE_SKILLS[charId];
+    const display = storyProgress.getCharacterDisplayById(charId);
+    const unlockedSkill = nextLevel >= 2 && storyProgress.hasPassiveSkill(charId);
     storyLevelUpQueue.push({
       name: display.name,
       img: display.img,
@@ -707,7 +619,7 @@ document.addEventListener("DOMContentLoaded", () => {
       winchester &&
       assigned.length === 1 &&
       assigned[0] === winchester.id &&
-      isStorySkillUnlocked(winchester.id)
+      storyProgress.isSkillUnlocked(storyCharacterProgress, winchester.id)
     );
 
     assigned.forEach((charId) => {
@@ -731,7 +643,7 @@ document.addEventListener("DOMContentLoaded", () => {
         storyStep: Number.isFinite(step) ? Math.max(0, Math.floor(step)) : 0,
         storyCombatActive: !!raw?.state?.storyCombatActive,
         storyCombatStage: stage === 2 ? 2 : 1,
-        storyCharacterProgress: normalizeStoryCharacterProgress(raw?.state?.storyCharacterProgress)
+        storyCharacterProgress: storyProgress.normalizeProgress(raw?.state?.storyCharacterProgress)
       }
     };
   }
@@ -811,7 +723,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const normalized = normalizeStorySaveSlot({ savedAt: Date.now(), label: "", state });
     if (!normalized) return false;
     const payload = normalized.state;
-    storyCharacterProgress = normalizeStoryCharacterProgress(payload.storyCharacterProgress);
+    storyCharacterProgress = storyProgress.normalizeProgress(payload.storyCharacterProgress);
 
     if (payload.storyCombatActive) {
       startStoryCombat(payload.storyCombatStage);
@@ -1008,7 +920,7 @@ document.addEventListener("DOMContentLoaded", () => {
     storyCombatStage = Number(state?.storyCombatStage) === 2 ? 2 : 0;
     storyJackUnlocked = !!state?.storyJackUnlocked;
     storyJackCompleted = !!state?.storyJackCompleted;
-    storyCharacterProgress = normalizeStoryCharacterProgress(state?.storyCharacterProgress);
+    storyCharacterProgress = storyProgress.normalizeProgress(state?.storyCharacterProgress);
     storyPhase = ["pre", "post", "epilogue"].includes(state?.storyPhase) ? state.storyPhase : "pre";
     storyStep = Math.max(0, Math.floor(Number(state?.storyStep) || 0));
 
@@ -1038,7 +950,7 @@ document.addEventListener("DOMContentLoaded", () => {
     storyPhase = "combat";
     storyJackUnlocked = !!state?.storyJackUnlocked;
     storyJackCompleted = !!state?.storyJackCompleted;
-    storyCharacterProgress = normalizeStoryCharacterProgress(state?.storyCharacterProgress);
+    storyCharacterProgress = storyProgress.normalizeProgress(state?.storyCharacterProgress);
     tutorialPending = !!state?.tutorialPending;
     storyStep = Math.max(0, Math.floor(Number(state?.storyStep) || 0));
     storyCombatStartAt = performance.now() - Math.max(0, Number(state?.elapsedCombatMs) || 0);
@@ -2060,7 +1972,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function goToStoryScreen() {
-    storyCharacterProgress = createInitialStoryCharacterProgress();
+    storyCharacterProgress = storyProgress.createInitialProgress();
     storyLevelUpQueue = [];
     introScreen.classList.add("hidden");
     recruitScreen?.classList.add("hidden");
@@ -2310,7 +2222,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const participants = [...chosenList];
 
     const camus = CHARACTERS.find((ch) => String(ch.name).toLowerCase() === "camus");
-    const camusUnlocked = !!(storyCombatActive && camus && participants.includes(camus.id) && isStorySkillUnlocked(camus.id));
+    const camusUnlocked = !!(storyCombatActive && camus && participants.includes(camus.id) && storyProgress.isSkillUnlocked(storyCharacterProgress, camus.id));
     if (camusUnlocked && participants.length < maxChars) {
       const clones = maxChars - participants.length;
       for (let i = 0; i < clones; i++) participants.push(camus.id);
@@ -2328,7 +2240,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const jane = CHARACTERS.find((ch) => String(ch.name).toLowerCase() === "jane");
-    const janeUnlocked = !!(storyCombatActive && jane && participants.includes(jane.id) && isStorySkillUnlocked(jane.id));
+    const janeUnlocked = !!(storyCombatActive && jane && participants.includes(jane.id) && storyProgress.isSkillUnlocked(storyCharacterProgress, jane.id));
     if (janeUnlocked) {
       participants.forEach((cid) => {
         if (cid === jane.id) return;
@@ -3535,7 +3447,7 @@ document.addEventListener("DOMContentLoaded", () => {
       storyCombatActive &&
       camus &&
       st.assignedCharIds.has(camus.id) &&
-      isStorySkillUnlocked(camus.id) &&
+      storyProgress.isSkillUnlocked(storyCharacterProgress, camus.id) &&
       st.assignedCharIds.size < maxChars
     );
     if (camusSkillTriggered) {
@@ -3666,7 +3578,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const specialInfo = SPECIAL_CARD_INFO[cardName];
     const isWinchester = cardName === "winchester";
     const winchesterAltOwned = purchasedStoreItems.has(WINCHESTER_STORE_ITEM_ID);
-    const skillsHtml = getCardSkillsHtml(cardData.name);
+    const skillsHtml = storyProgress.getCardSkillsHtml(cardData.name, storyCharacterProgress);
     currentCardInfoData = {
       infoText: specialInfo?.infoText || cardData?.infoText || "En construcción",
       skillsText: specialInfo?.skillsText || cardData?.skillsText || "En construcción",
@@ -3678,7 +3590,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (cardInfoLevel) {
       const showLevel = isStoryContextVisible();
       if (showLevel) {
-        cardInfoLevel.textContent = `Nivel ${getStoryCharacterLevelByName(cardData.name)}`;
+        cardInfoLevel.textContent = `Nivel ${storyProgress.getCharacterLevelByName(cardData.name, storyCharacterProgress)}`;
       }
       cardInfoLevel.classList.toggle("hidden", !showLevel);
     }
