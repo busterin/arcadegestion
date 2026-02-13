@@ -1132,7 +1132,8 @@ img{ max-width:100%; height:auto; }
 }
 
 .mission-bar-picker{
-  margin: 0 14px 10px;
+  margin: 0 auto 10px;
+  width: min(980px, calc(100% - 28px));
   padding: 10px 12px;
   border-radius: 14px;
   border: 1px solid rgba(255,255,255,.14);
@@ -1141,16 +1142,23 @@ img{ max-width:100%; height:auto; }
 }
 .mission-bar-title{
   font-weight: 800;
-  font-size: 14px;
+  font-size: 18px;
+  text-align: center;
 }
 .mission-bar-text{
   margin-top: 4px;
-  font-size: 12px;
+  font-size: 16px;
+  line-height: 1.45;
+  max-width: 760px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
   color: var(--muted);
 }
 .mission-bar-hint{
   margin-top: 6px;
-  font-size: 12px;
+  font-size: 15px;
+  text-align: center;
   color: rgba(233,238,252,.95);
 }
 .mission-bar-actions{
@@ -1443,6 +1451,29 @@ img{ max-width:100%; height:auto; }
   margin-top: 10px;
   border: 1px solid rgba(255,255,255,.10);
   box-shadow: 0 12px 26px rgba(0,0,0,.25);
+}
+
+#missionModal .modal-head > div{
+  width: 100%;
+}
+
+#missionModal .modal-title{
+  font-size: clamp(24px, 2.6vw, 34px);
+  text-align: center;
+}
+
+#missionText{
+  font-size: clamp(18px, 1.8vw, 24px);
+  line-height: 1.55;
+  max-width: 760px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+#missionChooseTitle{
+  font-size: clamp(18px, 1.6vw, 24px);
+  text-align: center;
 }
 @media (min-width: 821px){
   .mission-img{
@@ -1786,9 +1817,9 @@ img{ max-width:100%; height:auto; }
     margin: 0 10px 8px;
     padding: 8px 10px;
   }
-  .mission-bar-title{ font-size: 13px; }
-  .mission-bar-text{ font-size: 11px; }
-  .mission-bar-hint{ font-size: 11px; }
+  .mission-bar-title{ font-size: 16px; }
+  .mission-bar-text{ font-size: 13px; }
+  .mission-bar-hint{ font-size: 13px; }
 }
 
 /* ---------- INTRO BACKGROUND ---------- */
