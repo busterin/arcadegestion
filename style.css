@@ -1094,6 +1094,18 @@ img{ max-width:100%; height:auto; }
 }
 .modal.show{ display:flex; }
 
+.chapter-splash-modal{
+  padding: 0;
+  background: #000;
+}
+
+.chapter-splash-img{
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  display: block;
+}
+
 .modal-card{
   width:min(720px, 100%);
   max-height: 86vh;

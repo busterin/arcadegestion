@@ -250,6 +250,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const storyLevelUpLevel = document.getElementById("storyLevelUpLevel");
   const storyLevelUpNote = document.getElementById("storyLevelUpNote");
   const storyLevelUpOkBtn = document.getElementById("storyLevelUpOkBtn");
+  const storyChapterSplashModal = document.getElementById("storyChapterSplashModal");
 
   const matchmakingModal = document.getElementById("matchmakingModal");
   const matchmakingText = document.getElementById("matchmakingText");
@@ -547,6 +548,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let storyCombatActive = false;
   let storyCombatStage = 0;
   let storyJackSpawnTimer = null;
+  let storyChapterSplashTimer = null;
   let storyJackUnlocked = false;
   let storyJackCompleted = false;
   let storyCombatStartAt = 0;
@@ -1604,6 +1606,7 @@ document.addEventListener("DOMContentLoaded", () => {
       cardInfoModal.classList.contains("show") ||
       specialModal.classList.contains("show") ||
       effectModal?.classList.contains("show") ||
+      storyChapterSplashModal?.classList.contains("show") ||
       tutorialModal.classList.contains("show") ||
       rivalTeamModal.classList.contains("show") ||
       storyEntryModal?.classList.contains("show") ||
@@ -1713,7 +1716,8 @@ document.addEventListener("DOMContentLoaded", () => {
     hideModal(cardInfoModal);
     hideModal(specialModal);
     hideModal(effectModal);
-
+    hideModal(storyChapterSplashModal);
+    clearTimeout(storyChapterSplashTimer);
     const elapsedMs = storyCombatStartAt > 0 ? (performance.now() - storyCombatStartAt) : 0;
     finalTitleEl.textContent = "MISIÓN COMPLETADA";
     if (finalLabelEl) finalLabelEl.textContent = "Misiones completadas";
@@ -1723,22 +1727,27 @@ document.addEventListener("DOMContentLoaded", () => {
       finalText.innerHTML = `Tutorial superado.<br/>Fallos: <b>${failedMissionsCount}</b><br/>Tiempo: <b>${formatDuration(elapsedMs)}</b>`;
     }
     setFinalModalPrimaryAction("Continuar", () => {
-      resetGame();
-      storyCombatActive = false;
-      storyCombatStage = 0;
-      storyPhase = "post";
-      storyStep = 0;
-      introScreen.classList.add("hidden");
-      storyScreen?.classList.remove("hidden");
-      recruitScreen?.classList.add("hidden");
-      storeScreen?.classList.add("hidden");
-      userScreen?.classList.add("hidden");
-      startScreen.classList.add("hidden");
-      teamScreen.classList.add("hidden");
-      gameRoot.classList.add("hidden");
-      resetViewportTop();
-      renderStoryStep();
-      openStorySavePrompt();
+      setGlobalPause(true);
+      showModal(storyChapterSplashModal);
+      storyChapterSplashTimer = setTimeout(() => {
+        hideModal(storyChapterSplashModal);
+        resetGame();
+        storyCombatActive = false;
+        storyCombatStage = 0;
+        storyPhase = "post";
+        storyStep = 0;
+        introScreen.classList.add("hidden");
+        storyScreen?.classList.remove("hidden");
+        recruitScreen?.classList.add("hidden");
+        storeScreen?.classList.add("hidden");
+        userScreen?.classList.add("hidden");
+        startScreen.classList.add("hidden");
+        teamScreen.classList.add("hidden");
+        gameRoot.classList.add("hidden");
+        resetViewportTop();
+        renderStoryStep();
+        openStorySavePrompt();
+      }, 4000);
     });
 
     setGlobalPause(true);
@@ -3244,7 +3253,9 @@ document.addEventListener("DOMContentLoaded", () => {
     clearInterval(lifeTicker);
     clearTimeout(spawnTimer);
     clearTimeout(storyJackSpawnTimer);
+    clearTimeout(storyChapterSplashTimer);
     storyJackSpawnTimer = null;
+    storyChapterSplashTimer = null;
     clearInterval(gameClockTimer);
     clearInterval(trainEffectTimer);
     gameClockTimer = null;
@@ -3965,6 +3976,7 @@ document.addEventListener("DOMContentLoaded", () => {
     hideModal(matchmakingModal);
     hideModal(rivalTeamModal);
     hideModal(storyLevelUpModal);
+    hideModal(storyChapterSplashModal);
 
     stopGameLoops();
 
