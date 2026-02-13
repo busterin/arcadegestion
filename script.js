@@ -3470,10 +3470,17 @@ document.addEventListener("DOMContentLoaded", () => {
     rouletteOutcome.textContent = "";
     rouletteOkBtn.disabled = true;
 
-    const greenPct = clamp(chance, 0.01, 0.99) * 100;
+    const normalizedChance = clamp(chance, 0, 1);
+    const greenPct = normalizedChance * 100;
     const greenDeg = (greenPct / 100) * 360;
     if (rouletteSub) rouletteSub.textContent = "Probabilidad de éxito: " + Math.round(greenPct) + "%";
-    rouletteWheel.style.background = `conic-gradient(from 0deg, var(--ok) 0deg ${greenDeg}deg, var(--danger) ${greenDeg}deg 360deg)`;
+    if (greenPct >= 100) {
+      rouletteWheel.style.background = "var(--ok)";
+    } else if (greenPct <= 0) {
+      rouletteWheel.style.background = "var(--danger)";
+    } else {
+      rouletteWheel.style.background = `conic-gradient(from 0deg, var(--ok) 0deg ${greenDeg}deg, var(--danger) ${greenDeg}deg 360deg)`;
+    }
     rouletteWheel.style.boxShadow = "0 0 0 4px rgba(255,255,255,.18), 0 0 24px rgba(46,229,157," + (0.2 + (greenPct / 200)) + ")";
     rouletteWheel.style.transform = "rotate(0deg)";
 
