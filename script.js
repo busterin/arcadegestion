@@ -503,6 +503,14 @@ document.addEventListener("DOMContentLoaded", () => {
     "Si la ruleta se detiene en la zona verde, completarás la misión con éxito. Si se detiene en el color rojo, fallarás. El porcentaje de verde o rojo depende de los personajes que hayas enviado a la misión. Completa suficientes misiones para superar la fase.",
     "Todos los líderes tienen una habilidad especial, pulsa sobre ellos para activarla. ¡Buena suerte!"
   ];
+  const BATTLE_BACKGROUND_IMAGES = [
+    "misiones/fondobosque.png",
+    "misiones/fondobarco.png",
+    "misiones/fondociudad.png",
+    "misiones/fondopueblo.png",
+    "misiones/fondocastillo.png",
+    "misiones/fondotren.png"
+  ];
   let storyStep = 0;
   let storyPhase = "pre";
   let storyCombatActive = false;
@@ -512,6 +520,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let storyJackCompleted = false;
   let storyCombatStartAt = 0;
   let failedMissionsCount = 0;
+  let lastBattleBackgroundIndex = -1;
   let storyCharacterProgress = storyProgress.createInitialProgress();
   let storyLevelUpQueue = [];
   let storyContinueSnapshot = loadStoryContinueSnapshot();
@@ -1728,6 +1737,16 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     };
     el.src = primary;
+  }
+
+  function pickRandomBattleBackground() {
+    if (!mapEl || BATTLE_BACKGROUND_IMAGES.length < 1) return;
+    let idx = randInt(0, BATTLE_BACKGROUND_IMAGES.length - 1);
+    if (BATTLE_BACKGROUND_IMAGES.length > 1 && idx === lastBattleBackgroundIndex) {
+      idx = (idx + 1 + randInt(0, BATTLE_BACKGROUND_IMAGES.length - 2)) % BATTLE_BACKGROUND_IMAGES.length;
+    }
+    lastBattleBackgroundIndex = idx;
+    mapEl.style.setProperty("--battle-bg-image", `url("${BATTLE_BACKGROUND_IMAGES[idx]}")`);
   }
 
   function applyStoryScene(scene) {
@@ -3088,6 +3107,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function startGame() {
     teamScreen.classList.add("hidden");
     gameRoot.classList.remove("hidden");
+    pickRandomBattleBackground();
 
     specialUsed = false;
     specialArmed = false;
