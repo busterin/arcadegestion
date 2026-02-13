@@ -5,7 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Protocolo Argo</title>
-<link href="style.css?v=20260213-24" rel="stylesheet"/>
+<link href="style.css?v=20260213-25" rel="stylesheet"/>
 </head>
 <body>
 <div class="app">
@@ -52,28 +52,15 @@
 <section class="start hidden" id="recruitScreen">
 <div class="start-card recruit-card">
 <div class="start-title">Reclutar personaje</div>
-<div class="start-subtitle">Pulsa el cofre y la ruleta elegirá entre Friday, Risko, Pendergast o Landom.</div>
-<div class="recruit-zone">
-<div class="recruit-chest-copy">¡Abre el cofre y desbloquea nuevos personajes o mejora los que ya tienes!</div>
-<div class="recruit-reveal hidden" id="recruitReveal">
-<img alt="Personaje desbloqueado" class="recruit-reveal-img" id="recruitRevealImg" src="images/Friday.PNG"/>
-<div class="recruit-reveal-name" id="recruitRevealName">Friday</div>
-</div>
-<button class="recruit-pack" id="recruitPackBtn" type="button" aria-label="Abrir cofre de reclutamiento">
-<img alt="Cofre de reclutamiento" class="recruit-pack-img" src="images/Sobre1.png"/>
-</button>
-</div>
+<div class="start-subtitle">Compra personajes para desbloquearlos. Cada uno cuesta 10 monedas.</div>
 <div class="recruit-price" id="recruitPrice">
-<span>Precio del cofre: <b>5</b> monedas</span>
+<span>Precio por personaje: <b>10</b> monedas</span>
 <span>Saldo: <b id="recruitCoinsValue">50</b></span>
 </div>
 <div class="recruit-price-hint" id="recruitPriceHint"></div>
-<div class="recruit-result" id="recruitResultText">Aún no has abierto ningún cofre.</div>
-<div class="recruit-unlocked" id="recruitUnlockedText">Desbloqueados: ninguno</div>
-<div class="recruit-odds-wrap">
-<button class="btn btn-ghost" id="recruitOddsBtn" type="button">Ver probabilidades</button>
-<div class="recruit-odds hidden" id="recruitOddsPanel">
-<div class="recruit-odds-list" id="recruitOddsList"></div>
+<div class="recruit-store-grid" id="recruitStoreGrid"></div>
+<div class="recruit-store-empty hidden" id="recruitStoreEmpty">
+Sin existencias. Renovaremos la tienda pronto
 </div>
 </div>
 <div class="modal-actions end" style="margin-top:12px;">
@@ -451,6 +438,6 @@
 </div>
 </div>
 <script src="storyProgress.js?v=20260213-1"></script>
-<script src="script.js?v=20260213-29"></script>
+<script src="script.js?v=20260213-30"></script>
 </body>
 </html>

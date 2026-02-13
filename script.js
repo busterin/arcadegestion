@@ -36,7 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const DEFAULT_PROFILE_AVATAR_SRC = "images/Evelyn2.PNG";
   const DEFAULT_PROFILE_NAME = "Usuario";
   const DEFAULT_COINS = 50;
-  const RECRUIT_PACK_COST = 5;
+  const RECRUIT_CHARACTER_COST = 10;
   const WINCHESTER_DEFAULT_IMG = "images/Winchester.PNG";
   const WINCHESTER_ALT_IMG = "images/Winchester3.png";
   const WINCHESTER_STORE_ITEM_ID = "winchester_outfit_3";
@@ -122,16 +122,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const storySkipBtn = document.getElementById("storySkipBtn");
 
   const recruitScreen = document.getElementById("recruitScreen");
-  const recruitPackBtn = document.getElementById("recruitPackBtn");
-  const recruitResultText = document.getElementById("recruitResultText");
-  const recruitUnlockedText = document.getElementById("recruitUnlockedText");
   const recruitBackBtn = document.getElementById("recruitBackBtn");
-  const recruitReveal = document.getElementById("recruitReveal");
-  const recruitRevealImg = document.getElementById("recruitRevealImg");
-  const recruitRevealName = document.getElementById("recruitRevealName");
-  const recruitOddsBtn = document.getElementById("recruitOddsBtn");
-  const recruitOddsPanel = document.getElementById("recruitOddsPanel");
-  const recruitOddsList = document.getElementById("recruitOddsList");
+  const recruitStoreGrid = document.getElementById("recruitStoreGrid");
+  const recruitStoreEmpty = document.getElementById("recruitStoreEmpty");
   const recruitCoinsValue = document.getElementById("recruitCoinsValue");
   const recruitPriceHint = document.getElementById("recruitPriceHint");
   const storeScreen = document.getElementById("storeScreen");
@@ -303,7 +296,6 @@ document.addEventListener("DOMContentLoaded", () => {
   let introMenuIndex = 0;
   let specialUsed = false;
   let specialArmed = false;
-  let recruitingInProgress = false;
   let unlockedRecruitCharIds = new Set(loadUnlockedRecruitCharIds());
   let currentCardInfoData = null;
   let coins = loadCoins();
@@ -1178,6 +1170,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (userCoinsValue) userCoinsValue.textContent = String(coins);
     if (recruitCoinsValue) recruitCoinsValue.textContent = String(coins);
     if (storeCoinsValue) storeCoinsValue.textContent = String(coins);
+    if (recruitScreen && !recruitScreen.classList.contains("hidden")) renderRecruitShop();
   }
 
   function renderStore() {
@@ -1255,71 +1248,68 @@ document.addEventListener("DOMContentLoaded", () => {
     return avatars;
   }
 
-  function setRecruitRevealByName(name) {
-    if (!recruitReveal || !recruitRevealImg || !recruitRevealName || !name) return;
-    const card = RECRUITABLE_CARDS.find((c) => c.name === name);
-    const avatar = AVATARS.find((a) => a.name === name);
-    if (!card && !avatar) return;
-    recruitReveal.classList.remove("is-risko");
-    recruitRevealImg.src = card?.img || avatar?.accountSrc || avatar?.src || "";
-    recruitRevealImg.alt = card?.name || avatar?.name || "Recluta";
-    recruitRevealName.textContent = card?.name || avatar?.name || name;
-    recruitReveal.classList.remove("hidden");
+  function getRecruitShopLockedCharacters() {
+    const order = new Map([["Landom", 0], ["Pendergast", 1], ["Risko", 2], ["Friday", 3]]);
+    return RECRUITABLE_CHARACTERS
+      .filter((ch) => !unlockedRecruitCharIds.has(ch.id))
+      .sort((a, b) => {
+        const aOrder = order.has(a.name) ? order.get(a.name) : 99;
+        const bOrder = order.has(b.name) ? order.get(b.name) : 99;
+        return aOrder - bOrder;
+      });
   }
 
-  function triggerRecruitRevealFx() {
-    if (!recruitReveal) return;
-    recruitReveal.classList.remove("reveal-burst");
-    void recruitReveal.offsetWidth;
-    recruitReveal.classList.add("reveal-burst");
-  }
+  function renderRecruitShop() {
+    if (!recruitStoreGrid || !recruitStoreEmpty) return;
+    recruitStoreGrid.innerHTML = "";
+    const lockedCharacters = getRecruitShopLockedCharacters();
+    recruitStoreEmpty.classList.toggle("hidden", lockedCharacters.length > 0);
 
-  function renderRecruitUnlockedState() {
-    if (!recruitUnlockedText) return;
-    const unlockedNames = RECRUITABLE_CHARACTERS
-      .filter((ch) => unlockedRecruitCharIds.has(ch.id))
-      .map((ch) => ch.name);
-    recruitUnlockedText.textContent = unlockedNames.length
-      ? `Desbloqueados: ${unlockedNames.join(", ")}`
-      : "Desbloqueados: ninguno";
-  }
-
-  function renderRecruitOdds() {
-    if (!recruitOddsList) return;
-
-    const locked = RECRUITABLE_CHARACTERS.filter((ch) => !unlockedRecruitCharIds.has(ch.id));
-    const pool = locked.length ? locked : RECRUITABLE_CHARACTERS;
-
-    recruitOddsList.innerHTML = "";
-    RECRUITABLE_CHARACTERS.forEach((ch) => {
-      const pct = pool.some((p) => p.id === ch.id) ? (100 / pool.length) : 0;
+    lockedCharacters.forEach((ch) => {
       const card = RECRUITABLE_CARDS.find((c) => c.charId === ch.id) || null;
       const avatar = AVATARS.find((a) => a.unlockRecruitCharId === ch.id || a.name.toLowerCase() === ch.name.toLowerCase()) || null;
       const imgSrc = card?.img || avatar?.accountSrc || avatar?.src || "images/mision.png";
-      const row = document.createElement("button");
-      row.type = "button";
-      row.className = "recruit-odds-row";
-      row.innerHTML = `
-        <span class="recruit-odds-left">
-          <img class="recruit-odds-thumb" src="${imgSrc}" alt="${ch.name}" />
-          <span class="recruit-odds-name">${ch.name}</span>
-        </span>
-        <span class="recruit-odds-pct">${pct.toFixed(1)}%</span>
+
+      const item = document.createElement("article");
+      item.className = "recruit-store-item";
+      item.innerHTML = `
+        <img class="recruit-store-img" src="${imgSrc}" alt="${ch.name}" />
+        <div class="recruit-store-name">${ch.name}</div>
+        <div class="recruit-store-price">Precio: ${RECRUIT_CHARACTER_COST} monedas</div>
+        <button class="btn recruit-buy-btn" data-char-id="${ch.id}" type="button">Comprar</button>
       `;
-      row.addEventListener("click", () => {
+
+      const buyBtn = item.querySelector(".recruit-buy-btn");
+      if (buyBtn) {
+        if (coins < RECRUIT_CHARACTER_COST) {
+          buyBtn.textContent = "Sin monedas";
+          buyBtn.disabled = true;
+        }
+      }
+      item.querySelector(".recruit-store-img")?.addEventListener("click", () => {
         openCardInfo({
           name: ch.name,
           img: imgSrc
         });
       });
-      recruitOddsList.appendChild(row);
+      recruitStoreGrid.appendChild(item);
     });
   }
 
-  function toggleRecruitOdds() {
-    if (!recruitOddsPanel) return;
-    recruitOddsPanel.classList.toggle("hidden");
-    if (!recruitOddsPanel.classList.contains("hidden")) renderRecruitOdds();
+  function buyRecruitCharacter(charId) {
+    const target = RECRUITABLE_CHARACTERS.find((ch) => ch.id === charId);
+    if (!target || unlockedRecruitCharIds.has(target.id)) return;
+    if (!spendCoins(RECRUIT_CHARACTER_COST)) {
+      if (recruitPriceHint) recruitPriceHint.textContent = "No tienes suficientes monedas para comprar este personaje.";
+      renderRecruitShop();
+      return;
+    }
+    unlockedRecruitCharIds.add(target.id);
+    persistUnlockedRecruitCharIds();
+    if (recruitPriceHint) recruitPriceHint.textContent = `${target.name} se ha unido a tu equipo.`;
+    renderRecruitShop();
+    renderUserAvatarPicker();
+    renderUserCollection();
   }
 
   function goToRecruitScreen() {
@@ -1332,61 +1322,10 @@ document.addEventListener("DOMContentLoaded", () => {
     teamScreen.classList.add("hidden");
     gameRoot.classList.add("hidden");
     recruitScreen.classList.remove("hidden");
-    recruitReveal?.classList.add("hidden");
-    recruitOddsPanel?.classList.add("hidden");
     if (recruitPriceHint) recruitPriceHint.textContent = "";
     renderCoins();
-    renderRecruitUnlockedState();
-    renderRecruitOdds();
+    renderRecruitShop();
     resetViewportTop();
-  }
-
-  function recruitRandomCharacter() {
-    if (!recruitPackBtn || !recruitResultText) return;
-    if (recruitingInProgress) return;
-    if (!spendCoins(RECRUIT_PACK_COST)) {
-      if (recruitPriceHint) recruitPriceHint.textContent = "No tienes suficientes monedas para abrir un cofre.";
-      return;
-    }
-    if (recruitPriceHint) recruitPriceHint.textContent = "";
-
-    const locked = RECRUITABLE_CHARACTERS.filter((ch) => !unlockedRecruitCharIds.has(ch.id));
-    const pool = locked.length ? locked : RECRUITABLE_CHARACTERS;
-
-    recruitingInProgress = true;
-    recruitPackBtn.classList.add("spinning");
-    recruitPackBtn.disabled = true;
-
-    let tick = 0;
-    const rollTimer = setInterval(() => {
-      const candidate = pool[randInt(0, pool.length - 1)];
-      recruitResultText.textContent = `Girando ruleta... ${candidate.name}`;
-      tick += 1;
-      if (tick >= 16) {
-        clearInterval(rollTimer);
-        const winner = pool[randInt(0, pool.length - 1)];
-        const awardingNew = locked.some((ch) => ch.id === winner.id);
-
-        if (awardingNew) {
-          unlockedRecruitCharIds.add(winner.id);
-          persistUnlockedRecruitCharIds();
-        }
-
-        persistLastRecruitedName(winner.name);
-        renderRecruitUnlockedState();
-        renderRecruitOdds();
-        renderUserAvatarPicker();
-        renderUserCollection();
-        recruitResultText.textContent = awardingNew
-          ? `Te ha tocado: ${winner.name}. Ya está disponible en Arcade y Versus.`
-          : `Te ha tocado: ${winner.name} (repetido). Ya tenías todos desbloqueados.`;
-        setRecruitRevealByName(winner.name);
-        triggerRecruitRevealFx();
-        recruitPackBtn.classList.remove("spinning");
-        recruitPackBtn.disabled = false;
-        recruitingInProgress = false;
-      }
-    }, 160);
   }
 
   function goToStoreScreen() {
@@ -3994,8 +3933,15 @@ document.addEventListener("DOMContentLoaded", () => {
   introProfileImg?.addEventListener("click", goToUserScreen);
   introProfile?.addEventListener("click", goToUserScreen);
 
-  recruitPackBtn?.addEventListener("click", recruitRandomCharacter);
-  recruitOddsBtn?.addEventListener("click", toggleRecruitOdds);
+  recruitStoreGrid?.addEventListener("click", (e) => {
+    const target = e.target;
+    if (!(target instanceof HTMLElement)) return;
+    const btn = target.closest(".recruit-buy-btn");
+    if (!(btn instanceof HTMLButtonElement)) return;
+    const charId = String(btn.getAttribute("data-char-id") || "");
+    if (!charId) return;
+    buyRecruitCharacter(charId);
+  });
   recruitBackBtn?.addEventListener("click", setIntroVisible);
   storeBackBtn?.addEventListener("click", setIntroVisible);
   storeBuyWinchesterBtn?.addEventListener("click", buyWinchesterOutfit);
@@ -4302,7 +4248,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setCoins(loadCoins());
   normalizeWinchesterOutfit();
   renderStore();
-  renderRecruitUnlockedState();
+  renderRecruitShop();
   setUserProfileAvatar(loadUserProfileAvatar() || DEFAULT_PROFILE_AVATAR_SRC);
   const initialProfileName = normalizeUserProfileName(loadUserProfileName() || DEFAULT_PROFILE_NAME);
   setUserProfileName(initialProfileName);
