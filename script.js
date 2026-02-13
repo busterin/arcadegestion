@@ -1706,6 +1706,45 @@ document.addEventListener("DOMContentLoaded", () => {
     showModal(finalModal);
   }
 
+  function showStoryTutorialCompletedLayout() {
+    stopGameLoops();
+    hideModal(missionModal);
+    hideModal(rouletteModal);
+    hideModal(cardInfoModal);
+    hideModal(specialModal);
+    hideModal(effectModal);
+
+    const elapsedMs = storyCombatStartAt > 0 ? (performance.now() - storyCombatStartAt) : 0;
+    finalTitleEl.textContent = "MISIÓN COMPLETADA";
+    if (finalLabelEl) finalLabelEl.textContent = "Misiones completadas";
+    finalScoreEl.textContent = String(score);
+    const finalText = finalModal.querySelector(".modal-text");
+    if (finalText) {
+      finalText.innerHTML = `Tutorial superado.<br/>Fallos: <b>${failedMissionsCount}</b><br/>Tiempo: <b>${formatDuration(elapsedMs)}</b>`;
+    }
+    setFinalModalPrimaryAction("Continuar", () => {
+      resetGame();
+      storyCombatActive = false;
+      storyCombatStage = 0;
+      storyPhase = "post";
+      storyStep = 0;
+      introScreen.classList.add("hidden");
+      storyScreen?.classList.remove("hidden");
+      recruitScreen?.classList.add("hidden");
+      storeScreen?.classList.add("hidden");
+      userScreen?.classList.add("hidden");
+      startScreen.classList.add("hidden");
+      teamScreen.classList.add("hidden");
+      gameRoot.classList.add("hidden");
+      resetViewportTop();
+      renderStoryStep();
+      openStorySavePrompt();
+    });
+
+    setGlobalPause(true);
+    showModal(finalModal);
+  }
+
   function startStoryJackCountdown() {
     clearTimeout(storyJackSpawnTimer);
     storyJackSpawnTimer = null;
@@ -3868,22 +3907,7 @@ document.addEventListener("DOMContentLoaded", () => {
         showStoryMissionCompletedLayout();
         return;
       }
-      resetGame();
-      storyCombatActive = false;
-      storyCombatStage = 0;
-      storyPhase = "post";
-      storyStep = 0;
-      introScreen.classList.add("hidden");
-      storyScreen?.classList.remove("hidden");
-      recruitScreen?.classList.add("hidden");
-      storeScreen?.classList.add("hidden");
-      userScreen?.classList.add("hidden");
-      startScreen.classList.add("hidden");
-      teamScreen.classList.add("hidden");
-      gameRoot.classList.add("hidden");
-      resetViewportTop();
-      renderStoryStep();
-      openStorySavePrompt();
+      showStoryTutorialCompletedLayout();
       return;
     }
 
