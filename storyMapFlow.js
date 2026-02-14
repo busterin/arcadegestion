@@ -2,19 +2,19 @@
   function createStoryMapFlowModule() {
     const TIERS = [
       [
-        { id: "m1", x: 22, y: 66 },
+        { id: "m1", x: 38, y: 66 },
         { id: "m2", x: 50, y: 68 },
-        { id: "m3", x: 78, y: 66 }
+        { id: "m3", x: 62, y: 66 }
       ],
       [
-        { id: "m4", x: 24, y: 50 },
+        { id: "m4", x: 38, y: 50 },
         { id: "m5", x: 50, y: 52 },
-        { id: "m6", x: 76, y: 50 }
+        { id: "m6", x: 62, y: 50 }
       ],
       [
-        { id: "m7", x: 26, y: 34 },
+        { id: "m7", x: 38, y: 34 },
         { id: "m8", x: 50, y: 36 },
-        { id: "m9", x: 74, y: 34 }
+        { id: "m9", x: 62, y: 34 }
       ]
     ];
 
