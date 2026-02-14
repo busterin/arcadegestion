@@ -2308,6 +2308,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderStoryMapLayer() {
     if (!storyMapLayer || !storyMapPoints || !storyMapRouteFill || !storyMapFlow) return;
+    const isMobileMap = isMobileStoryViewport();
+    const getProjectedPoint = (point) => {
+      if (!point) return { x: 50, y: 50 };
+      if (!isMobileMap) return point;
+      if (point.id === "boss") return { ...point, y: 8 };
+      const tier = storyMapFlow.getTierIndexForPoint(point.id);
+      if (tier < 0) return point;
+      const tierYBase = [86, 56, 26];
+      const tierCenterYOffset = [2, 2, 2];
+      const tierPointIndex = (storyMapFlow.getTiers()[tier] || []).findIndex((p) => p.id === point.id);
+      const y = tierYBase[tier] + (tierPointIndex === 1 ? tierCenterYOffset[tier] : 0);
+      return { ...point, y };
+    };
     storyMapLayer.classList.remove("hidden");
     storyDialog?.classList.add("hidden");
     storyLeftChar?.classList.add("hidden");
@@ -2352,11 +2365,13 @@ document.addEventListener("DOMContentLoaded", () => {
         tiers[t].forEach((from) => {
           tiers[t + 1].forEach((to) => {
             if (!isTransitionAllowed(from.id, to.id)) return;
+            const fromPos = getProjectedPoint(from);
+            const toPos = getProjectedPoint(to);
             const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-            line.setAttribute("x1", String(from.x));
-            line.setAttribute("y1", String(from.y));
-            line.setAttribute("x2", String(to.x));
-            line.setAttribute("y2", String(to.y));
+            line.setAttribute("x1", String(fromPos.x));
+            line.setAttribute("y1", String(fromPos.y));
+            line.setAttribute("x2", String(toPos.x));
+            line.setAttribute("y2", String(toPos.y));
             line.setAttribute("class", `story-map-connection${isConnectionActive(from.id, to.id) ? " active" : ""}`);
             storyMapConnections.appendChild(line);
           });
@@ -2365,17 +2380,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const lastTier = tiers[tiers.length - 1] || [];
       lastTier.forEach((from) => {
+        const fromPos = getProjectedPoint(from);
+        const bossPos = getProjectedPoint(boss);
         const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        line.setAttribute("x1", String(from.x));
-        line.setAttribute("y1", String(from.y));
-        line.setAttribute("x2", String(boss.x));
-        line.setAttribute("y2", String(boss.y));
+        line.setAttribute("x1", String(fromPos.x));
+        line.setAttribute("y1", String(fromPos.y));
+        line.setAttribute("x2", String(bossPos.x));
+        line.setAttribute("y2", String(bossPos.y));
         line.setAttribute("class", `story-map-connection${isConnectionActive(from.id, boss.id) ? " active" : ""}`);
         storyMapConnections.appendChild(line);
       });
     }
     const points = storyMapFlow.getPoints();
     points.forEach((point) => {
+      const pointPos = getProjectedPoint(point);
       const completed = storyMapFlow.isPointCompleted(storyMapState, point.id);
       const unlocked = storyMapFlow.isPointUnlocked(storyMapState, point.id);
       const btn = document.createElement("button");
@@ -2392,8 +2410,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (completed) btn.classList.add("completed");
       else if (unlocked) btn.classList.add("current");
       else btn.classList.add("locked");
-      btn.style.left = `${point.x}%`;
-      btn.style.top = `${point.y}%`;
+      btn.style.left = `${pointPos.x}%`;
+      btn.style.top = `${pointPos.y}%`;
       btn.disabled = !unlocked || completed;
       btn.setAttribute("aria-label", point.id === "boss" ? "Punto principal" : "Punto de batalla");
       btn.addEventListener("click", () => startStoryMapBattle(point.id));
