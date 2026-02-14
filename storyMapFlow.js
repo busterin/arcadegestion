@@ -2,23 +2,23 @@
   function createStoryMapFlowModule() {
     const TIERS = [
       [
-        { id: "m1", x: 38, y: 78 },
-        { id: "m2", x: 50, y: 80 },
-        { id: "m3", x: 62, y: 78 }
+        { id: "m1", x: 38, y: 76 },
+        { id: "m2", x: 50, y: 78 },
+        { id: "m3", x: 62, y: 76 }
       ],
       [
-        { id: "m4", x: 38, y: 56 },
-        { id: "m5", x: 50, y: 58 },
-        { id: "m6", x: 62, y: 56 }
+        { id: "m4", x: 38, y: 52 },
+        { id: "m5", x: 50, y: 54 },
+        { id: "m6", x: 62, y: 52 }
       ],
       [
-        { id: "m7", x: 38, y: 34 },
-        { id: "m8", x: 50, y: 36 },
-        { id: "m9", x: 62, y: 34 }
+        { id: "m7", x: 38, y: 28 },
+        { id: "m8", x: 50, y: 30 },
+        { id: "m9", x: 62, y: 28 }
       ]
     ];
 
-    const BOSS = { id: "boss", x: 50, y: 16 };
+    const BOSS = { id: "boss", x: 50, y: 10 };
     const POINTS = [...TIERS.flat(), BOSS];
 
     function createInitialState() {
