@@ -361,6 +361,12 @@ img{ max-width:100%; height:auto; }
   z-index: 0;
   pointer-events: none;
 }
+.story-screen.story-mapintro .story-stage{
+  z-index: 8;
+}
+.story-screen.story-mapintro .story-dialog{
+  z-index: 10;
+}
 
 .story-map-route{
   display: none;

@@ -2347,14 +2347,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const getProjectedPoint = (point) => {
       if (!point) return { x: 50, y: 50 };
       if (!isMobileMap) return point;
-      if (point.id === "boss") return { ...point, y: 4 };
+      if (point.id === "boss") return { ...point, x: 50, y: 16 };
       const tier = storyMapFlow.getTierIndexForPoint(point.id);
       if (tier < 0) return point;
-      const tierYBase = [92, 50, 8];
+      const tierYBase = [95, 66, 37];
       const tierCenterYOffset = [2, 2, 2];
+      const tierXByIndex = [20, 50, 80];
       const tierPointIndex = (storyMapFlow.getTiers()[tier] || []).findIndex((p) => p.id === point.id);
+      const x = tierXByIndex[Math.max(0, tierPointIndex)] ?? point.x;
       const y = tierYBase[tier] + (tierPointIndex === 1 ? tierCenterYOffset[tier] : 0);
-      return { ...point, y };
+      return { ...point, x, y };
     };
     storyMapLayer.classList.remove("hidden");
     storyMapLayer.classList.toggle("preview", !!opts.readOnly);
@@ -2539,14 +2541,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderStoryStep() {
     if (storyPhase === "map") {
+      storyScreen?.classList.remove("story-mapintro");
       renderStoryMapLayer();
       if (storySkipBtn) storySkipBtn.classList.add("hidden");
       if (storyMenuBtn) storyMenuBtn.classList.add("hidden");
       return;
     }
     if (storyPhase === "mapintro") {
+      storyScreen?.classList.add("story-mapintro");
       renderStoryMapLayer({ hideDialog: false, hideChars: false, readOnly: true });
     } else {
+      storyScreen?.classList.remove("story-mapintro");
       storyMapLayer?.classList.add("hidden");
     }
     storyDialog?.classList.remove("hidden");
