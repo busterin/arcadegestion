@@ -1801,27 +1801,22 @@ document.addEventListener("DOMContentLoaded", () => {
       finalText.innerHTML = `Tutorial superado.<br/>Fallos: <b>${failedMissionsCount}</b><br/>Tiempo: <b>${formatDuration(elapsedMs)}</b>`;
     }
     setFinalModalPrimaryAction("Continuar", () => {
-      setGlobalPause(true);
-      showModal(storyChapterSplashModal);
-      storyChapterSplashTimer = setTimeout(() => {
-        hideModal(storyChapterSplashModal);
-        resetGame();
-        storyCombatActive = false;
-        storyCombatStage = 0;
-        storyPhase = "post";
-        storyStep = 0;
-        introScreen.classList.add("hidden");
-        storyScreen?.classList.remove("hidden");
-        recruitScreen?.classList.add("hidden");
-        storeScreen?.classList.add("hidden");
-        userScreen?.classList.add("hidden");
-        startScreen.classList.add("hidden");
-        teamScreen.classList.add("hidden");
-        gameRoot.classList.add("hidden");
-        resetViewportTop();
-        renderStoryStep();
-        openStorySavePrompt();
-      }, 4000);
+      resetGame();
+      storyCombatActive = false;
+      storyCombatStage = 0;
+      storyPhase = "post";
+      storyStep = 0;
+      introScreen.classList.add("hidden");
+      storyScreen?.classList.remove("hidden");
+      recruitScreen?.classList.add("hidden");
+      storeScreen?.classList.add("hidden");
+      userScreen?.classList.add("hidden");
+      startScreen.classList.add("hidden");
+      teamScreen.classList.add("hidden");
+      gameRoot.classList.add("hidden");
+      resetViewportTop();
+      renderStoryStep();
+      openStorySavePrompt();
     });
 
     setGlobalPause(true);
@@ -2390,7 +2385,7 @@ document.addEventListener("DOMContentLoaded", () => {
     applyStoryScene(pagedScene);
     const isLast = storyStep >= scenes.length - 1;
     const isLastPage = storySceneTextPageIndex >= storySceneTextPages.length - 1;
-    if (storySkipBtn) storySkipBtn.classList.toggle("hidden", storyPhase !== "pre");
+    if (storySkipBtn) storySkipBtn.classList.toggle("hidden", !(storyPhase === "pre" || storyPhase === "post"));
     const isFinalPhase = storyPhase === "mappost";
     if (storyMenuBtn) storyMenuBtn.classList.toggle("hidden", !(isFinalPhase && isLast));
     if (storyNextBtn) {
@@ -2491,6 +2486,20 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (storyPhase === "mappost") {
       setIntroVisible();
+    }
+  }
+
+  function skipStoryPhase() {
+    if (storyPhase === "pre") {
+      startStoryCombat(1);
+      return;
+    }
+    if (storyPhase === "post") {
+      startStoryCombat(2);
+      return;
+    }
+    if (storyPhase === "epilogue") {
+      startStoryMapMode();
     }
   }
 
@@ -4343,7 +4352,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   storyNextBtn?.addEventListener("click", nextStoryStep);
   storyMenuBtn?.addEventListener("click", setIntroVisible);
-  storySkipBtn?.addEventListener("click", () => startStoryCombat(1));
+  storySkipBtn?.addEventListener("click", skipStoryPhase);
   userBackBtn?.addEventListener("click", setIntroVisible);
 
   document.addEventListener("click", (e) => {
