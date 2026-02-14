@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const ARCADE_WIN_TARGET = 8;
   const STORY_COMBAT_WIN_TARGET = 3;
+  const STORY_MAP_BATTLE_WIN_TARGET = 3;
   const STORY_JACK_MISSION_ID = "m5";
   const STORY_JACK_DELAY_MS = 2 * 60 * 1000;
 
@@ -99,6 +100,9 @@ document.addEventListener("DOMContentLoaded", () => {
     recruitableCards: RECRUITABLE_CARDS,
     avatars: AVATARS
   });
+  const storyMapFlow = typeof window.createStoryMapFlowModule === "function"
+    ? window.createStoryMapFlowModule()
+    : null;
 
   const introScreen = document.getElementById("introScreen");
   const introPrevBtn = document.getElementById("introPrevBtn");
@@ -111,6 +115,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const introProfileName = document.getElementById("introProfileName");
   const storyScreen = document.getElementById("storyScreen");
   const storyStage = document.getElementById("storyStage");
+  const storyDialog = document.getElementById("storyDialog");
+  const storyMapLayer = document.getElementById("storyMapLayer");
+  const storyMapPoints = document.getElementById("storyMapPoints");
+  const storyMapRouteFill = document.getElementById("storyMapRouteFill");
   const storyLeftChar = document.getElementById("storyLeftChar");
   const storyRightChar = document.getElementById("storyRightChar");
   const storyLeftSupportChar = document.getElementById("storyLeftSupportChar");
@@ -508,6 +516,20 @@ document.addEventListener("DOMContentLoaded", () => {
       showChars: true
     }
   ];
+  const STORY_MAP_POST_SCENES = [
+    {
+      speaker: "Camus",
+      text: "No me gusta nada lo que hemos encontrado. Esto no ha terminado.",
+      background: "historia/1fondopueblo.PNG",
+      active: "right",
+      leftSrc: "images/Evelyn.png",
+      leftSupportSrc: "historia/Winchester2.png",
+      rightSrc: "historia/Camus2.png",
+      rightMirror: false,
+      rightSupportSrc: "historia/Jane2.png",
+      showChars: true
+    }
+  ];
   const TUTORIAL_STEPS = [
     "¡Prepárate para un combate real! Tu objetivo es liderar a tu equipo y completar misiones pulsando los iconos que irán apareciendo en el mapa.",
     "Al abrir una misión, tendrás que elegir personajes. Debes conocer bien a tu equipo porque si mandas a los más aptos para la misión, las probabilidades de éxito aumentarán considerablemente.",
@@ -558,6 +580,9 @@ document.addEventListener("DOMContentLoaded", () => {
   let storySceneTextPageIndex = 0;
   let lastRenderedStorySceneKey = "";
   let storyPhase = "pre";
+  let storyMapState = storyMapFlow ? storyMapFlow.createInitialState() : null;
+  let storyMapBattleActive = false;
+  let currentStoryMapPointId = null;
   let storyCombatActive = false;
   let storyCombatStage = 0;
   let storyJackSpawnTimer = null;
@@ -701,7 +726,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const phase = String(raw?.state?.storyPhase || "");
     const step = Number(raw?.state?.storyStep);
     const stage = Number(raw?.state?.storyCombatStage);
-    const validPhase = ["pre", "post", "epilogue", "combat"].includes(phase) ? phase : "pre";
+    const validPhase = ["pre", "post", "epilogue", "mappost", "map", "combat"].includes(phase) ? phase : "pre";
     return {
       savedAt: Number.isFinite(savedAt) ? savedAt : Date.now(),
       label: String(raw.label || "Partida guardada"),
@@ -710,6 +735,7 @@ document.addEventListener("DOMContentLoaded", () => {
         storyStep: Number.isFinite(step) ? Math.max(0, Math.floor(step)) : 0,
         storyCombatActive: !!raw?.state?.storyCombatActive,
         storyCombatStage: stage === 2 ? 2 : 1,
+        storyMapState: storyMapFlow ? storyMapFlow.normalizeState(raw?.state?.storyMapState) : null,
         storyCharacterProgress: storyProgress.normalizeProgress(raw?.state?.storyCharacterProgress)
       }
     };
@@ -771,6 +797,7 @@ document.addEventListener("DOMContentLoaded", () => {
       storyStep,
       storyCombatActive,
       storyCombatStage: storyCombatStage === 2 ? 2 : 1,
+      storyMapState: storyMapFlow ? storyMapFlow.normalizeState(storyMapState) : null,
       storyCharacterProgress
     };
   }
@@ -800,13 +827,20 @@ document.addEventListener("DOMContentLoaded", () => {
     resetGame();
     selectedMode = "arcade";
     currentMode = "arcade";
+    storyMapBattleActive = false;
+    currentStoryMapPointId = null;
     storyCombatActive = false;
     storyCombatStage = 0;
     storyJackUnlocked = false;
     storyJackCompleted = false;
+    storyMapState = storyMapFlow ? storyMapFlow.normalizeState(payload.storyMapState) : null;
     storyPhase = payload.storyPhase === "combat" ? "pre" : payload.storyPhase;
-    const scenes = getStorySceneList();
-    storyStep = clamp(payload.storyStep, 0, Math.max(0, scenes.length - 1));
+    if (storyPhase === "map") {
+      storyStep = 0;
+    } else {
+      const scenes = getStorySceneList();
+      storyStep = clamp(payload.storyStep, 0, Math.max(0, scenes.length - 1));
+    }
 
     introScreen.classList.add("hidden");
     recruitScreen?.classList.add("hidden");
@@ -892,7 +926,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function isStoryContextVisible() {
     const storyVisible = !!(storyScreen && !storyScreen.classList.contains("hidden"));
-    const storyCombatVisible = !!(gameRoot && !gameRoot.classList.contains("hidden") && storyCombatActive);
+    const storyCombatVisible = !!(
+      gameRoot &&
+      !gameRoot.classList.contains("hidden") &&
+      (storyCombatActive || storyMapBattleActive)
+    );
     return storyVisible || storyCombatVisible;
   }
 
@@ -929,6 +967,7 @@ document.addEventListener("DOMContentLoaded", () => {
           storyCombatStage,
           storyJackUnlocked,
           storyJackCompleted,
+          storyMapState: storyMapFlow ? storyMapFlow.normalizeState(storyMapState) : null,
           storyCharacterProgress
         }
       };
@@ -984,12 +1023,15 @@ document.addEventListener("DOMContentLoaded", () => {
     resetGame();
     selectedMode = "arcade";
     currentMode = "arcade";
+    storyMapBattleActive = false;
+    currentStoryMapPointId = null;
     storyCombatActive = false;
     storyCombatStage = Number(state?.storyCombatStage) === 2 ? 2 : 0;
     storyJackUnlocked = !!state?.storyJackUnlocked;
     storyJackCompleted = !!state?.storyJackCompleted;
+    storyMapState = storyMapFlow ? storyMapFlow.normalizeState(state?.storyMapState) : null;
     storyCharacterProgress = storyProgress.normalizeProgress(state?.storyCharacterProgress);
-    storyPhase = ["pre", "post", "epilogue"].includes(state?.storyPhase) ? state.storyPhase : "pre";
+    storyPhase = ["pre", "post", "epilogue", "map", "mappost"].includes(state?.storyPhase) ? state.storyPhase : "pre";
     storyStep = Math.max(0, Math.floor(Number(state?.storyStep) || 0));
 
     introScreen.classList.add("hidden");
@@ -1001,8 +1043,12 @@ document.addEventListener("DOMContentLoaded", () => {
     gameRoot.classList.add("hidden");
     storyScreen?.classList.remove("hidden");
 
-    const scenes = getStorySceneList();
-    storyStep = clamp(storyStep, 0, Math.max(0, scenes.length - 1));
+    if (storyPhase !== "map") {
+      const scenes = getStorySceneList();
+      storyStep = clamp(storyStep, 0, Math.max(0, scenes.length - 1));
+    } else {
+      storyStep = 0;
+    }
     renderStoryStep();
     resetViewportTop();
     return true;
@@ -1013,6 +1059,8 @@ document.addEventListener("DOMContentLoaded", () => {
     resetGame();
     selectedMode = "arcade";
     currentMode = "arcade";
+    storyMapBattleActive = false;
+    currentStoryMapPointId = null;
     storyCombatActive = true;
     storyCombatStage = stage;
     storyPhase = "combat";
@@ -1353,6 +1401,7 @@ document.addEventListener("DOMContentLoaded", () => {
     introScreen.classList.add("hidden");
     storyScreen?.classList.add("hidden");
     recruitScreen?.classList.add("hidden");
+    storeScreen?.classList.add("hidden");
     userScreen?.classList.add("hidden");
     startScreen.classList.add("hidden");
     teamScreen.classList.add("hidden");
@@ -1649,17 +1698,20 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function getCurrentArcadeWinTarget() {
+    if (storyMapBattleActive) return STORY_MAP_BATTLE_WIN_TARGET;
     if (storyCombatActive && storyCombatStage === 1) return STORY_COMBAT_WIN_TARGET;
     return ARCADE_WIN_TARGET;
   }
 
   function getStorySceneList() {
+    if (storyPhase === "mappost") return STORY_MAP_POST_SCENES;
     if (storyPhase === "post") return STORY_POST_COMBAT_SCENES;
     if (storyPhase === "epilogue") return STORY_EPILOGUE_SCENES;
     return STORY_PRE_COMBAT_SCENES;
   }
 
   function getMissionPoolForCurrentMode() {
+    if (storyMapBattleActive) return STORY_BASE_MISSIONS;
     if (!storyCombatActive) return MISSIONS;
     if (storyCombatStage === 1) return STORY_BASE_MISSIONS;
     if (storyCombatStage === 2) {
@@ -2075,7 +2127,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const inPlayflow = !startScreen.classList.contains("hidden") || !teamScreen.classList.contains("hidden") || !gameRoot.classList.contains("hidden");
     if (inPlayflow) {
-      if (storyCombatActive) return "historia";
+      if (storyCombatActive || storyMapBattleActive) return "historia";
       if (selectedMode === "versus" || currentMode === "versus") return "versus";
       return "arcade";
     }
@@ -2185,6 +2237,102 @@ document.addEventListener("DOMContentLoaded", () => {
     showModal(storySavePromptModal);
   }
 
+  function renderStoryMapLayer() {
+    if (!storyMapLayer || !storyMapPoints || !storyMapRouteFill || !storyMapFlow) return;
+    storyMapLayer.classList.remove("hidden");
+    storyDialog?.classList.add("hidden");
+    storyLeftChar?.classList.add("hidden");
+    storyRightChar?.classList.add("hidden");
+    storyLeftSupportChar?.classList.add("hidden");
+    storyRightSupportChar?.classList.add("hidden");
+    storyScreen.style.background = 'url("historia/mapa1.png") center center / cover no-repeat';
+    storyMapPoints.innerHTML = "";
+    const points = storyMapFlow.getPoints();
+    points.forEach((point) => {
+      const completed = storyMapFlow.isPointCompleted(storyMapState, point.id);
+      const unlocked = storyMapFlow.isPointUnlocked(storyMapState, point.id);
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "story-map-point";
+      if (point.id === "boss") btn.classList.add("boss");
+      if (completed) btn.classList.add("completed");
+      else if (unlocked) btn.classList.add("current");
+      else btn.classList.add("locked");
+      btn.style.left = `${point.x}%`;
+      btn.style.top = `${point.y}%`;
+      btn.disabled = !unlocked || completed;
+      btn.setAttribute("aria-label", point.id === "boss" ? "Punto principal" : "Punto de batalla");
+      btn.addEventListener("click", () => startStoryMapBattle(point.id));
+      storyMapPoints.appendChild(btn);
+    });
+    const progress = storyMapFlow.getRouteProgress(storyMapState);
+    storyMapRouteFill.style.height = `${Math.round(progress * 100)}%`;
+  }
+
+  function showStoryMapConversation() {
+    storyPhase = "mappost";
+    storyStep = 0;
+    renderStoryStep();
+  }
+
+  function completeStoryMapBattle(pointId) {
+    if (!storyMapFlow || !pointId) return;
+    storyMapState = storyMapFlow.completePoint(storyMapState, pointId);
+    currentStoryMapPointId = null;
+    storyMapBattleActive = false;
+    resetGame();
+    introScreen.classList.add("hidden");
+    storyScreen?.classList.remove("hidden");
+    recruitScreen?.classList.add("hidden");
+    storeScreen?.classList.add("hidden");
+    userScreen?.classList.add("hidden");
+    startScreen.classList.add("hidden");
+    teamScreen.classList.add("hidden");
+    gameRoot.classList.add("hidden");
+    resetViewportTop();
+    if (storyMapState?.bossCompleted) {
+      showStoryMapConversation();
+      return;
+    }
+    storyPhase = "map";
+    storyStep = 0;
+    renderStoryStep();
+  }
+
+  function startStoryMapBattle(pointId) {
+    if (!storyMapFlow || !storyMapFlow.isPointUnlocked(storyMapState, pointId)) return;
+    currentStoryMapPointId = pointId;
+    storyMapBattleActive = true;
+    resetGame();
+    selectedMode = "arcade";
+    currentMode = "arcade";
+    storyCombatActive = false;
+    storyCombatStage = 0;
+    tutorialPending = false;
+    pendingMissions = [...STORY_BASE_MISSIONS];
+    selectedTeamCardIds = new Set(["card_celia", "card_castri", "card_lorena"]);
+    if (!applyTeamFromCardIds([...selectedTeamCardIds])) {
+      goToTeamScreen();
+      return;
+    }
+    pendingBattleEffectKey = null;
+    introScreen.classList.add("hidden");
+    storyScreen?.classList.add("hidden");
+    recruitScreen?.classList.add("hidden");
+    userScreen?.classList.add("hidden");
+    startScreen.classList.add("hidden");
+    teamScreen.classList.add("hidden");
+    gameRoot.classList.remove("hidden");
+    startGame();
+  }
+
+  function startStoryMapMode() {
+    if (storyMapFlow && !storyMapState) storyMapState = storyMapFlow.createInitialState();
+    storyPhase = "map";
+    storyStep = 0;
+    renderStoryStep();
+  }
+
   function goToStartScreen(mode) {
     selectedMode = mode;
     introScreen.classList.add("hidden");
@@ -2200,6 +2348,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderStoryStep() {
+    if (storyPhase === "map") {
+      renderStoryMapLayer();
+      if (storySkipBtn) storySkipBtn.classList.add("hidden");
+      if (storyMenuBtn) storyMenuBtn.classList.add("hidden");
+      return;
+    }
+    storyMapLayer?.classList.add("hidden");
+    storyDialog?.classList.remove("hidden");
     const scenes = getStorySceneList();
     const scene = scenes[storyStep] || scenes[0];
     const sceneKey = `${storyPhase}:${storyStep}`;
@@ -2214,9 +2370,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const isLast = storyStep >= scenes.length - 1;
     const isLastPage = storySceneTextPageIndex >= storySceneTextPages.length - 1;
     if (storySkipBtn) storySkipBtn.classList.toggle("hidden", storyPhase !== "pre");
-    if (storyMenuBtn) storyMenuBtn.classList.toggle("hidden", !(storyPhase === "epilogue" && isLast));
+    const isFinalPhase = storyPhase === "mappost";
+    if (storyMenuBtn) storyMenuBtn.classList.toggle("hidden", !(isFinalPhase && isLast));
     if (storyNextBtn) {
-      storyNextBtn.textContent = isLast && isLastPage && storyPhase === "epilogue" ? "Fin" : "Siguiente";
+      storyNextBtn.textContent = isLast && isLastPage && isFinalPhase ? "Fin" : "Siguiente";
     }
   }
 
@@ -2233,6 +2390,9 @@ document.addEventListener("DOMContentLoaded", () => {
     storyScreen?.classList.remove("hidden");
     storyCombatActive = false;
     storyCombatStage = 0;
+    storyMapBattleActive = false;
+    currentStoryMapPointId = null;
+    storyMapState = storyMapFlow ? storyMapFlow.createInitialState() : null;
     storyJackUnlocked = false;
     storyJackCompleted = false;
     storyPhase = "pre";
@@ -2283,6 +2443,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function nextStoryStep() {
+    if (storyPhase === "map") return;
     if (storySceneTextPageIndex < storySceneTextPages.length - 1) {
       storySceneTextPageIndex += 1;
       renderStoryStep();
@@ -2304,6 +2465,10 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     if (storyPhase === "epilogue") {
+      startStoryMapMode();
+      return;
+    }
+    if (storyPhase === "mappost") {
       setIntroVisible();
     }
   }
@@ -3966,6 +4131,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function finishArcadeVictory() {
+    if (storyMapBattleActive) {
+      completeStoryMapBattle(currentStoryMapPointId);
+      return;
+    }
     if (storyCombatActive) {
       if (storyCombatStage === 2) {
         showStoryMissionCompletedLayout();
@@ -4063,6 +4232,8 @@ document.addEventListener("DOMContentLoaded", () => {
     storyLevelUpQueue = [];
     storyJackUnlocked = false;
     storyJackCompleted = false;
+    storyMapBattleActive = false;
+    currentStoryMapPointId = null;
     activeBattleEffect = null;
     pendingBattleEffectKey = null;
     storyCombatStartAt = 0;
