@@ -541,6 +541,35 @@ document.addEventListener("DOMContentLoaded", () => {
   const STORY_MAP_INTRO_SCENES = [
     {
       speaker: "Winchester",
+      text: "Este es el mapa de misión. Aquí vemos las rutas disponibles hasta llegar a nuestro objetivo.\n\nCuando eliges un lugar, el resto de la misma línea ya no podrán ser explorados. Decide con cautela.",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "historia/Winchester2.png",
+      showChars: true,
+      showRight: false
+    },
+    {
+      speaker: "Winchester",
+      text: "El icono de las espadas representa una batalla. Tendremos que completar varios encargos de mercenarios.\n\nEl icono del bocadillo representa una conversación. Quizás conozcamos a nuevos personajes o misiones.",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "historia/Winchester2.png",
+      showChars: true,
+      showRight: false
+    },
+    {
+      speaker: "Winchester",
+      text: "El icono del cofre promete un tesoro valioso y en el del interrogante nadie sabe lo que puede pasar.\n\n¡Vamos! ¡Rumbo al castillo!",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "historia/Winchester2.png",
+      showChars: true,
+      showRight: false
+    }
+  ];
+  const STORY_MAP_INTRO_SCENES_MOBILE = [
+    {
+      speaker: "Winchester",
       text: "Este es el mapa de misión. Aquí vemos las rutas disponibles hasta llegar a nuestro objetivo.",
       background: "historia/mapa1.png",
       active: "left",
@@ -1768,7 +1797,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function getStorySceneList() {
-    if (storyPhase === "mapintro") return STORY_MAP_INTRO_SCENES;
+    if (storyPhase === "mapintro") return isMobileStoryViewport() ? STORY_MAP_INTRO_SCENES_MOBILE : STORY_MAP_INTRO_SCENES;
     if (storyPhase === "mappost") return STORY_MAP_POST_SCENES;
     if (storyPhase === "post") return STORY_POST_COMBAT_SCENES;
     if (storyPhase === "epilogue") return STORY_EPILOGUE_SCENES;
@@ -2306,27 +2335,36 @@ document.addEventListener("DOMContentLoaded", () => {
     showModal(storySavePromptModal);
   }
 
-  function renderStoryMapLayer() {
+  function renderStoryMapLayer(options = {}) {
+    const opts = {
+      hideDialog: true,
+      hideChars: true,
+      readOnly: false,
+      ...options
+    };
     if (!storyMapLayer || !storyMapPoints || !storyMapRouteFill || !storyMapFlow) return;
     const isMobileMap = isMobileStoryViewport();
     const getProjectedPoint = (point) => {
       if (!point) return { x: 50, y: 50 };
       if (!isMobileMap) return point;
-      if (point.id === "boss") return { ...point, y: 8 };
+      if (point.id === "boss") return { ...point, y: 4 };
       const tier = storyMapFlow.getTierIndexForPoint(point.id);
       if (tier < 0) return point;
-      const tierYBase = [86, 56, 26];
+      const tierYBase = [92, 50, 8];
       const tierCenterYOffset = [2, 2, 2];
       const tierPointIndex = (storyMapFlow.getTiers()[tier] || []).findIndex((p) => p.id === point.id);
       const y = tierYBase[tier] + (tierPointIndex === 1 ? tierCenterYOffset[tier] : 0);
       return { ...point, y };
     };
     storyMapLayer.classList.remove("hidden");
-    storyDialog?.classList.add("hidden");
-    storyLeftChar?.classList.add("hidden");
-    storyRightChar?.classList.add("hidden");
-    storyLeftSupportChar?.classList.add("hidden");
-    storyRightSupportChar?.classList.add("hidden");
+    storyMapLayer.classList.toggle("preview", !!opts.readOnly);
+    if (opts.hideDialog) storyDialog?.classList.add("hidden");
+    if (opts.hideChars) {
+      storyLeftChar?.classList.add("hidden");
+      storyRightChar?.classList.add("hidden");
+      storyLeftSupportChar?.classList.add("hidden");
+      storyRightSupportChar?.classList.add("hidden");
+    }
     storyScreen.style.background = 'url("historia/mapa1.png") center center / cover no-repeat';
     storyMapPoints.innerHTML = "";
     if (storyMapConnections) {
@@ -2412,7 +2450,7 @@ document.addEventListener("DOMContentLoaded", () => {
       else btn.classList.add("locked");
       btn.style.left = `${pointPos.x}%`;
       btn.style.top = `${pointPos.y}%`;
-      btn.disabled = !unlocked || completed;
+      btn.disabled = !!opts.readOnly || !unlocked || completed;
       btn.setAttribute("aria-label", point.id === "boss" ? "Punto principal" : "Punto de batalla");
       btn.addEventListener("click", () => startStoryMapBattle(point.id));
       storyMapPoints.appendChild(btn);
@@ -2506,7 +2544,11 @@ document.addEventListener("DOMContentLoaded", () => {
       if (storyMenuBtn) storyMenuBtn.classList.add("hidden");
       return;
     }
-    storyMapLayer?.classList.add("hidden");
+    if (storyPhase === "mapintro") {
+      renderStoryMapLayer({ hideDialog: false, hideChars: false, readOnly: true });
+    } else {
+      storyMapLayer?.classList.add("hidden");
+    }
     storyDialog?.classList.remove("hidden");
     const scenes = getStorySceneList();
     const scene = scenes[storyStep] || scenes[0];

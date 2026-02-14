@@ -357,6 +357,10 @@ img{ max-width:100%; height:auto; }
   inset: 14px 14px 40px 14px;
   z-index: 5;
 }
+.story-map-layer.preview{
+  z-index: 0;
+  pointer-events: none;
+}
 
 .story-map-route{
   display: none;
