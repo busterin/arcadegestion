@@ -2,23 +2,23 @@
   function createStoryMapFlowModule() {
     const TIERS = [
       [
-        { id: "m1", x: 22, y: 60 },
-        { id: "m2", x: 50, y: 62 },
-        { id: "m3", x: 78, y: 60 }
+        { id: "m1", x: 22, y: 78 },
+        { id: "m2", x: 50, y: 80 },
+        { id: "m3", x: 78, y: 78 }
       ],
       [
-        { id: "m4", x: 24, y: 38 },
-        { id: "m5", x: 50, y: 40 },
-        { id: "m6", x: 76, y: 38 }
+        { id: "m4", x: 24, y: 56 },
+        { id: "m5", x: 50, y: 58 },
+        { id: "m6", x: 76, y: 56 }
       ],
       [
-        { id: "m7", x: 26, y: 16 },
-        { id: "m8", x: 50, y: 18 },
-        { id: "m9", x: 74, y: 16 }
+        { id: "m7", x: 26, y: 34 },
+        { id: "m8", x: 50, y: 36 },
+        { id: "m9", x: 74, y: 34 }
       ]
     ];
 
-    const BOSS = { id: "boss", x: 50, y: 8 };
+    const BOSS = { id: "boss", x: 50, y: 16 };
     const POINTS = [...TIERS.flat(), BOSS];
 
     function createInitialState() {
@@ -89,11 +89,10 @@
       }
 
       const currentTier = TIERS[state.tierIndex] || [];
-      const tierCompleted = currentTier.length > 0 && currentTier.every((p) => next.completedIds.includes(p.id));
-      if (tierCompleted) {
-        next.tierIndex = Math.min(TIERS.length, state.tierIndex + 1);
-        if (next.tierIndex >= TIERS.length) next.bossUnlocked = true;
-      }
+      const tierIds = currentTier.map((p) => p.id);
+      next.completedIds = [...new Set([...next.completedIds, ...tierIds])];
+      next.tierIndex = Math.min(TIERS.length, state.tierIndex + 1);
+      if (next.tierIndex >= TIERS.length) next.bossUnlocked = true;
       return next;
     }
 
