@@ -538,6 +538,68 @@ document.addEventListener("DOMContentLoaded", () => {
       showChars: true
     }
   ];
+  const STORY_MAP_QUESTION_SCENES = [
+    {
+      speaker: "Risko",
+      text: "¡Alto ahí! ¿Quién eres tú? Identifícate o sufre las consecuencias.",
+      background: "historia/mapa1.png",
+      active: "right",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Risko2.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Evelyn",
+      text: "¿Me estás amenazando? Espera... ¿nos conocemos?",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Risko2.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Risko",
+      text: "Puede que sí o puede que no. Sois de Atalaya ¿verdad?",
+      background: "historia/mapa1.png",
+      active: "right",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Risko2.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Evelyn",
+      text: "¿No sabía que éramos tan famosos?",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Risko2.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Risko",
+      text: "Toma esta moneda de plata. Cuando reúnas tres, hablaremos de nuevo.",
+      background: "historia/mapa1.png",
+      active: "right",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Risko2.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Evelyn",
+      text: "No he entendido nada de nada...",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Risko2.png",
+      rightMirror: false,
+      showChars: true
+    }
+  ];
   const STORY_MAP_INTRO_SCENES = [
     {
       speaker: "Winchester",
@@ -820,7 +882,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const phase = String(raw?.state?.storyPhase || "");
     const step = Number(raw?.state?.storyStep);
     const stage = Number(raw?.state?.storyCombatStage);
-    const validPhase = ["pre", "post", "epilogue", "mapintro", "mappost", "map", "combat"].includes(phase) ? phase : "pre";
+    const validPhase = ["pre", "post", "epilogue", "mapintro", "mappointquestion", "mappost", "map", "combat"].includes(phase) ? phase : "pre";
     return {
       savedAt: Number.isFinite(savedAt) ? savedAt : Date.now(),
       label: String(raw.label || "Partida guardada"),
@@ -1125,7 +1187,7 @@ document.addEventListener("DOMContentLoaded", () => {
     storyJackCompleted = !!state?.storyJackCompleted;
     storyMapState = storyMapFlow ? storyMapFlow.normalizeState(state?.storyMapState) : null;
     storyCharacterProgress = storyProgress.normalizeProgress(state?.storyCharacterProgress);
-    storyPhase = ["pre", "post", "epilogue", "mapintro", "map", "mappost"].includes(state?.storyPhase) ? state.storyPhase : "pre";
+    storyPhase = ["pre", "post", "epilogue", "mapintro", "mappointquestion", "map", "mappost"].includes(state?.storyPhase) ? state.storyPhase : "pre";
     storyStep = Math.max(0, Math.floor(Number(state?.storyStep) || 0));
 
     introScreen.classList.add("hidden");
@@ -1799,6 +1861,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function getStorySceneList() {
     if (storyPhase === "mapintro") return isMobileStoryViewport() ? STORY_MAP_INTRO_SCENES_MOBILE : STORY_MAP_INTRO_SCENES;
+    if (storyPhase === "mappointquestion") return STORY_MAP_QUESTION_SCENES;
     if (storyPhase === "mappost") return STORY_MAP_POST_SCENES;
     if (storyPhase === "post") return STORY_POST_COMBAT_SCENES;
     if (storyPhase === "epilogue") return STORY_EPILOGUE_SCENES;
@@ -2510,6 +2573,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function startStoryMapBattle(pointId) {
     if (!storyMapFlow || !storyMapFlow.isPointUnlocked(storyMapState, pointId)) return;
+    const iconSrc = String(storyMapPointIcons?.[pointId] || "");
+    const isConversationPoint = iconSrc.includes("iconomapaconversacion.png");
+    if (isConversationPoint) {
+      currentStoryMapPointId = pointId;
+      storyMapBattleActive = false;
+      storyCombatActive = false;
+      storyCombatStage = 0;
+      storyPhase = "mappointquestion";
+      storyStep = 0;
+      renderStoryStep();
+      return;
+    }
     resetGame();
     currentStoryMapPointId = pointId;
     storyMapBattleActive = true;
@@ -2691,6 +2766,10 @@ document.addEventListener("DOMContentLoaded", () => {
       storyPhase = "map";
       storyStep = 0;
       renderStoryStep();
+      return;
+    }
+    if (storyPhase === "mappointquestion") {
+      completeStoryMapBattle(currentStoryMapPointId);
       return;
     }
     if (storyPhase === "mappost") {
