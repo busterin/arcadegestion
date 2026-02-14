@@ -181,6 +181,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const hudStoryHintEl = document.getElementById("hudStoryHint");
   const activeEffectBtn = document.getElementById("activeEffectBtn");
   const trainEffectCounter = document.getElementById("trainEffectCounter");
+  const storySkipBattleBtn = document.getElementById("storySkipBattleBtn");
   const teamBar = document.getElementById("teamBar");
   const rivalTeamBtn = document.getElementById("rivalTeamBtn");
   const missionBarPicker = document.getElementById("missionBarPicker");
@@ -2096,9 +2097,16 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
     }
+    const canSkipStoryBattle = currentMode !== "versus" && gameRunning && (storyCombatActive || storyMapBattleActive);
+    storySkipBattleBtn?.classList.toggle("hidden", !canSkipStoryBattle);
     rivalTeamBtn?.classList.toggle("hidden", currentMode !== "versus");
     updateActiveEffectButton();
     updateTrainEffectCounterUI();
+  }
+
+  function skipCurrentStoryBattle() {
+    if (!(storyCombatActive || storyMapBattleActive)) return;
+    finishArcadeVictory();
   }
 
   function setIntroVisible() {
@@ -4491,6 +4499,7 @@ document.addEventListener("DOMContentLoaded", () => {
   specialAcceptBtn.addEventListener("click", acceptSpecial);
   specialModal.addEventListener("click", (e) => { if (e.target === specialModal) cancelSpecial(); });
   activeEffectBtn?.addEventListener("click", openEffectInfoModal);
+  storySkipBattleBtn?.addEventListener("click", skipCurrentStoryBattle);
   closeEffectBtn?.addEventListener("click", closeEffectInfoModal);
   effectOkBtn?.addEventListener("click", closeEffectInfoModal);
   effectModal?.addEventListener("click", (e) => {
