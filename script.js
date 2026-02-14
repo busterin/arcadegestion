@@ -19,6 +19,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const ARCADE_WIN_TARGET = 8;
   const STORY_COMBAT_WIN_TARGET = 3;
   const STORY_MAP_BATTLE_WIN_TARGET = 3;
+  const STORY_MAP_POINT_ICONS = [
+    "historia/iconomapabatalla.png",
+    "historia/iconomapacofre.png",
+    "historia/iconomapaconversacion.png",
+    "historia/iconomapainterrogante.png"
+  ];
   const STORY_JACK_MISSION_ID = "m5";
   const STORY_JACK_DELAY_MS = 2 * 60 * 1000;
 
@@ -2263,6 +2269,13 @@ document.addEventListener("DOMContentLoaded", () => {
       btn.type = "button";
       btn.className = "story-map-point";
       if (point.id === "boss") btn.classList.add("boss");
+      if (point.id !== "boss") {
+        const icon = STORY_MAP_POINT_ICONS[randInt(0, STORY_MAP_POINT_ICONS.length - 1)];
+        btn.style.backgroundImage = `url("${icon}")`;
+        btn.style.backgroundSize = "cover";
+        btn.style.backgroundPosition = "center";
+        btn.style.backgroundRepeat = "no-repeat";
+      }
       if (completed) btn.classList.add("completed");
       else if (unlocked) btn.classList.add("current");
       else btn.classList.add("locked");
@@ -2309,9 +2322,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function startStoryMapBattle(pointId) {
     if (!storyMapFlow || !storyMapFlow.isPointUnlocked(storyMapState, pointId)) return;
+    resetGame();
     currentStoryMapPointId = pointId;
     storyMapBattleActive = true;
-    resetGame();
     selectedMode = "arcade";
     currentMode = "arcade";
     storyCombatActive = false;

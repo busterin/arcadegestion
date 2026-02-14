@@ -403,6 +403,10 @@ img{ max-width:100%; height:auto; }
   border-color: rgba(216,221,232,.8);
   box-shadow: 0 0 0 6px rgba(142,152,169,.18);
 }
+.story-map-point.completed:not(.boss){
+  filter: grayscale(1) brightness(.78);
+  background-color: rgba(240,244,252,.15);
+}
 
 .story-map-point.locked{
   opacity: .55;
