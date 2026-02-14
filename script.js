@@ -2097,7 +2097,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
     }
-    const canSkipStoryBattle = currentMode !== "versus" && gameRunning && (storyCombatActive || storyMapBattleActive);
+    const canSkipStoryBattle = currentMode !== "versus" && (storyCombatActive || storyMapBattleActive);
     storySkipBattleBtn?.classList.toggle("hidden", !canSkipStoryBattle);
     rivalTeamBtn?.classList.toggle("hidden", currentMode !== "versus");
     updateActiveEffectButton();
