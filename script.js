@@ -674,6 +674,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let lastRenderedStorySceneKey = "";
   let storyPhase = "pre";
   let storyMapState = storyMapFlow ? storyMapFlow.createInitialState() : null;
+  let storyMapPointIcons = null;
   let storyMapBattleActive = false;
   let currentStoryMapPointId = null;
   let storyCombatActive = false;
@@ -1804,6 +1805,21 @@ document.addEventListener("DOMContentLoaded", () => {
     return STORY_PRE_COMBAT_SCENES;
   }
 
+  function resetStoryMapPointIcons() {
+    storyMapPointIcons = null;
+  }
+
+  function ensureStoryMapPointIcons() {
+    if (!storyMapFlow) return;
+    if (!storyMapPointIcons) storyMapPointIcons = {};
+    const points = storyMapFlow.getPoints();
+    points.forEach((point) => {
+      if (!point || point.id === "boss") return;
+      if (storyMapPointIcons[point.id]) return;
+      storyMapPointIcons[point.id] = STORY_MAP_POINT_ICONS[randInt(0, STORY_MAP_POINT_ICONS.length - 1)];
+    });
+  }
+
   function getMissionPoolForCurrentMode() {
     if (storyMapBattleActive) return STORY_BASE_MISSIONS;
     if (!storyCombatActive) return MISSIONS;
@@ -2343,6 +2359,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ...options
     };
     if (!storyMapLayer || !storyMapPoints || !storyMapRouteFill || !storyMapFlow) return;
+    ensureStoryMapPointIcons();
     const isMobileMap = isMobileStoryViewport();
     const getProjectedPoint = (point) => {
       if (!point) return { x: 50, y: 50 };
@@ -2441,7 +2458,7 @@ document.addEventListener("DOMContentLoaded", () => {
       btn.className = "story-map-point";
       if (point.id === "boss") btn.classList.add("boss");
       if (point.id !== "boss") {
-        const icon = STORY_MAP_POINT_ICONS[randInt(0, STORY_MAP_POINT_ICONS.length - 1)];
+        const icon = storyMapPointIcons?.[point.id] || STORY_MAP_POINT_ICONS[0];
         btn.style.backgroundImage = `url("${icon}")`;
         btn.style.backgroundSize = "cover";
         btn.style.backgroundPosition = "center";
@@ -2520,6 +2537,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function startStoryMapMode() {
     if (storyMapFlow && !storyMapState) storyMapState = storyMapFlow.createInitialState();
+    resetStoryMapPointIcons();
+    ensureStoryMapPointIcons();
     storyPhase = "mapintro";
     storyStep = 0;
     renderStoryStep();
@@ -2592,6 +2611,7 @@ document.addEventListener("DOMContentLoaded", () => {
     storyMapBattleActive = false;
     currentStoryMapPointId = null;
     storyMapState = storyMapFlow ? storyMapFlow.createInitialState() : null;
+    resetStoryMapPointIcons();
     storyJackUnlocked = false;
     storyJackCompleted = false;
     storyPhase = "pre";
