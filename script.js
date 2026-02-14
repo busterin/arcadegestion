@@ -123,6 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const storyStage = document.getElementById("storyStage");
   const storyDialog = document.getElementById("storyDialog");
   const storyMapLayer = document.getElementById("storyMapLayer");
+  const storyMapConnections = document.getElementById("storyMapConnections");
   const storyMapPoints = document.getElementById("storyMapPoints");
   const storyMapRouteFill = document.getElementById("storyMapRouteFill");
   const storyLeftChar = document.getElementById("storyLeftChar");
@@ -2256,6 +2257,47 @@ document.addEventListener("DOMContentLoaded", () => {
     storyRightSupportChar?.classList.add("hidden");
     storyScreen.style.background = 'url("historia/mapa1.png") center center / cover no-repeat';
     storyMapPoints.innerHTML = "";
+    if (storyMapConnections) {
+      storyMapConnections.innerHTML = "";
+      const tiers = storyMapFlow.getTiers();
+      const boss = storyMapFlow.getBoss();
+      const chosenByTier = Array.isArray(storyMapState?.chosenByTier) ? storyMapState.chosenByTier : [];
+
+      const isConnectionActive = (fromId, toId) => {
+        const fromTier = storyMapFlow.getTierIndexForPoint(fromId);
+        if (fromTier < 0) return false;
+        if (chosenByTier[fromTier] !== fromId) return false;
+        if (fromTier === tiers.length - 1) return toId === boss.id;
+        const nextChosen = chosenByTier[fromTier + 1];
+        if (nextChosen) return toId === nextChosen;
+        return true;
+      };
+
+      for (let t = 0; t < tiers.length - 1; t++) {
+        tiers[t].forEach((from) => {
+          tiers[t + 1].forEach((to) => {
+            const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            line.setAttribute("x1", String(from.x));
+            line.setAttribute("y1", String(from.y));
+            line.setAttribute("x2", String(to.x));
+            line.setAttribute("y2", String(to.y));
+            line.setAttribute("class", `story-map-connection${isConnectionActive(from.id, to.id) ? " active" : ""}`);
+            storyMapConnections.appendChild(line);
+          });
+        });
+      }
+
+      const lastTier = tiers[tiers.length - 1] || [];
+      lastTier.forEach((from) => {
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", String(from.x));
+        line.setAttribute("y1", String(from.y));
+        line.setAttribute("x2", String(boss.x));
+        line.setAttribute("y2", String(boss.y));
+        line.setAttribute("class", `story-map-connection${isConnectionActive(from.id, boss.id) ? " active" : ""}`);
+        storyMapConnections.appendChild(line);
+      });
+    }
     const points = storyMapFlow.getPoints();
     points.forEach((point) => {
       const completed = storyMapFlow.isPointCompleted(storyMapState, point.id);

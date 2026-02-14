@@ -25,6 +25,7 @@
       return {
         tierIndex: 0,
         completedIds: [],
+        chosenByTier: Array.from({ length: TIERS.length }, () => null),
         bossUnlocked: false,
         bossCompleted: false
       };
@@ -37,6 +38,11 @@
       const completed = Array.isArray(raw.completedIds)
         ? raw.completedIds.filter((id) => validIds.has(id))
         : [];
+      const chosenByTierRaw = Array.isArray(raw.chosenByTier) ? raw.chosenByTier : [];
+      const chosenByTier = Array.from({ length: TIERS.length }, (_, idx) => {
+        const id = chosenByTierRaw[idx];
+        return validIds.has(id) ? id : null;
+      });
       const tierIndexRaw = Number(raw.tierIndex);
       const tierIndex = Number.isFinite(tierIndexRaw) ? Math.max(0, Math.min(TIERS.length, Math.floor(tierIndexRaw))) : 0;
       const bossUnlocked = !!raw.bossUnlocked || tierIndex >= TIERS.length;
@@ -44,6 +50,7 @@
       return {
         tierIndex,
         completedIds: [...new Set(completed)],
+        chosenByTier,
         bossUnlocked,
         bossCompleted
       };
@@ -88,6 +95,8 @@
         return next;
       }
 
+      const tier = getTierIndexForPoint(pointId);
+      if (tier >= 0) next.chosenByTier[tier] = pointId;
       const currentTier = TIERS[state.tierIndex] || [];
       const tierIds = currentTier.map((p) => p.id);
       next.completedIds = [...new Set([...next.completedIds, ...tierIds])];
@@ -108,6 +117,9 @@
       createInitialState,
       normalizeState,
       getPoints,
+      getTiers: () => TIERS.map((tier) => tier.map((p) => ({ ...p }))),
+      getBoss: () => ({ ...BOSS }),
+      getTierIndexForPoint,
       isPointUnlocked,
       isPointCompleted,
       completePoint,
