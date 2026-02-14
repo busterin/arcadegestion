@@ -538,6 +538,62 @@ document.addEventListener("DOMContentLoaded", () => {
       showChars: true
     }
   ];
+  const STORY_MAP_INTRO_SCENES = [
+    {
+      speaker: "Winchester",
+      text: "Este es el mapa de misión. Aquí vemos las rutas disponibles hasta llegar a nuestro objetivo.",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "historia/Winchester2.png",
+      showChars: true,
+      showRight: false
+    },
+    {
+      speaker: "Winchester",
+      text: "Cuando eliges un lugar, el resto de la misma línea ya no podrán ser explorados. Decide con cautela.",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "historia/Winchester2.png",
+      showChars: true,
+      showRight: false
+    },
+    {
+      speaker: "Winchester",
+      text: "El icono de las espadas representa una batalla. Tendremos que completar varios encargos de mercenarios.",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "historia/Winchester2.png",
+      showChars: true,
+      showRight: false
+    },
+    {
+      speaker: "Winchester",
+      text: "El icono del bocadillo representa una conversación. Quizás conozcamos a nuevos personajes o misiones.",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "historia/Winchester2.png",
+      showChars: true,
+      showRight: false
+    },
+    {
+      speaker: "Winchester",
+      text: "El icono del cofre promete un tesoro valioso y en el del interrogante nadie sabe lo que puede pasar.",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "historia/Winchester2.png",
+      showChars: true,
+      showRight: false
+    },
+    {
+      speaker: "Winchester",
+      text: "¡Vamos! ¡Rumbo al castillo!",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "historia/Winchester2.png",
+      showChars: true,
+      showRight: false
+    }
+  ];
   const TUTORIAL_STEPS = [
     "¡Prepárate para un combate real! Tu objetivo es liderar a tu equipo y completar misiones pulsando los iconos que irán apareciendo en el mapa.",
     "Al abrir una misión, tendrás que elegir personajes. Debes conocer bien a tu equipo porque si mandas a los más aptos para la misión, las probabilidades de éxito aumentarán considerablemente.",
@@ -734,7 +790,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const phase = String(raw?.state?.storyPhase || "");
     const step = Number(raw?.state?.storyStep);
     const stage = Number(raw?.state?.storyCombatStage);
-    const validPhase = ["pre", "post", "epilogue", "mappost", "map", "combat"].includes(phase) ? phase : "pre";
+    const validPhase = ["pre", "post", "epilogue", "mapintro", "mappost", "map", "combat"].includes(phase) ? phase : "pre";
     return {
       savedAt: Number.isFinite(savedAt) ? savedAt : Date.now(),
       label: String(raw.label || "Partida guardada"),
@@ -1039,7 +1095,7 @@ document.addEventListener("DOMContentLoaded", () => {
     storyJackCompleted = !!state?.storyJackCompleted;
     storyMapState = storyMapFlow ? storyMapFlow.normalizeState(state?.storyMapState) : null;
     storyCharacterProgress = storyProgress.normalizeProgress(state?.storyCharacterProgress);
-    storyPhase = ["pre", "post", "epilogue", "map", "mappost"].includes(state?.storyPhase) ? state.storyPhase : "pre";
+    storyPhase = ["pre", "post", "epilogue", "mapintro", "map", "mappost"].includes(state?.storyPhase) ? state.storyPhase : "pre";
     storyStep = Math.max(0, Math.floor(Number(state?.storyStep) || 0));
 
     introScreen.classList.add("hidden");
@@ -1712,6 +1768,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function getStorySceneList() {
+    if (storyPhase === "mapintro") return STORY_MAP_INTRO_SCENES;
     if (storyPhase === "mappost") return STORY_MAP_POST_SCENES;
     if (storyPhase === "post") return STORY_POST_COMBAT_SCENES;
     if (storyPhase === "epilogue") return STORY_EPILOGUE_SCENES;
@@ -1976,10 +2033,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (storyStage) storyStage.style.background = "";
 
-    storyLeftChar?.classList.toggle("hidden", !showChars);
-    storyRightChar?.classList.toggle("hidden", !showChars);
-    const showLeftSupport = showChars && !!scene.leftSupportSrc;
-    const showRightSupport = showChars && !!scene.rightSupportSrc;
+    const showLeft = showChars && scene.showLeft !== false;
+    const showRight = showChars && scene.showRight !== false;
+    const showLeftSupport = showLeft && !!scene.leftSupportSrc && scene.showLeftSupport !== false;
+    const showRightSupport = showRight && !!scene.rightSupportSrc && scene.showRightSupport !== false;
+    storyLeftChar?.classList.toggle("hidden", !showLeft);
+    storyRightChar?.classList.toggle("hidden", !showRight);
     storyLeftSupportChar?.classList.toggle("hidden", !showLeftSupport);
     storyRightSupportChar?.classList.toggle("hidden", !showRightSupport);
 
@@ -1991,10 +2050,10 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    if (storyLeftChar) setImageWithFallback(storyLeftChar, scene.leftSrc, "images/Evelyn.png");
-    if (storyRightChar) setImageWithFallback(storyRightChar, scene.rightSrc, "images/Landom.png?v=20260210-4");
-    if (storyLeftSupportChar) setImageWithFallback(storyLeftSupportChar, scene.leftSupportSrc, "historia/Winchester2.png");
-    if (storyRightSupportChar) setImageWithFallback(storyRightSupportChar, scene.rightSupportSrc, "historia/Jane2.png");
+    if (showLeft && storyLeftChar) setImageWithFallback(storyLeftChar, scene.leftSrc, "images/Evelyn.png");
+    if (showRight && storyRightChar) setImageWithFallback(storyRightChar, scene.rightSrc, "images/Landom.png?v=20260210-4");
+    if (showLeftSupport && storyLeftSupportChar) setImageWithFallback(storyLeftSupportChar, scene.leftSupportSrc, "historia/Winchester2.png");
+    if (showRightSupport && storyRightSupportChar) setImageWithFallback(storyRightSupportChar, scene.rightSupportSrc, "historia/Jane2.png");
     storyRightChar?.classList.toggle("no-mirror", scene.rightMirror === false);
     storyRightSupportChar?.classList.toggle("no-mirror", scene.rightSupportMirror === false);
     storyLeftChar?.classList.toggle("active", scene.active === "left");
@@ -2403,7 +2462,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function startStoryMapMode() {
     if (storyMapFlow && !storyMapState) storyMapState = storyMapFlow.createInitialState();
-    storyPhase = "map";
+    storyPhase = "mapintro";
     storyStep = 0;
     renderStoryStep();
   }
@@ -2541,6 +2600,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (storyPhase === "epilogue") {
       startStoryMapMode();
+      return;
+    }
+    if (storyPhase === "mapintro") {
+      storyPhase = "map";
+      storyStep = 0;
+      renderStoryStep();
       return;
     }
     if (storyPhase === "mappost") {
