@@ -2262,6 +2262,22 @@ document.addEventListener("DOMContentLoaded", () => {
       const tiers = storyMapFlow.getTiers();
       const boss = storyMapFlow.getBoss();
       const chosenByTier = Array.isArray(storyMapState?.chosenByTier) ? storyMapState.chosenByTier : [];
+      const getTierPointIndex = (pointId) => {
+        const tier = storyMapFlow.getTierIndexForPoint(pointId);
+        if (tier < 0) return -1;
+        return (tiers[tier] || []).findIndex((p) => p.id === pointId);
+      };
+      const getAllowedNextIndices = (fromIndex) => {
+        if (fromIndex === 0) return [0, 1];
+        if (fromIndex === 2) return [1, 2];
+        return [0, 1, 2];
+      };
+      const isTransitionAllowed = (fromId, toId) => {
+        const fromIdx = getTierPointIndex(fromId);
+        const toIdx = getTierPointIndex(toId);
+        if (fromIdx < 0 || toIdx < 0) return false;
+        return getAllowedNextIndices(fromIdx).includes(toIdx);
+      };
 
       const isConnectionActive = (fromId, toId) => {
         const fromTier = storyMapFlow.getTierIndexForPoint(fromId);
@@ -2276,6 +2292,7 @@ document.addEventListener("DOMContentLoaded", () => {
       for (let t = 0; t < tiers.length - 1; t++) {
         tiers[t].forEach((from) => {
           tiers[t + 1].forEach((to) => {
+            if (!isTransitionAllowed(from.id, to.id)) return;
             const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
             line.setAttribute("x1", String(from.x));
             line.setAttribute("y1", String(from.y));

@@ -2,14 +2,14 @@
   function createStoryMapFlowModule() {
     const TIERS = [
       [
-        { id: "m1", x: 22, y: 78 },
-        { id: "m2", x: 50, y: 80 },
-        { id: "m3", x: 78, y: 78 }
+        { id: "m1", x: 22, y: 66 },
+        { id: "m2", x: 50, y: 68 },
+        { id: "m3", x: 78, y: 66 }
       ],
       [
-        { id: "m4", x: 24, y: 56 },
-        { id: "m5", x: 50, y: 58 },
-        { id: "m6", x: 76, y: 56 }
+        { id: "m4", x: 24, y: 50 },
+        { id: "m5", x: 50, y: 52 },
+        { id: "m6", x: 76, y: 50 }
       ],
       [
         { id: "m7", x: 26, y: 34 },
@@ -18,7 +18,7 @@
       ]
     ];
 
-    const BOSS = { id: "boss", x: 50, y: 16 };
+    const BOSS = { id: "boss", x: 50, y: 22 };
     const POINTS = [...TIERS.flat(), BOSS];
 
     function createInitialState() {
@@ -67,6 +67,18 @@
       return -1;
     }
 
+    function getTierPointIndex(pointId) {
+      const tier = getTierIndexForPoint(pointId);
+      if (tier < 0) return -1;
+      return TIERS[tier].findIndex((p) => p.id === pointId);
+    }
+
+    function getAllowedNextIndices(fromIndex) {
+      if (fromIndex === 0) return [0, 1];
+      if (fromIndex === 2) return [1, 2];
+      return [0, 1, 2];
+    }
+
     function isPointCompleted(state, pointId) {
       return state.completedIds.includes(pointId);
     }
@@ -75,7 +87,15 @@
       if (pointId === BOSS.id) return !!state.bossUnlocked;
       const tier = getTierIndexForPoint(pointId);
       if (tier < 0) return false;
-      return tier === state.tierIndex && !isPointCompleted(state, pointId);
+      if (tier !== state.tierIndex || isPointCompleted(state, pointId)) return false;
+      if (tier === 0) return true;
+
+      const prevChosenId = Array.isArray(state.chosenByTier) ? state.chosenByTier[tier - 1] : null;
+      if (!prevChosenId) return false;
+      const prevIdx = getTierPointIndex(prevChosenId);
+      const idx = getTierPointIndex(pointId);
+      if (prevIdx < 0 || idx < 0) return false;
+      return getAllowedNextIndices(prevIdx).includes(idx);
     }
 
     function completePoint(inputState, pointId) {
