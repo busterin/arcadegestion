@@ -353,12 +353,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const MINI_GAME_GOAL_KILLS = 10;
   const MINI_GAME_PLAYER_SPEED_PX_S = 340;
   const MINI_GAME_BULLET_SPEED_PX_S = 620;
-  const MINI_GAME_MONSTER_SPEED_MIN_PX_S = 96;
-  const MINI_GAME_MONSTER_SPEED_MAX_PX_S = 178;
-  const MINI_GAME_PLAYER_IDLE_SRC = "minijuegos/evelynjuego1.png";
-  const MINI_GAME_PLAYER_SHOOT_SRC = "minijuegos/evelynjuego2.png";
-  const MINI_GAME_PLAYER_MOVE_SRC = "minijuegos/evelynjuego3.png";
-  const MINI_GAME_MONSTER_SPRITE_SRC = "minijuegos/monstruojuego1.PNG";
+  const MINI_GAME_MONSTER_SPEED_MIN_PX_S = 54;
+  const MINI_GAME_MONSTER_SPEED_MAX_PX_S = 102;
+  const MINI_GAME_PLAYER_IDLE_BG = 'url("minijuegos/evelynjuego1.png"), url("minijuegos/evelynjuego1.PNG")';
+  const MINI_GAME_PLAYER_SHOOT_BG = 'url("minijuegos/evelynjuego2.png"), url("minijuegos/evelynjuego2.PNG")';
+  const MINI_GAME_PLAYER_MOVE_BG = 'url("minijuegos/evelynjuego3.png"), url("minijuegos/evelynjuego3.PNG")';
+  const MINI_GAME_MONSTER_SPRITE_BG = 'url("minijuegos/monstruojuego1.png"), url("minijuegos/monstruojuego1.PNG")';
   const MINI_GAME_SPRITE_COLUMNS = 2;
   const MINI_GAME_SPRITE_ROWS = 3;
   const MINI_GAME_SPRITE_FRAMES = MINI_GAME_SPRITE_COLUMNS * MINI_GAME_SPRITE_ROWS;
@@ -1863,7 +1863,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function getMiniPlayerWidth() {
-    return miniGamePlayer?.getBoundingClientRect().width || 72;
+    return miniGamePlayer?.getBoundingClientRect().width || 110;
   }
 
   function setMiniGamePlayerX(nextX) {
@@ -1894,7 +1894,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!arenaRect) return;
     const monster = document.createElement("div");
     monster.className = "minigame-entity minigame-monster";
-    monster.style.backgroundImage = `url("${MINI_GAME_MONSTER_SPRITE_SRC}")`;
+    monster.style.backgroundImage = MINI_GAME_MONSTER_SPRITE_BG;
     const monsterRect = monster.getBoundingClientRect();
     const width = monsterRect.width || 64;
     const x = rand(0, Math.max(0, arenaRect.width - width));
@@ -1916,19 +1916,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const moving = miniGameMoveLeft || miniGameMoveRight;
     if (miniGameShootPoseMs > 0) {
-      miniGamePlayer.style.backgroundImage = `url("${MINI_GAME_PLAYER_SHOOT_SRC}")`;
+      miniGamePlayer.style.backgroundImage = MINI_GAME_PLAYER_SHOOT_BG;
       const kick = Math.sin((miniGamePlayerAnimMs / 80) * Math.PI) * 5;
       miniGamePlayer.style.transform = `translateY(${-kick}px) scaleX(${miniGameFacing})`;
       return;
     }
     if (moving) {
-      miniGamePlayer.style.backgroundImage = `url("${MINI_GAME_PLAYER_MOVE_SRC}")`;
+      miniGamePlayer.style.backgroundImage = MINI_GAME_PLAYER_MOVE_BG;
       const bob = Math.sin(miniGamePlayerAnimMs / 85) * 3.2;
       const lean = Math.sin(miniGamePlayerAnimMs / 105) * 4;
       miniGamePlayer.style.transform = `translateY(${bob}px) rotate(${lean}deg) scaleX(${miniGameFacing})`;
       return;
     }
-    miniGamePlayer.style.backgroundImage = `url("${MINI_GAME_PLAYER_IDLE_SRC}")`;
+    miniGamePlayer.style.backgroundImage = MINI_GAME_PLAYER_IDLE_BG;
     const breathe = 1 + (Math.sin(miniGamePlayerAnimMs / 380) * 0.025);
     miniGamePlayer.style.transform = `translateY(0px) scale(${breathe}) scaleX(${miniGameFacing})`;
   }
@@ -1985,7 +1985,7 @@ document.addEventListener("DOMContentLoaded", () => {
     miniGameNextMonsterSpawnMs -= dt * 1000;
     if (miniGameNextMonsterSpawnMs <= 0) {
       addMiniGameMonster();
-      miniGameNextMonsterSpawnMs = rand(550, 980);
+      miniGameNextMonsterSpawnMs = rand(900, 1500);
     }
 
     miniGameBullets = miniGameBullets.filter((bullet) => {

@@ -891,8 +891,10 @@ img{ max-width:100%; height:auto; }
 
 .minigame-arena{
   margin-top: 12px;
-  width: 100%;
-  height: min(64vh, 540px);
+  width: min(980px, 100%);
+  height: clamp(320px, 46vh, 460px);
+  margin-left: auto;
+  margin-right: auto;
   border-radius: 16px;
   border: 1px solid rgba(255,255,255,.18);
   background:
@@ -909,19 +911,21 @@ img{ max-width:100%; height:auto; }
 }
 
 .minigame-player{
-  width: 84px;
-  height: 84px;
+  width: 128px;
+  height: 152px;
   bottom: 12px;
-  left: calc(50% - 42px);
+  left: calc(50% - 64px);
   background-size: contain;
   background-position: center bottom;
   transform-origin: center bottom;
   transition: transform .08s linear;
+  z-index: 4;
 }
 
 .minigame-monster{
   width: 74px;
   height: 74px;
+  z-index: 3;
 }
 
 .minigame-bullet{
@@ -931,6 +935,7 @@ img{ max-width:100%; height:auto; }
   border-radius: 999px;
   background: linear-gradient(180deg, rgba(255,243,169,.98), rgba(255,172,61,.95));
   box-shadow: 0 0 8px rgba(255,205,93,.85);
+  z-index: 5;
 }
 
 .minigame-actions{
@@ -2033,11 +2038,11 @@ img{ max-width:100%; height:auto; }
 
 @media (max-width: 820px){
   .minigame-arena{
-    height: min(58vh, 460px);
+    height: min(74vh, 690px);
   }
   .minigame-player{
-    width: 72px;
-    height: 72px;
+    width: 108px;
+    height: 132px;
     bottom: 10px;
   }
   .minigame-monster{
