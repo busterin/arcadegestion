@@ -164,7 +164,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const miniGameArena = document.getElementById("miniGameArena");
   const miniGamePlayer = document.getElementById("miniGamePlayer");
   const miniGameCounter = document.getElementById("miniGameCounter");
-  const miniGameState = document.getElementById("miniGameState");
+  const miniGameOverlay = document.getElementById("miniGameOverlay");
+  const miniGameOverlayText = document.getElementById("miniGameOverlayText");
   const miniGameShootBtn = document.getElementById("miniGameShootBtn");
   const miniGameRetryBtn = document.getElementById("miniGameRetryBtn");
   const miniGameBackBtn = document.getElementById("miniGameBackBtn");
@@ -1851,11 +1852,18 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function setMiniGameStatus(text) {
-    if (miniGameState) miniGameState.textContent = text;
+    if (!miniGameOverlay || !miniGameOverlayText) return;
+    if (!text || text === "En juego") {
+      miniGameOverlay.classList.add("hidden");
+      miniGameOverlayText.textContent = "";
+      return;
+    }
+    miniGameOverlayText.textContent = text;
+    miniGameOverlay.classList.remove("hidden");
   }
 
   function renderMiniGameCounter() {
-    if (miniGameCounter) miniGameCounter.textContent = `Monstruos eliminados: ${miniGameKills} / ${MINI_GAME_GOAL_KILLS}`;
+    if (miniGameCounter) miniGameCounter.textContent = `Monstruos: ${miniGameKills} / ${MINI_GAME_GOAL_KILLS}`;
   }
 
   function getMiniArenaRect() {

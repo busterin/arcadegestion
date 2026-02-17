@@ -136,16 +136,14 @@ Sin existencias. Renovaremos la tienda pronto
 <!-- MINIJUEGOS -->
 <section class="start hidden" id="miniGamesScreen">
 <div class="start-card minigame-card">
-<div class="start-title">Minijuegos</div>
-<div class="start-subtitle">Elimina 10 monstruos para ganar. Si te tocan, pierdes.</div>
-<div class="minigame-hud">
-<div class="minigame-counter" id="miniGameCounter">Monstruos eliminados: 0 / 10</div>
-<div class="minigame-state" id="miniGameState">En juego</div>
-</div>
 <div class="minigame-arena" id="miniGameArena">
 <div class="minigame-entity minigame-player" id="miniGamePlayer"></div>
+<div class="minigame-overlay hidden" id="miniGameOverlay">
+<div class="minigame-overlay-text" id="miniGameOverlayText">Victoria</div>
+</div>
 </div>
 <div class="modal-actions end minigame-actions">
+<div class="minigame-counter" id="miniGameCounter">Monstruos: 0 / 10</div>
 <button class="btn btn-ghost hidden" id="miniGameShootBtn" type="button">Disparar</button>
 <button class="btn btn-ghost" id="miniGameRetryBtn" type="button">Reiniciar</button>
 <button class="btn btn-ghost" id="miniGameBackBtn" type="button">Volver al menú</button>

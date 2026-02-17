@@ -869,14 +869,8 @@ img{ max-width:100%; height:auto; }
 /* ---------- MINIJUEGOS ---------- */
 .minigame-card{
   width: min(900px, 100%);
-}
-
-.minigame-hud{
-  margin-top: 10px;
   display: flex;
-  gap: 10px;
-  justify-content: center;
-  flex-wrap: wrap;
+  flex-direction: column;
 }
 
 .minigame-counter,
@@ -890,9 +884,9 @@ img{ max-width:100%; height:auto; }
 }
 
 .minigame-arena{
-  margin-top: 12px;
+  margin-top: 0;
   width: min(980px, 100%);
-  height: clamp(320px, 46vh, 460px);
+  height: clamp(360px, 64vh, 740px);
   margin-left: auto;
   margin-right: auto;
   border-radius: 16px;
@@ -961,7 +955,32 @@ img{ max-width:100%; height:auto; }
 }
 
 .minigame-actions{
-  margin-top: 10px;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.minigame-overlay{
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(7,12,23,.44);
+  z-index: 10;
+}
+
+.minigame-overlay-text{
+  padding: 14px 20px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.28);
+  background: rgba(0,0,0,.54);
+  color: #fff;
+  font-size: clamp(30px, 4vw, 42px);
+  font-weight: 1000;
+  letter-spacing: .4px;
 }
 
 /* ---------- GAME LAYOUT ---------- */
@@ -2071,6 +2090,13 @@ img{ max-width:100%; height:auto; }
     width: 56px;
     height: 56px;
   }
+  .minigame-actions{
+    justify-content: flex-end;
+  }
+  .minigame-counter{
+    width: 100%;
+    text-align: center;
+  }
 }
 
 @media (min-width: 821px){
@@ -2085,7 +2111,7 @@ img{ max-width:100%; height:auto; }
   #miniGamesScreen .minigame-arena{
     flex: 1 1 auto;
     height: auto;
-    min-height: 480px;
+    min-height: 620px;
   }
   #miniGameShootBtn{
     display: none !important;
