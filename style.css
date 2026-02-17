@@ -871,6 +871,11 @@ img{ max-width:100%; height:auto; }
   width: min(900px, 100%);
   display: flex;
   flex-direction: column;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  padding: 0;
 }
 
 .minigame-counter,
