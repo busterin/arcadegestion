@@ -915,6 +915,9 @@ img{ max-width:100%; height:auto; }
   transition: transform .08s linear;
   z-index: 4;
 }
+.minigame-player.hit{
+  animation: miniPlayerHit .24s ease;
+}
 
 .minigame-monster{
   width: 62px;
@@ -922,6 +925,15 @@ img{ max-width:100%; height:auto; }
   background-size: contain;
   background-position: center center;
   z-index: 3;
+}
+.minigame-arena.hit::after{
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: rgba(255,54,54,.28);
+  animation: miniArenaHit .24s ease;
+  z-index: 9;
 }
 
 .minigame-bullet{
@@ -952,6 +964,20 @@ img{ max-width:100%; height:auto; }
 @keyframes miniExplosion{
   0%{ transform: translate(-50%, -50%) scale(.4); opacity: 1; }
   100%{ transform: translate(-50%, -50%) scale(1.35); opacity: 0; }
+}
+
+@keyframes miniPlayerHit{
+  0%{ transform: translateX(0) scaleX(1); filter: brightness(1); }
+  25%{ transform: translateX(-6px) scaleX(1); filter: brightness(1.7); }
+  50%{ transform: translateX(6px) scaleX(1); filter: brightness(2); }
+  75%{ transform: translateX(-4px) scaleX(1); filter: brightness(1.5); }
+  100%{ transform: translateX(0) scaleX(1); filter: brightness(1); }
+}
+
+@keyframes miniArenaHit{
+  0%{ opacity: 0; }
+  20%{ opacity: 1; }
+  100%{ opacity: 0; }
 }
 
 .minigame-actions{

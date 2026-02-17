@@ -348,6 +348,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let miniGamePlayerAnimMs = 0;
   let miniGameShootPoseMs = 0;
   let miniGameFacing = 1;
+  let miniGameDefeatTimer = null;
   let miniGameBullets = [];
   let miniGameMonsters = [];
 
@@ -1842,6 +1843,8 @@ document.addEventListener("DOMContentLoaded", () => {
     miniGameRunning = false;
     if (miniGameRaf) cancelAnimationFrame(miniGameRaf);
     miniGameRaf = null;
+    clearTimeout(miniGameDefeatTimer);
+    miniGameDefeatTimer = null;
   }
 
   function clearMiniGameProjectilesAndMonsters() {
@@ -1981,6 +1984,19 @@ document.addEventListener("DOMContentLoaded", () => {
     setMiniGameStatus(isWin ? "Victoria" : "Derrota");
   }
 
+  function triggerMiniGameHitEffect() {
+    miniGamePlayer?.classList.remove("hit");
+    miniGameArena?.classList.remove("hit");
+    requestAnimationFrame(() => {
+      miniGamePlayer?.classList.add("hit");
+      miniGameArena?.classList.add("hit");
+    });
+    setTimeout(() => {
+      miniGamePlayer?.classList.remove("hit");
+      miniGameArena?.classList.remove("hit");
+    }, 260);
+  }
+
   function tickMiniGame(ts) {
     if (!miniGameRunning || miniGameEnded || !miniGameArena || !miniGamePlayer) return;
     if (!miniGameLastTs) miniGameLastTs = ts;
@@ -2068,7 +2084,16 @@ document.addEventListener("DOMContentLoaded", () => {
       const mh = mRect.height || 64;
       const touch = px < mx + mw && px + pw > mx && playerY < my + mh && playerY + ph > my;
       if (touch) {
-        endMiniGame(false);
+        if (!miniGameEnded) {
+          miniGameEnded = true;
+          miniGameMoveLeft = false;
+          miniGameMoveRight = false;
+          stopMiniGameLoop();
+          triggerMiniGameHitEffect();
+          miniGameDefeatTimer = setTimeout(() => {
+            endMiniGame(false);
+          }, 220);
+        }
         return;
       }
     }
