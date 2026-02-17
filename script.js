@@ -160,6 +160,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const userSecondaryGrid = document.getElementById("userSecondaryGrid");
   const userBackBtn = document.getElementById("userBackBtn");
 
+  const miniGamesScreen = document.getElementById("miniGamesScreen");
+  const miniGameArena = document.getElementById("miniGameArena");
+  const miniGamePlayer = document.getElementById("miniGamePlayer");
+  const miniGameCounter = document.getElementById("miniGameCounter");
+  const miniGameState = document.getElementById("miniGameState");
+  const miniGameShootBtn = document.getElementById("miniGameShootBtn");
+  const miniGameRetryBtn = document.getElementById("miniGameRetryBtn");
+  const miniGameBackBtn = document.getElementById("miniGameBackBtn");
+
   const startScreen = document.getElementById("startScreen");
   const startBtn = document.getElementById("startBtn");
   const startTutorialBtn = document.getElementById("startTutorialBtn");
@@ -323,6 +332,32 @@ document.addEventListener("DOMContentLoaded", () => {
   let tutorialPending = false;
   let tutorialStep = 0;
   let tutorialReturnToAvatar = false;
+  let miniGameRunning = false;
+  let miniGameEnded = false;
+  let miniGameLastTs = 0;
+  let miniGameRaf = null;
+  let miniGameKills = 0;
+  let miniGamePlayerX = 0;
+  let miniGameMoveLeft = false;
+  let miniGameMoveRight = false;
+  let miniGamePointerDragging = false;
+  let miniGameNextMonsterSpawnMs = 0;
+  let miniGameSpriteFrameAccMs = 0;
+  let miniGamePlayerFrame = 0;
+  let miniGameMonsterFrame = 0;
+  let miniGameBullets = [];
+  let miniGameMonsters = [];
+
+  const MINI_GAME_GOAL_KILLS = 10;
+  const MINI_GAME_PLAYER_SPEED_PX_S = 340;
+  const MINI_GAME_BULLET_SPEED_PX_S = 620;
+  const MINI_GAME_MONSTER_SPEED_MIN_PX_S = 96;
+  const MINI_GAME_MONSTER_SPEED_MAX_PX_S = 178;
+  const MINI_GAME_PLAYER_SPRITE_SRC = "minijuegos/evelynjuego1.PNG";
+  const MINI_GAME_MONSTER_SPRITE_SRC = "minijuegos/monstruojuego1.PNG";
+  const MINI_GAME_SPRITE_COLUMNS = 2;
+  const MINI_GAME_SPRITE_ROWS = 3;
+  const MINI_GAME_SPRITE_FRAMES = MINI_GAME_SPRITE_COLUMNS * MINI_GAME_SPRITE_ROWS;
 
   const versus = {
     clientId: `p_${Math.random().toString(36).slice(2, 10)}`,
@@ -348,6 +383,7 @@ document.addEventListener("DOMContentLoaded", () => {
     { key: "arcade", label: "ARCADE", img: "images/arcade.png" },
     { key: "versus", label: "VERSUS", img: "images/versus.png" },
     { key: "historia", label: "HISTORIA", img: "images/historia.png" },
+    { key: "minijuegos", label: "MINIJUEGOS", img: "images/minijuegos.png" },
     { key: "reclutar", label: "RECLUTAR", img: "images/reclutar.png" },
     { key: "tienda", label: "TIENDA", img: "images/tienda.png" },
     { key: "cuenta", label: "CUENTA", img: "images/cuenta.png" }
@@ -1538,10 +1574,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function goToRecruitScreen() {
     if (!recruitScreen) return;
+    stopMiniGameLoop();
     introScreen.classList.add("hidden");
     storyScreen?.classList.add("hidden");
     storeScreen?.classList.add("hidden");
     userScreen?.classList.add("hidden");
+    miniGamesScreen?.classList.add("hidden");
     startScreen.classList.add("hidden");
     teamScreen.classList.add("hidden");
     gameRoot.classList.add("hidden");
@@ -1554,11 +1592,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function goToStoreScreen() {
     if (!storeScreen) return;
+    stopMiniGameLoop();
     introScreen.classList.add("hidden");
     storyScreen?.classList.add("hidden");
     recruitScreen?.classList.add("hidden");
     storeScreen?.classList.add("hidden");
     userScreen?.classList.add("hidden");
+    miniGamesScreen?.classList.add("hidden");
     startScreen.classList.add("hidden");
     teamScreen.classList.add("hidden");
     gameRoot.classList.add("hidden");
@@ -1770,10 +1810,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function goToUserScreen() {
     if (!userScreen) return;
+    stopMiniGameLoop();
     introScreen.classList.add("hidden");
     storyScreen?.classList.add("hidden");
     recruitScreen?.classList.add("hidden");
     storeScreen?.classList.add("hidden");
+    miniGamesScreen?.classList.add("hidden");
     startScreen.classList.add("hidden");
     teamScreen.classList.add("hidden");
     gameRoot.classList.add("hidden");
@@ -1788,6 +1830,242 @@ document.addEventListener("DOMContentLoaded", () => {
     if (userNameEditBtn) userNameEditBtn.textContent = "Editar nombre";
     renderUserAvatarPicker();
     renderUserCollection();
+    resetViewportTop();
+  }
+
+  function stopMiniGameLoop() {
+    miniGameRunning = false;
+    if (miniGameRaf) cancelAnimationFrame(miniGameRaf);
+    miniGameRaf = null;
+  }
+
+  function clearMiniGameProjectilesAndMonsters() {
+    miniGameBullets.forEach((bullet) => bullet.el?.remove());
+    miniGameMonsters.forEach((monster) => monster.el?.remove());
+    miniGameBullets = [];
+    miniGameMonsters = [];
+  }
+
+  function setMiniGameStatus(text) {
+    if (miniGameState) miniGameState.textContent = text;
+  }
+
+  function renderMiniGameCounter() {
+    if (miniGameCounter) miniGameCounter.textContent = `Monstruos eliminados: ${miniGameKills} / ${MINI_GAME_GOAL_KILLS}`;
+  }
+
+  function getMiniArenaRect() {
+    return miniGameArena?.getBoundingClientRect() || null;
+  }
+
+  function getMiniPlayerWidth() {
+    return miniGamePlayer?.getBoundingClientRect().width || 72;
+  }
+
+  function setMiniGamePlayerX(nextX) {
+    if (!miniGameArena || !miniGamePlayer) return;
+    const arenaRect = getMiniArenaRect();
+    if (!arenaRect) return;
+    const playerWidth = getMiniPlayerWidth();
+    miniGamePlayerX = clamp(nextX, 0, Math.max(0, arenaRect.width - playerWidth));
+    miniGamePlayer.style.left = `${miniGamePlayerX}px`;
+  }
+
+  function updateMiniSpriteFrame(el, frame, cols = MINI_GAME_SPRITE_COLUMNS, rows = MINI_GAME_SPRITE_ROWS) {
+    if (!el) return;
+    const maxCols = Math.max(1, cols);
+    const maxRows = Math.max(1, rows);
+    const index = Math.max(0, Math.floor(frame));
+    const col = index % maxCols;
+    const row = Math.floor(index / maxCols) % maxRows;
+    const xPct = maxCols > 1 ? (col * 100) / (maxCols - 1) : 0;
+    const yPct = maxRows > 1 ? (row * 100) / (maxRows - 1) : 0;
+    el.style.backgroundSize = `${maxCols * 100}% ${maxRows * 100}%`;
+    el.style.backgroundPosition = `${xPct}% ${yPct}%`;
+  }
+
+  function addMiniGameMonster() {
+    if (!miniGameArena) return;
+    const arenaRect = getMiniArenaRect();
+    if (!arenaRect) return;
+    const monster = document.createElement("div");
+    monster.className = "minigame-entity minigame-monster";
+    monster.style.backgroundImage = `url("${MINI_GAME_MONSTER_SPRITE_SRC}")`;
+    const monsterRect = monster.getBoundingClientRect();
+    const width = monsterRect.width || 64;
+    const x = rand(0, Math.max(0, arenaRect.width - width));
+    const speed = rand(MINI_GAME_MONSTER_SPEED_MIN_PX_S, MINI_GAME_MONSTER_SPEED_MAX_PX_S);
+    const data = { el: monster, x, y: -80, speed };
+    miniGameMonsters.push(data);
+    miniGameArena.appendChild(monster);
+    monster.style.left = `${data.x}px`;
+    monster.style.top = `${data.y}px`;
+    updateMiniSpriteFrame(monster, miniGameMonsterFrame);
+  }
+
+  function fireMiniGameBullet() {
+    if (!miniGameRunning || miniGameEnded || !miniGameArena || !miniGamePlayer) return;
+    const arenaRect = getMiniArenaRect();
+    const playerRect = miniGamePlayer.getBoundingClientRect();
+    if (!arenaRect || !playerRect) return;
+    const bullet = document.createElement("div");
+    bullet.className = "minigame-bullet";
+    miniGameArena.appendChild(bullet);
+    const bulletRect = bullet.getBoundingClientRect();
+    const width = bulletRect.width || 8;
+    const height = bulletRect.height || 18;
+    const x = miniGamePlayerX + (playerRect.width / 2) - (width / 2);
+    const y = arenaRect.height - playerRect.height - 12 - height;
+    bullet.style.left = `${x}px`;
+    bullet.style.top = `${y}px`;
+    miniGameBullets.push({ el: bullet, x, y, w: width, h: height });
+  }
+
+  function endMiniGame(isWin) {
+    miniGameEnded = true;
+    stopMiniGameLoop();
+    miniGameMoveLeft = false;
+    miniGameMoveRight = false;
+    setMiniGameStatus(isWin ? "Victoria" : "Derrota");
+  }
+
+  function tickMiniGame(ts) {
+    if (!miniGameRunning || miniGameEnded || !miniGameArena || !miniGamePlayer) return;
+    if (!miniGameLastTs) miniGameLastTs = ts;
+    const dt = Math.min(0.05, (ts - miniGameLastTs) / 1000);
+    miniGameLastTs = ts;
+    const arenaRect = getMiniArenaRect();
+    const playerRect = miniGamePlayer.getBoundingClientRect();
+    if (!arenaRect || !playerRect) return;
+
+    if (miniGameMoveLeft) setMiniGamePlayerX(miniGamePlayerX - MINI_GAME_PLAYER_SPEED_PX_S * dt);
+    if (miniGameMoveRight) setMiniGamePlayerX(miniGamePlayerX + MINI_GAME_PLAYER_SPEED_PX_S * dt);
+
+    miniGameSpriteFrameAccMs += dt * 1000;
+    if (miniGameSpriteFrameAccMs >= 120) {
+      miniGameSpriteFrameAccMs = 0;
+      miniGameMonsterFrame = (miniGameMonsterFrame + 1) % MINI_GAME_SPRITE_FRAMES;
+      const playerShouldAnimate = miniGameMoveLeft || miniGameMoveRight;
+      miniGamePlayerFrame = playerShouldAnimate
+        ? (miniGamePlayerFrame + 1) % MINI_GAME_SPRITE_FRAMES
+        : 0;
+      updateMiniSpriteFrame(miniGamePlayer, miniGamePlayerFrame);
+      miniGameMonsters.forEach((monster) => updateMiniSpriteFrame(monster.el, miniGameMonsterFrame));
+    }
+
+    miniGameNextMonsterSpawnMs -= dt * 1000;
+    if (miniGameNextMonsterSpawnMs <= 0) {
+      addMiniGameMonster();
+      miniGameNextMonsterSpawnMs = rand(550, 980);
+    }
+
+    miniGameBullets = miniGameBullets.filter((bullet) => {
+      bullet.y -= MINI_GAME_BULLET_SPEED_PX_S * dt;
+      if (bullet.y + bullet.h < 0) {
+        bullet.el?.remove();
+        return false;
+      }
+      bullet.el.style.top = `${bullet.y}px`;
+      return true;
+    });
+
+    miniGameMonsters = miniGameMonsters.filter((monster) => {
+      monster.y += monster.speed * dt;
+      monster.el.style.top = `${monster.y}px`;
+      monster.el.style.left = `${monster.x}px`;
+      if (monster.y > arenaRect.height + 80) {
+        monster.el?.remove();
+        return false;
+      }
+      return true;
+    });
+
+    for (let m = miniGameMonsters.length - 1; m >= 0; m--) {
+      const monster = miniGameMonsters[m];
+      const monsterRect = monster.el.getBoundingClientRect();
+      const mx = monster.x;
+      const my = monster.y;
+      const mw = monsterRect.width || 64;
+      const mh = monsterRect.height || 64;
+
+      for (let b = miniGameBullets.length - 1; b >= 0; b--) {
+        const bullet = miniGameBullets[b];
+        const hit = bullet.x < mx + mw && bullet.x + bullet.w > mx && bullet.y < my + mh && bullet.y + bullet.h > my;
+        if (!hit) continue;
+        bullet.el?.remove();
+        monster.el?.remove();
+        miniGameBullets.splice(b, 1);
+        miniGameMonsters.splice(m, 1);
+        miniGameKills += 1;
+        renderMiniGameCounter();
+        if (miniGameKills >= MINI_GAME_GOAL_KILLS) {
+          endMiniGame(true);
+          return;
+        }
+        break;
+      }
+    }
+
+    const playerY = arenaRect.height - playerRect.height - 12;
+    const px = miniGamePlayerX;
+    const pw = playerRect.width || 72;
+    const ph = playerRect.height || 72;
+    for (const monster of miniGameMonsters) {
+      const mRect = monster.el.getBoundingClientRect();
+      const mx = monster.x;
+      const my = monster.y;
+      const mw = mRect.width || 64;
+      const mh = mRect.height || 64;
+      const touch = px < mx + mw && px + pw > mx && playerY < my + mh && playerY + ph > my;
+      if (touch) {
+        endMiniGame(false);
+        return;
+      }
+    }
+
+    miniGameRaf = requestAnimationFrame(tickMiniGame);
+  }
+
+  function startMiniGame() {
+    if (!miniGameArena || !miniGamePlayer) return;
+    stopMiniGameLoop();
+    clearMiniGameProjectilesAndMonsters();
+    miniGameKills = 0;
+    miniGameEnded = false;
+    miniGameLastTs = 0;
+    miniGameNextMonsterSpawnMs = 420;
+    miniGameSpriteFrameAccMs = 0;
+    miniGamePlayerFrame = 0;
+    miniGameMonsterFrame = 0;
+    miniGameMoveLeft = false;
+    miniGameMoveRight = false;
+    renderMiniGameCounter();
+    setMiniGameStatus("En juego");
+    miniGamePlayer.style.backgroundImage = `url("${MINI_GAME_PLAYER_SPRITE_SRC}")`;
+    updateMiniSpriteFrame(miniGamePlayer, 0);
+    const arenaRect = getMiniArenaRect();
+    const playerW = getMiniPlayerWidth();
+    const centered = arenaRect ? (arenaRect.width - playerW) / 2 : 0;
+    setMiniGamePlayerX(Math.max(0, centered));
+    miniGameRunning = true;
+    miniGameRaf = requestAnimationFrame(tickMiniGame);
+  }
+
+  function goToMiniGamesScreen() {
+    if (!miniGamesScreen) return;
+    stopGameLoops();
+    clearMatchmakingState();
+    introScreen.classList.add("hidden");
+    storyScreen?.classList.add("hidden");
+    recruitScreen?.classList.add("hidden");
+    storeScreen?.classList.add("hidden");
+    userScreen?.classList.add("hidden");
+    startScreen.classList.add("hidden");
+    teamScreen.classList.add("hidden");
+    gameRoot.classList.add("hidden");
+    miniGamesScreen.classList.remove("hidden");
+    miniGameShootBtn?.classList.toggle("hidden", !isMobileStoryViewport());
+    startMiniGame();
     resetViewportTop();
   }
 
@@ -2281,6 +2559,8 @@ document.addEventListener("DOMContentLoaded", () => {
   function setIntroVisible() {
     if (isStoryContextVisible()) saveStoryContinueSnapshot();
     if (isEditingUserName) endUserNameEdit(true);
+    stopMiniGameLoop();
+    clearMiniGameProjectilesAndMonsters();
     const targetMenuKey = resolveIntroMenuKeyFromContext();
     const targetIndex = INTRO_MENU_OPTIONS.findIndex((option) => option.key === targetMenuKey);
     introMenuIndex = targetIndex >= 0 ? targetIndex : 0;
@@ -2290,6 +2570,7 @@ document.addEventListener("DOMContentLoaded", () => {
     recruitScreen?.classList.add("hidden");
     storeScreen?.classList.add("hidden");
     userScreen?.classList.add("hidden");
+    miniGamesScreen?.classList.add("hidden");
     startScreen.classList.add("hidden");
     teamScreen.classList.add("hidden");
     gameRoot.classList.add("hidden");
@@ -2301,6 +2582,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (recruitScreen && !recruitScreen.classList.contains("hidden")) return "reclutar";
     if (storeScreen && !storeScreen.classList.contains("hidden")) return "tienda";
     if (userScreen && !userScreen.classList.contains("hidden")) return "cuenta";
+    if (miniGamesScreen && !miniGamesScreen.classList.contains("hidden")) return "minijuegos";
 
     const inPlayflow = !startScreen.classList.contains("hidden") || !teamScreen.classList.contains("hidden") || !gameRoot.classList.contains("hidden");
     if (inPlayflow) {
@@ -2337,6 +2619,7 @@ document.addEventListener("DOMContentLoaded", () => {
       resetScrollableTree(recruitScreen);
       resetScrollableTree(storeScreen);
       resetScrollableTree(userScreen);
+      resetScrollableTree(miniGamesScreen);
       resetScrollableTree(startScreen);
       resetScrollableTree(teamScreen);
       resetScrollableTree(gameRoot);
@@ -2382,6 +2665,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (current.key === "arcade") goToStartScreen("arcade");
     if (current.key === "versus") goToStartScreen("versus");
     if (current.key === "historia") openStoryEntryModal();
+    if (current.key === "minijuegos") goToMiniGamesScreen();
     if (current.key === "reclutar") goToRecruitScreen();
     if (current.key === "tienda") goToStoreScreen();
     if (current.key === "cuenta") goToUserScreen();
@@ -2620,12 +2904,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function goToStartScreen(mode) {
+    stopMiniGameLoop();
     selectedMode = mode;
     introScreen.classList.add("hidden");
     storyScreen?.classList.add("hidden");
     recruitScreen?.classList.add("hidden");
     storeScreen?.classList.add("hidden");
     userScreen?.classList.add("hidden");
+    miniGamesScreen?.classList.add("hidden");
     startScreen.classList.remove("hidden");
     startTutorialBtn?.classList.toggle("hidden", selectedMode !== "arcade");
     teamScreen.classList.add("hidden");
@@ -2671,12 +2957,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function goToStoryScreen() {
+    stopMiniGameLoop();
     storyCharacterProgress = storyProgress.createInitialProgress();
     storyLevelUpQueue = [];
     introScreen.classList.add("hidden");
     recruitScreen?.classList.add("hidden");
     storeScreen?.classList.add("hidden");
     userScreen?.classList.add("hidden");
+    miniGamesScreen?.classList.add("hidden");
     startScreen.classList.add("hidden");
     teamScreen.classList.add("hidden");
     gameRoot.classList.add("hidden");
@@ -4506,6 +4794,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function resetGame() {
+    stopMiniGameLoop();
     hideModal(missionModal);
     hideModal(rouletteModal);
     hideModal(finalModal);
@@ -4642,6 +4931,30 @@ document.addEventListener("DOMContentLoaded", () => {
   storyMenuBtn?.addEventListener("click", setIntroVisible);
   storySkipBtn?.addEventListener("click", skipStoryPhase);
   userBackBtn?.addEventListener("click", setIntroVisible);
+  miniGameBackBtn?.addEventListener("click", setIntroVisible);
+  miniGameRetryBtn?.addEventListener("click", startMiniGame);
+  miniGameShootBtn?.addEventListener("click", fireMiniGameBullet);
+  miniGameArena?.addEventListener("pointerdown", (e) => {
+    if (!miniGameArena) return;
+    miniGamePointerDragging = true;
+    miniGameArena.setPointerCapture?.(e.pointerId);
+    const rect = miniGameArena.getBoundingClientRect();
+    const playerW = getMiniPlayerWidth();
+    setMiniGamePlayerX((e.clientX - rect.left) - (playerW / 2));
+  });
+  miniGameArena?.addEventListener("pointermove", (e) => {
+    if (!miniGamePointerDragging || !miniGameArena) return;
+    const rect = miniGameArena.getBoundingClientRect();
+    const playerW = getMiniPlayerWidth();
+    setMiniGamePlayerX((e.clientX - rect.left) - (playerW / 2));
+  });
+  miniGameArena?.addEventListener("pointerup", (e) => {
+    miniGamePointerDragging = false;
+    miniGameArena?.releasePointerCapture?.(e.pointerId);
+  });
+  miniGameArena?.addEventListener("pointercancel", () => {
+    miniGamePointerDragging = false;
+  });
 
   document.addEventListener("click", (e) => {
     const target = e.target;
@@ -4727,10 +5040,32 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    if (miniGamesScreen && !miniGamesScreen.classList.contains("hidden")) {
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        miniGameMoveLeft = true;
+      }
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        miniGameMoveRight = true;
+      }
+      if (e.key === "Enter") {
+        e.preventDefault();
+        fireMiniGameBullet();
+      }
+      return;
+    }
+
     if (!startScreen.classList.contains("hidden")) {
       if (e.key === "ArrowLeft") prevAvatar();
       if (e.key === "ArrowRight") nextAvatar();
     }
+  });
+
+  document.addEventListener("keyup", (e) => {
+    if (!(miniGamesScreen && !miniGamesScreen.classList.contains("hidden"))) return;
+    if (e.key === "ArrowLeft") miniGameMoveLeft = false;
+    if (e.key === "ArrowRight") miniGameMoveRight = false;
   });
 
   startBackBtn?.addEventListener("click", setIntroVisible);
