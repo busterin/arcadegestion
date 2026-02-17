@@ -359,9 +359,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const MINI_GAME_PLAYER_SHOOT_BG = 'url("minijuegos/evelynjuego2.png"), url("minijuegos/evelynjuego2.PNG")';
   const MINI_GAME_PLAYER_MOVE_BG = 'url("minijuegos/evelynjuego3.png"), url("minijuegos/evelynjuego3.PNG")';
   const MINI_GAME_MONSTER_SPRITE_BG = 'url("minijuegos/monstruojuego1.png"), url("minijuegos/monstruojuego1.PNG")';
-  const MINI_GAME_SPRITE_COLUMNS = 2;
-  const MINI_GAME_SPRITE_ROWS = 3;
-  const MINI_GAME_SPRITE_FRAMES = MINI_GAME_SPRITE_COLUMNS * MINI_GAME_SPRITE_ROWS;
+  const MINI_GAME_MONSTER_SPRITE_COLUMNS = 1;
+  const MINI_GAME_MONSTER_SPRITE_ROWS = 1;
+  const MINI_GAME_MONSTER_SPRITE_FRAMES = MINI_GAME_MONSTER_SPRITE_COLUMNS * MINI_GAME_MONSTER_SPRITE_ROWS;
 
   const versus = {
     clientId: `p_${Math.random().toString(36).slice(2, 10)}`,
@@ -1875,7 +1875,7 @@ document.addEventListener("DOMContentLoaded", () => {
     miniGamePlayer.style.left = `${miniGamePlayerX}px`;
   }
 
-  function updateMiniSpriteFrame(el, frame, cols = MINI_GAME_SPRITE_COLUMNS, rows = MINI_GAME_SPRITE_ROWS) {
+  function updateMiniSpriteFrame(el, frame, cols = MINI_GAME_MONSTER_SPRITE_COLUMNS, rows = MINI_GAME_MONSTER_SPRITE_ROWS) {
     if (!el) return;
     const maxCols = Math.max(1, cols);
     const maxRows = Math.max(1, rows);
@@ -1905,6 +1905,18 @@ document.addEventListener("DOMContentLoaded", () => {
     monster.style.left = `${data.x}px`;
     monster.style.top = `${data.y}px`;
     updateMiniSpriteFrame(monster, miniGameMonsterFrame);
+  }
+
+  function spawnMiniExplosion(centerX, centerY, sizePx = 44) {
+    if (!miniGameArena) return;
+    const fx = document.createElement("div");
+    fx.className = "minigame-explosion";
+    fx.style.left = `${centerX}px`;
+    fx.style.top = `${centerY}px`;
+    fx.style.width = `${sizePx}px`;
+    fx.style.height = `${sizePx}px`;
+    miniGameArena.appendChild(fx);
+    fx.addEventListener("animationend", () => fx.remove(), { once: true });
   }
 
   function updateMiniGamePlayerVisual(dtMs = 0) {
@@ -1978,7 +1990,7 @@ document.addEventListener("DOMContentLoaded", () => {
     updateMiniGamePlayerVisual(dtMs);
     if (miniGameSpriteFrameAccMs >= 120) {
       miniGameSpriteFrameAccMs = 0;
-      miniGameMonsterFrame = (miniGameMonsterFrame + 1) % MINI_GAME_SPRITE_FRAMES;
+      miniGameMonsterFrame = (miniGameMonsterFrame + 1) % MINI_GAME_MONSTER_SPRITE_FRAMES;
       miniGameMonsters.forEach((monster) => updateMiniSpriteFrame(monster.el, miniGameMonsterFrame));
     }
 
@@ -2021,6 +2033,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const bullet = miniGameBullets[b];
         const hit = bullet.x < mx + mw && bullet.x + bullet.w > mx && bullet.y < my + mh && bullet.y + bullet.h > my;
         if (!hit) continue;
+        spawnMiniExplosion(mx + (mw / 2), my + (mh / 2), Math.max(mw, mh) * 0.9);
         bullet.el?.remove();
         monster.el?.remove();
         miniGameBullets.splice(b, 1);
