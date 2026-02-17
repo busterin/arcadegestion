@@ -893,7 +893,7 @@ img{ max-width:100%; height:auto; }
   border: 1px solid rgba(255,255,255,.18);
   background:
     linear-gradient(0deg, rgba(12,17,30,.36), rgba(12,17,30,.36)),
-    url("images/portadainicio.PNG") center center / cover no-repeat;
+    url("historia/mapa1.png") center center / cover no-repeat;
   position: relative;
   overflow: hidden;
   touch-action: none;
