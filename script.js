@@ -348,6 +348,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let miniGamePlayerAnimMs = 0;
   let miniGameShootPoseMs = 0;
   let miniGameFacing = 1;
+  let miniGameMoveFrameIndex = 0;
+  let miniGameMoveFrameAccMs = 0;
   let miniGameDefeatTimer = null;
   let miniGameBullets = [];
   let miniGameMonsters = [];
@@ -359,7 +361,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const MINI_GAME_MONSTER_SPEED_MAX_PX_S = 102;
   const MINI_GAME_PLAYER_IDLE_BG = 'url("minijuegos/evelynjuego1.png"), url("minijuegos/evelynjuego1.PNG")';
   const MINI_GAME_PLAYER_SHOOT_BG = 'url("minijuegos/evelynjuego2.png"), url("minijuegos/evelynjuego2.PNG")';
-  const MINI_GAME_PLAYER_MOVE_BG = 'url("minijuegos/evelynjuego3.png"), url("minijuegos/evelynjuego3.PNG")';
+  const MINI_GAME_PLAYER_MOVE_FRAMES = [
+    'url("minijuegos/evelynjuego3.png"), url("minijuegos/evelynjuego3.PNG")',
+    'url("minijuegos/evelynjuego3B.png"), url("minijuegos/evelynjuego3B.PNG")',
+    'url("minijuegos/evelynjuego3C.png"), url("minijuegos/evelynjuego3C.PNG")',
+    'url("minijuegos/evelynjuego3D.png"), url("minijuegos/evelynjuego3D.PNG")'
+  ];
   const MINI_GAME_MONSTER_SPRITE_BG = 'url("minijuegos/monstruojuego1.png"), url("minijuegos/monstruojuego1.PNG")';
   const MINI_GAME_MONSTER_SPRITE_COLUMNS = 1;
   const MINI_GAME_MONSTER_SPRITE_ROWS = 1;
@@ -1945,12 +1952,19 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     if (moving) {
-      miniGamePlayer.style.backgroundImage = MINI_GAME_PLAYER_MOVE_BG;
+      miniGameMoveFrameAccMs += dtMs;
+      if (miniGameMoveFrameAccMs >= 92) {
+        miniGameMoveFrameAccMs = 0;
+        miniGameMoveFrameIndex = (miniGameMoveFrameIndex + 1) % MINI_GAME_PLAYER_MOVE_FRAMES.length;
+      }
+      miniGamePlayer.style.backgroundImage = MINI_GAME_PLAYER_MOVE_FRAMES[miniGameMoveFrameIndex];
       const bob = Math.sin(miniGamePlayerAnimMs / 85) * 3.2;
       const lean = Math.sin(miniGamePlayerAnimMs / 105) * 4;
       miniGamePlayer.style.transform = `translateY(${bob}px) rotate(${lean}deg) scaleX(${miniGameFacing})`;
       return;
     }
+    miniGameMoveFrameAccMs = 0;
+    miniGameMoveFrameIndex = 0;
     miniGamePlayer.style.backgroundImage = MINI_GAME_PLAYER_IDLE_BG;
     const breathe = 1 + (Math.sin(miniGamePlayerAnimMs / 380) * 0.025);
     miniGamePlayer.style.transform = `translateY(0px) scale(${breathe}) scaleX(${miniGameFacing})`;
@@ -2113,6 +2127,8 @@ document.addEventListener("DOMContentLoaded", () => {
     miniGameMonsterFrame = 0;
     miniGamePlayerAnimMs = 0;
     miniGameShootPoseMs = 0;
+    miniGameMoveFrameIndex = 0;
+    miniGameMoveFrameAccMs = 0;
     miniGameFacing = 1;
     miniGameMoveLeft = false;
     miniGameMoveRight = false;
