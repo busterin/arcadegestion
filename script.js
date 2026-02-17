@@ -343,8 +343,10 @@ document.addEventListener("DOMContentLoaded", () => {
   let miniGamePointerDragging = false;
   let miniGameNextMonsterSpawnMs = 0;
   let miniGameSpriteFrameAccMs = 0;
-  let miniGamePlayerFrame = 0;
   let miniGameMonsterFrame = 0;
+  let miniGamePlayerAnimMs = 0;
+  let miniGameShootPoseMs = 0;
+  let miniGameFacing = 1;
   let miniGameBullets = [];
   let miniGameMonsters = [];
 
@@ -353,7 +355,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const MINI_GAME_BULLET_SPEED_PX_S = 620;
   const MINI_GAME_MONSTER_SPEED_MIN_PX_S = 96;
   const MINI_GAME_MONSTER_SPEED_MAX_PX_S = 178;
-  const MINI_GAME_PLAYER_SPRITE_SRC = "minijuegos/evelynjuego1.PNG";
+  const MINI_GAME_PLAYER_IDLE_SRC = "minijuegos/evelynjuego1.png";
+  const MINI_GAME_PLAYER_SHOOT_SRC = "minijuegos/evelynjuego2.png";
+  const MINI_GAME_PLAYER_MOVE_SRC = "minijuegos/evelynjuego3.png";
   const MINI_GAME_MONSTER_SPRITE_SRC = "minijuegos/monstruojuego1.PNG";
   const MINI_GAME_SPRITE_COLUMNS = 2;
   const MINI_GAME_SPRITE_ROWS = 3;
@@ -1903,6 +1907,32 @@ document.addEventListener("DOMContentLoaded", () => {
     updateMiniSpriteFrame(monster, miniGameMonsterFrame);
   }
 
+  function updateMiniGamePlayerVisual(dtMs = 0) {
+    if (!miniGamePlayer) return;
+    miniGamePlayerAnimMs += dtMs;
+    miniGameShootPoseMs = Math.max(0, miniGameShootPoseMs - dtMs);
+    if (miniGameMoveLeft) miniGameFacing = -1;
+    if (miniGameMoveRight) miniGameFacing = 1;
+
+    const moving = miniGameMoveLeft || miniGameMoveRight;
+    if (miniGameShootPoseMs > 0) {
+      miniGamePlayer.style.backgroundImage = `url("${MINI_GAME_PLAYER_SHOOT_SRC}")`;
+      const kick = Math.sin((miniGamePlayerAnimMs / 80) * Math.PI) * 5;
+      miniGamePlayer.style.transform = `translateY(${-kick}px) scaleX(${miniGameFacing})`;
+      return;
+    }
+    if (moving) {
+      miniGamePlayer.style.backgroundImage = `url("${MINI_GAME_PLAYER_MOVE_SRC}")`;
+      const bob = Math.sin(miniGamePlayerAnimMs / 85) * 3.2;
+      const lean = Math.sin(miniGamePlayerAnimMs / 105) * 4;
+      miniGamePlayer.style.transform = `translateY(${bob}px) rotate(${lean}deg) scaleX(${miniGameFacing})`;
+      return;
+    }
+    miniGamePlayer.style.backgroundImage = `url("${MINI_GAME_PLAYER_IDLE_SRC}")`;
+    const breathe = 1 + (Math.sin(miniGamePlayerAnimMs / 380) * 0.025);
+    miniGamePlayer.style.transform = `translateY(0px) scale(${breathe}) scaleX(${miniGameFacing})`;
+  }
+
   function fireMiniGameBullet() {
     if (!miniGameRunning || miniGameEnded || !miniGameArena || !miniGamePlayer) return;
     const arenaRect = getMiniArenaRect();
@@ -1919,6 +1949,8 @@ document.addEventListener("DOMContentLoaded", () => {
     bullet.style.left = `${x}px`;
     bullet.style.top = `${y}px`;
     miniGameBullets.push({ el: bullet, x, y, w: width, h: height });
+    miniGameShootPoseMs = 170;
+    updateMiniGamePlayerVisual(0);
   }
 
   function endMiniGame(isWin) {
@@ -1941,15 +1973,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (miniGameMoveLeft) setMiniGamePlayerX(miniGamePlayerX - MINI_GAME_PLAYER_SPEED_PX_S * dt);
     if (miniGameMoveRight) setMiniGamePlayerX(miniGamePlayerX + MINI_GAME_PLAYER_SPEED_PX_S * dt);
 
-    miniGameSpriteFrameAccMs += dt * 1000;
+    const dtMs = dt * 1000;
+    miniGameSpriteFrameAccMs += dtMs;
+    updateMiniGamePlayerVisual(dtMs);
     if (miniGameSpriteFrameAccMs >= 120) {
       miniGameSpriteFrameAccMs = 0;
       miniGameMonsterFrame = (miniGameMonsterFrame + 1) % MINI_GAME_SPRITE_FRAMES;
-      const playerShouldAnimate = miniGameMoveLeft || miniGameMoveRight;
-      miniGamePlayerFrame = playerShouldAnimate
-        ? (miniGamePlayerFrame + 1) % MINI_GAME_SPRITE_FRAMES
-        : 0;
-      updateMiniSpriteFrame(miniGamePlayer, miniGamePlayerFrame);
       miniGameMonsters.forEach((monster) => updateMiniSpriteFrame(monster.el, miniGameMonsterFrame));
     }
 
@@ -2035,14 +2064,15 @@ document.addEventListener("DOMContentLoaded", () => {
     miniGameLastTs = 0;
     miniGameNextMonsterSpawnMs = 420;
     miniGameSpriteFrameAccMs = 0;
-    miniGamePlayerFrame = 0;
     miniGameMonsterFrame = 0;
+    miniGamePlayerAnimMs = 0;
+    miniGameShootPoseMs = 0;
+    miniGameFacing = 1;
     miniGameMoveLeft = false;
     miniGameMoveRight = false;
     renderMiniGameCounter();
     setMiniGameStatus("En juego");
-    miniGamePlayer.style.backgroundImage = `url("${MINI_GAME_PLAYER_SPRITE_SRC}")`;
-    updateMiniSpriteFrame(miniGamePlayer, 0);
+    updateMiniGamePlayerVisual(0);
     const arenaRect = getMiniArenaRect();
     const playerW = getMiniPlayerWidth();
     const centered = arenaRect ? (arenaRect.width - playerW) / 2 : 0;

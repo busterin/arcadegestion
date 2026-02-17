@@ -913,6 +913,10 @@ img{ max-width:100%; height:auto; }
   height: 84px;
   bottom: 12px;
   left: calc(50% - 42px);
+  background-size: contain;
+  background-position: center bottom;
+  transform-origin: center bottom;
+  transition: transform .08s linear;
 }
 
 .minigame-monster{
