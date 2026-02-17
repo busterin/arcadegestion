@@ -1008,6 +1008,8 @@ img{ max-width:100%; height:auto; }
   font-weight: 900;
   line-height: 1;
   padding: 0;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .minigame-shoot-btn{
@@ -1021,6 +1023,8 @@ img{ max-width:100%; height:auto; }
   color: rgba(18,10,0,.86);
   border-color: rgba(255,255,255,.42);
   box-shadow: 0 0 16px rgba(255,188,70,.55);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .minigame-overlay{

@@ -5103,6 +5103,21 @@ document.addEventListener("DOMContentLoaded", () => {
     if (target.id === "introMenuImg" || target.id === "introMenuFallback") activateIntroMenuOption();
   });
 
+  document.addEventListener("gesturestart", (e) => {
+    if (!(miniGamesScreen && !miniGamesScreen.classList.contains("hidden"))) return;
+    e.preventDefault();
+  }, { passive: false });
+
+  let miniLastTouchEndAt = 0;
+  document.addEventListener("touchend", (e) => {
+    if (!(miniGamesScreen && !miniGamesScreen.classList.contains("hidden"))) return;
+    const now = Date.now();
+    if (now - miniLastTouchEndAt <= 320) {
+      e.preventDefault();
+    }
+    miniLastTouchEndAt = now;
+  }, { passive: false });
+
   prevAvatarBtn.addEventListener("click", prevAvatar);
   nextAvatarBtn.addEventListener("click", nextAvatar);
 
