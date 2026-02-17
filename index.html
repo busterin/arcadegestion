@@ -144,7 +144,11 @@ Sin existencias. Renovaremos la tienda pronto
 </div>
 <div class="modal-actions end minigame-actions">
 <div class="minigame-counter" id="miniGameCounter">Monstruos: 0 / 10</div>
-<button class="btn btn-ghost hidden" id="miniGameShootBtn" type="button">Disparar</button>
+<div class="minigame-mobile-controls" id="miniGameMobileControls">
+<button aria-label="Mover izquierda" class="btn btn-ghost minigame-dir-btn" id="miniGameLeftBtn" type="button">◀</button>
+<button aria-label="Mover derecha" class="btn btn-ghost minigame-dir-btn" id="miniGameRightBtn" type="button">▶</button>
+</div>
+<button class="btn btn-ghost hidden minigame-shoot-btn" id="miniGameShootBtn" type="button">●</button>
 <button class="btn btn-ghost" id="miniGameRetryBtn" type="button">Reiniciar</button>
 <button class="btn btn-ghost" id="miniGameBackBtn" type="button">Volver al menú</button>
 </div>

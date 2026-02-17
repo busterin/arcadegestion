@@ -994,6 +994,35 @@ img{ max-width:100%; height:auto; }
   flex-wrap: wrap;
 }
 
+.minigame-mobile-controls{
+  display: none;
+  gap: 8px;
+  align-items: center;
+}
+
+.minigame-dir-btn{
+  width: 58px;
+  height: 58px;
+  border-radius: 999px;
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1;
+  padding: 0;
+}
+
+.minigame-shoot-btn{
+  width: 86px;
+  height: 86px;
+  border-radius: 999px;
+  font-size: 38px;
+  line-height: 1;
+  padding: 0;
+  background: radial-gradient(circle at 35% 30%, rgba(255,236,171,.95), rgba(255,170,72,.92));
+  color: rgba(18,10,0,.86);
+  border-color: rgba(255,255,255,.42);
+  box-shadow: 0 0 16px rgba(255,188,70,.55);
+}
+
 .minigame-overlay{
   position: absolute;
   inset: 0;
@@ -2128,6 +2157,9 @@ img{ max-width:100%; height:auto; }
     width: 100%;
     text-align: center;
   }
+  .minigame-mobile-controls{
+    display: inline-flex;
+  }
 }
 
 @media (min-width: 821px){
@@ -2145,6 +2177,9 @@ img{ max-width:100%; height:auto; }
     min-height: 620px;
   }
   #miniGameShootBtn{
+    display: none !important;
+  }
+  #miniGameMobileControls{
     display: none !important;
   }
 }

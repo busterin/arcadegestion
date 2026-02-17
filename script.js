@@ -166,6 +166,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const miniGameCounter = document.getElementById("miniGameCounter");
   const miniGameOverlay = document.getElementById("miniGameOverlay");
   const miniGameOverlayText = document.getElementById("miniGameOverlayText");
+  const miniGameMobileControls = document.getElementById("miniGameMobileControls");
+  const miniGameLeftBtn = document.getElementById("miniGameLeftBtn");
+  const miniGameRightBtn = document.getElementById("miniGameRightBtn");
   const miniGameShootBtn = document.getElementById("miniGameShootBtn");
   const miniGameRetryBtn = document.getElementById("miniGameRetryBtn");
   const miniGameBackBtn = document.getElementById("miniGameBackBtn");
@@ -342,6 +345,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let miniGameMoveLeft = false;
   let miniGameMoveRight = false;
   let miniGamePointerDragging = false;
+  let miniGameLastPointerX = null;
   let miniGameNextMonsterSpawnMs = 0;
   let miniGameSpriteFrameAccMs = 0;
   let miniGameMonsterFrame = 0;
@@ -1876,6 +1880,21 @@ document.addEventListener("DOMContentLoaded", () => {
     if (miniGameCounter) miniGameCounter.textContent = `Monstruos: ${miniGameKills} / ${MINI_GAME_GOAL_KILLS}`;
   }
 
+  function setMiniGameMoveDirection(dir) {
+    if (dir < 0) {
+      miniGameMoveLeft = true;
+      miniGameMoveRight = false;
+      return;
+    }
+    if (dir > 0) {
+      miniGameMoveLeft = false;
+      miniGameMoveRight = true;
+      return;
+    }
+    miniGameMoveLeft = false;
+    miniGameMoveRight = false;
+  }
+
   function getMiniArenaRect() {
     return miniGameArena?.getBoundingClientRect() || null;
   }
@@ -2132,6 +2151,7 @@ document.addEventListener("DOMContentLoaded", () => {
     miniGameFacing = 1;
     miniGameMoveLeft = false;
     miniGameMoveRight = false;
+    miniGameLastPointerX = null;
     renderMiniGameCounter();
     setMiniGameStatus("En juego");
     updateMiniGamePlayerVisual(0);
@@ -2157,6 +2177,7 @@ document.addEventListener("DOMContentLoaded", () => {
     gameRoot.classList.add("hidden");
     miniGamesScreen.classList.remove("hidden");
     miniGameShootBtn?.classList.toggle("hidden", !isMobileStoryViewport());
+    miniGameMobileControls?.classList.toggle("hidden", !isMobileStoryViewport());
     startMiniGame();
     resetViewportTop();
   }
@@ -5026,9 +5047,27 @@ document.addEventListener("DOMContentLoaded", () => {
   miniGameBackBtn?.addEventListener("click", setIntroVisible);
   miniGameRetryBtn?.addEventListener("click", startMiniGame);
   miniGameShootBtn?.addEventListener("click", fireMiniGameBullet);
+  const bindMiniDirButton = (btn, dir) => {
+    if (!btn) return;
+    btn.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      btn.setPointerCapture?.(e.pointerId);
+      setMiniGameMoveDirection(dir);
+    });
+    const stop = (e) => {
+      if (e) btn.releasePointerCapture?.(e.pointerId);
+      setMiniGameMoveDirection(0);
+    };
+    btn.addEventListener("pointerup", stop);
+    btn.addEventListener("pointercancel", stop);
+    btn.addEventListener("pointerleave", stop);
+  };
+  bindMiniDirButton(miniGameLeftBtn, -1);
+  bindMiniDirButton(miniGameRightBtn, 1);
   miniGameArena?.addEventListener("pointerdown", (e) => {
     if (!miniGameArena) return;
     miniGamePointerDragging = true;
+    miniGameLastPointerX = e.clientX;
     miniGameArena.setPointerCapture?.(e.pointerId);
     const rect = miniGameArena.getBoundingClientRect();
     const playerW = getMiniPlayerWidth();
@@ -5039,13 +5078,23 @@ document.addEventListener("DOMContentLoaded", () => {
     const rect = miniGameArena.getBoundingClientRect();
     const playerW = getMiniPlayerWidth();
     setMiniGamePlayerX((e.clientX - rect.left) - (playerW / 2));
+    if (miniGameLastPointerX != null) {
+      const dx = e.clientX - miniGameLastPointerX;
+      if (Math.abs(dx) < 2) setMiniGameMoveDirection(0);
+      else setMiniGameMoveDirection(dx < 0 ? -1 : 1);
+    }
+    miniGameLastPointerX = e.clientX;
   });
   miniGameArena?.addEventListener("pointerup", (e) => {
     miniGamePointerDragging = false;
+    miniGameLastPointerX = null;
+    setMiniGameMoveDirection(0);
     miniGameArena?.releasePointerCapture?.(e.pointerId);
   });
   miniGameArena?.addEventListener("pointercancel", () => {
     miniGamePointerDragging = false;
+    miniGameLastPointerX = null;
+    setMiniGameMoveDirection(0);
   });
 
   document.addEventListener("click", (e) => {
