@@ -693,6 +693,58 @@ document.addEventListener("DOMContentLoaded", () => {
       showChars: true
     }
   ];
+  const STORY_MAP_QUESTION_REPEAT_SCENES = [
+    {
+      speaker: "Risko",
+      text: "¡Vaya! Has logrado encontrarme de nuevo.",
+      background: "historia/mapa1.png",
+      active: "right",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Risko2.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Evelyn",
+      text: "La verdad que ha sido casualidad...",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Risko2.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Risko",
+      text: "Vuelve a encontrarme y podrás enfrentarte al reto que te prometí.",
+      background: "historia/mapa1.png",
+      active: "right",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Risko2.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Evelyn",
+      text: "Espero que merezca la pena.",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Risko2.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Risko",
+      text: "Te aseguro que sí.",
+      background: "historia/mapa1.png",
+      active: "right",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Risko2.png",
+      rightMirror: false,
+      showChars: true
+    }
+  ];
   const STORY_MAP_INTRO_SCENES = [
     {
       speaker: "Winchester",
@@ -832,6 +884,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let storyMapPointIcons = null;
   let storyMapBattleActive = false;
   let currentStoryMapPointId = null;
+  let storyRiskoEncountered = false;
   let storyCombatActive = false;
   let storyCombatStage = 0;
   let storyJackSpawnTimer = null;
@@ -975,7 +1028,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const phase = String(raw?.state?.storyPhase || "");
     const step = Number(raw?.state?.storyStep);
     const stage = Number(raw?.state?.storyCombatStage);
-    const validPhase = ["pre", "post", "epilogue", "mapintro", "mappointquestion", "mappost", "map", "combat"].includes(phase) ? phase : "pre";
+    const validPhase = ["pre", "post", "epilogue", "mapintro", "mappointquestion", "mappointquestionrepeat", "mappost", "map", "combat"].includes(phase) ? phase : "pre";
     return {
       savedAt: Number.isFinite(savedAt) ? savedAt : Date.now(),
       label: String(raw.label || "Partida guardada"),
@@ -985,6 +1038,7 @@ document.addEventListener("DOMContentLoaded", () => {
         storyCombatActive: !!raw?.state?.storyCombatActive,
         storyCombatStage: stage === 2 ? 2 : 1,
         storyMapState: storyMapFlow ? storyMapFlow.normalizeState(raw?.state?.storyMapState) : null,
+        storyRiskoEncountered: !!raw?.state?.storyRiskoEncountered,
         storyCharacterProgress: storyProgress.normalizeProgress(raw?.state?.storyCharacterProgress)
       }
     };
@@ -1047,6 +1101,7 @@ document.addEventListener("DOMContentLoaded", () => {
       storyCombatActive,
       storyCombatStage: storyCombatStage === 2 ? 2 : 1,
       storyMapState: storyMapFlow ? storyMapFlow.normalizeState(storyMapState) : null,
+      storyRiskoEncountered,
       storyCharacterProgress
     };
   }
@@ -1083,6 +1138,7 @@ document.addEventListener("DOMContentLoaded", () => {
     storyJackUnlocked = false;
     storyJackCompleted = false;
     storyMapState = storyMapFlow ? storyMapFlow.normalizeState(payload.storyMapState) : null;
+    storyRiskoEncountered = !!payload.storyRiskoEncountered;
     storyPhase = payload.storyPhase === "combat" ? "pre" : payload.storyPhase;
     if (storyPhase === "map") {
       storyStep = 0;
@@ -1217,6 +1273,7 @@ document.addEventListener("DOMContentLoaded", () => {
           storyJackUnlocked,
           storyJackCompleted,
           storyMapState: storyMapFlow ? storyMapFlow.normalizeState(storyMapState) : null,
+          storyRiskoEncountered,
           storyCharacterProgress
         }
       };
@@ -1240,6 +1297,7 @@ document.addEventListener("DOMContentLoaded", () => {
         storyCombatStage,
         storyJackUnlocked,
         storyJackCompleted,
+        storyRiskoEncountered,
         tutorialPending,
         score,
         failedMissionsCount,
@@ -1278,9 +1336,10 @@ document.addEventListener("DOMContentLoaded", () => {
     storyCombatStage = Number(state?.storyCombatStage) === 2 ? 2 : 0;
     storyJackUnlocked = !!state?.storyJackUnlocked;
     storyJackCompleted = !!state?.storyJackCompleted;
+    storyRiskoEncountered = !!state?.storyRiskoEncountered;
     storyMapState = storyMapFlow ? storyMapFlow.normalizeState(state?.storyMapState) : null;
     storyCharacterProgress = storyProgress.normalizeProgress(state?.storyCharacterProgress);
-    storyPhase = ["pre", "post", "epilogue", "mapintro", "mappointquestion", "map", "mappost"].includes(state?.storyPhase) ? state.storyPhase : "pre";
+    storyPhase = ["pre", "post", "epilogue", "mapintro", "mappointquestion", "mappointquestionrepeat", "map", "mappost"].includes(state?.storyPhase) ? state.storyPhase : "pre";
     storyStep = Math.max(0, Math.floor(Number(state?.storyStep) || 0));
 
     introScreen.classList.add("hidden");
@@ -1315,6 +1374,7 @@ document.addEventListener("DOMContentLoaded", () => {
     storyPhase = "combat";
     storyJackUnlocked = !!state?.storyJackUnlocked;
     storyJackCompleted = !!state?.storyJackCompleted;
+    storyRiskoEncountered = !!state?.storyRiskoEncountered;
     storyCharacterProgress = storyProgress.normalizeProgress(state?.storyCharacterProgress);
     tutorialPending = !!state?.tutorialPending;
     storyStep = Math.max(0, Math.floor(Number(state?.storyStep) || 0));
@@ -2293,6 +2353,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function getStorySceneList() {
     if (storyPhase === "mapintro") return isMobileStoryViewport() ? STORY_MAP_INTRO_SCENES_MOBILE : STORY_MAP_INTRO_SCENES;
     if (storyPhase === "mappointquestion") return STORY_MAP_QUESTION_SCENES;
+    if (storyPhase === "mappointquestionrepeat") return STORY_MAP_QUESTION_REPEAT_SCENES;
     if (storyPhase === "mappost") return STORY_MAP_POST_SCENES;
     if (storyPhase === "post") return STORY_POST_COMBAT_SCENES;
     if (storyPhase === "epilogue") return STORY_EPILOGUE_SCENES;
@@ -3012,12 +3073,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!storyMapFlow || !storyMapFlow.isPointUnlocked(storyMapState, pointId)) return;
     const iconSrc = String(storyMapPointIcons?.[pointId] || "");
     const isConversationPoint = iconSrc.includes("iconomapaconversacion.png");
-    if (isConversationPoint) {
+    const isQuestionPoint = iconSrc.includes("iconomapainterrogante.png");
+    if (isConversationPoint || (isQuestionPoint && storyRiskoEncountered)) {
       currentStoryMapPointId = pointId;
       storyMapBattleActive = false;
       storyCombatActive = false;
       storyCombatStage = 0;
-      storyPhase = "mappointquestion";
+      storyPhase = isConversationPoint ? "mappointquestion" : "mappointquestionrepeat";
       storyStep = 0;
       renderStoryStep();
       return;
@@ -3128,6 +3190,7 @@ document.addEventListener("DOMContentLoaded", () => {
     currentStoryMapPointId = null;
     storyMapState = storyMapFlow ? storyMapFlow.createInitialState() : null;
     resetStoryMapPointIcons();
+    storyRiskoEncountered = false;
     storyJackUnlocked = false;
     storyJackCompleted = false;
     storyPhase = "pre";
@@ -3210,6 +3273,11 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     if (storyPhase === "mappointquestion") {
+      storyRiskoEncountered = true;
+      completeStoryMapBattle(currentStoryMapPointId);
+      return;
+    }
+    if (storyPhase === "mappointquestionrepeat") {
       completeStoryMapBattle(currentStoryMapPointId);
       return;
     }
