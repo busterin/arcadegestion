@@ -3372,33 +3372,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!storyMapFlow || !storyMapFlow.isPointUnlocked(storyMapState, pointId)) return;
     const iconSrc = String(storyMapPointIcons?.[pointId] || "");
     const isConversationPoint = iconSrc.includes("iconomapaconversacion.png");
-    const isQuestionPoint = iconSrc.includes("iconomapainterrogante.png");
-    if (isConversationPoint && !storyRiskoJoined && storyRiskoEncounterCount < 1) {
+    if (isConversationPoint && !storyRiskoJoined) {
       currentStoryMapPointId = pointId;
       storyMapBattleActive = false;
       storyCombatActive = false;
       storyCombatStage = 0;
-      storyPhase = "mappointquestion";
-      storyStep = 0;
-      renderStoryStep();
-      return;
-    }
-    if (isQuestionPoint && !storyRiskoJoined && storyRiskoEncounterCount >= 2) {
-      currentStoryMapPointId = pointId;
-      storyMapBattleActive = false;
-      storyCombatActive = false;
-      storyCombatStage = 0;
-      storyPhase = "mappointquestionchallenge";
-      storyStep = 0;
-      renderStoryStep();
-      return;
-    }
-    if (isQuestionPoint && !storyRiskoJoined && storyRiskoEncounterCount >= 1) {
-      currentStoryMapPointId = pointId;
-      storyMapBattleActive = false;
-      storyCombatActive = false;
-      storyCombatStage = 0;
-      storyPhase = "mappointquestionrepeat";
+      if (storyRiskoEncounterCount >= 2) storyPhase = "mappointquestionchallenge";
+      else if (storyRiskoEncounterCount >= 1) storyPhase = "mappointquestionrepeat";
+      else storyPhase = "mappointquestion";
       storyStep = 0;
       renderStoryStep();
       return;
