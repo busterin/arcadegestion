@@ -5046,7 +5046,21 @@ document.addEventListener("DOMContentLoaded", () => {
   userBackBtn?.addEventListener("click", setIntroVisible);
   miniGameBackBtn?.addEventListener("click", setIntroVisible);
   miniGameRetryBtn?.addEventListener("click", startMiniGame);
-  miniGameShootBtn?.addEventListener("click", fireMiniGameBullet);
+  let miniGameLastShotAt = 0;
+  const onMiniGameShootPress = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    const now = performance.now();
+    if (now - miniGameLastShotAt < 90) return;
+    miniGameLastShotAt = now;
+    fireMiniGameBullet();
+  };
+  miniGameShootBtn?.addEventListener("pointerdown", onMiniGameShootPress, { passive: false });
+  miniGameShootBtn?.addEventListener("touchstart", onMiniGameShootPress, { passive: false });
+  miniGameShootBtn?.addEventListener("click", onMiniGameShootPress);
+  miniGameShootBtn?.addEventListener("contextmenu", (e) => e.preventDefault());
   const bindMiniDirButton = (btn, dir) => {
     if (!btn) return;
     btn.addEventListener("pointerdown", (e) => {
@@ -5064,6 +5078,10 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   bindMiniDirButton(miniGameLeftBtn, -1);
   bindMiniDirButton(miniGameRightBtn, 1);
+  miniGameLeftBtn?.addEventListener("contextmenu", (e) => e.preventDefault());
+  miniGameRightBtn?.addEventListener("contextmenu", (e) => e.preventDefault());
+  miniGameMobileControls?.addEventListener("selectstart", (e) => e.preventDefault());
+  miniGameShootBtn?.addEventListener("selectstart", (e) => e.preventDefault());
   miniGameArena?.addEventListener("pointerdown", (e) => {
     if (!miniGameArena) return;
     miniGamePointerDragging = true;
