@@ -402,9 +402,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const rand = (min, max) => Math.random() * (max - min) + min;
   const randInt = (min, max) => Math.floor(rand(min, max + 1));
   const INTRO_MENU_OPTIONS = [
+    { key: "historia", label: "HISTORIA", img: "images/historia.png" },
     { key: "arcade", label: "ARCADE", img: "images/arcade.png" },
     { key: "versus", label: "VERSUS", img: "images/versus.png" },
-    { key: "historia", label: "HISTORIA", img: "images/historia.png" },
     { key: "minijuegos", label: "MINIJUEGOS", img: "images/minijuegos.png" },
     { key: "reclutar", label: "RECLUTAR", img: "images/reclutar.png" },
     { key: "tienda", label: "TIENDA", img: "images/tienda.png" },
