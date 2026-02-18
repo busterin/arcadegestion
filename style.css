@@ -1480,6 +1480,14 @@ img{ max-width:100%; height:auto; }
 .modal-head{ display:flex; gap: 12px; align-items:flex-start; justify-content:space-between; }
 .modal-title{ font-weight:900; font-size:18px; }
 .modal-text{ margin-top:6px; color: var(--muted); font-size:13px; line-height:1.35; }
+.final-unlock-img{
+  display: block;
+  width: min(180px, 62vw);
+  max-height: 220px;
+  margin: 2px auto 10px;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 20px rgba(0,0,0,.32));
+}
 
 .icon-btn{
   border:none;

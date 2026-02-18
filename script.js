@@ -3375,7 +3375,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (finalLabelEl) finalLabelEl.textContent = "Nuevo personaje";
     finalScoreEl.textContent = "";
     const finalText = finalModal.querySelector(".modal-text");
-    if (finalText) finalText.textContent = "Risko se ha unido a tu grupo.";
+    if (finalText) {
+      finalText.innerHTML = '<img class="final-unlock-img" src="historia/Risko2.png" alt="Risko"/>' +
+        "Risko se ha unido a tu grupo.";
+    }
     setFinalModalPrimaryAction("Continuar", () => {
       completeStoryMapBattle(currentStoryMapPointId);
     });
@@ -3454,7 +3457,10 @@ document.addEventListener("DOMContentLoaded", () => {
       if (finalLabelEl) finalLabelEl.textContent = "Nuevo personaje";
       finalScoreEl.textContent = "";
       const finalText = finalModal.querySelector(".modal-text");
-      if (finalText) finalText.textContent = "Risko desbloqueada en el modo ARCADE.";
+      if (finalText) {
+        finalText.innerHTML = '<img class="final-unlock-img" src="historia/Risko2.png" alt="Risko"/>' +
+          "Risko desbloqueada en el modo ARCADE.";
+      }
       setFinalModalPrimaryAction("Continuar", () => {});
       showModal(finalModal);
     }
