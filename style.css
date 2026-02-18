@@ -940,6 +940,16 @@ img{ max-width:100%; height:auto; }
   animation: miniArenaHit .24s ease;
   z-index: 9;
 }
+.minigame-arena.victory::before{
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255,245,184,.45), rgba(255,212,92,.2) 34%, rgba(255,163,66,0) 78%);
+  animation: miniArenaVictory .9s ease-out;
+  z-index: 9;
+}
 
 .minigame-bullet{
   position: absolute;
@@ -983,6 +993,12 @@ img{ max-width:100%; height:auto; }
   0%{ opacity: 0; }
   20%{ opacity: 1; }
   100%{ opacity: 0; }
+}
+
+@keyframes miniArenaVictory{
+  0%{ opacity: 0; transform: scale(.95); }
+  20%{ opacity: 1; transform: scale(1); }
+  100%{ opacity: 0; transform: scale(1.06); }
 }
 
 .minigame-actions{

@@ -40,6 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const COINS_STORAGE_KEY = "arcadegestion_coins_v1";
   const STORE_PURCHASES_KEY = "arcadegestion_store_purchases_v1";
   const WINCHESTER_OUTFIT_KEY = "arcadegestion_winchester_outfit_v1";
+  const ARCADE_RISKO_NOTICE_KEY = "arcadegestion_arcade_risko_notice_v1";
   const DEFAULT_PROFILE_AVATAR_SRC = "images/Evelyn2.PNG";
   const DEFAULT_PROFILE_NAME = "Usuario";
   const DEFAULT_COINS = 50;
@@ -357,6 +358,9 @@ document.addEventListener("DOMContentLoaded", () => {
   let miniGameDefeatTimer = null;
   let miniGameBullets = [];
   let miniGameMonsters = [];
+  let miniGameContext = "standalone";
+  let miniGameStoryChallengeActive = false;
+  let arcadeRiskoNoticePending = loadArcadeRiskoNoticePending();
 
   const MINI_GAME_GOAL_KILLS = 10;
   const MINI_GAME_PLAYER_SPEED_PX_S = 340;
@@ -745,6 +749,120 @@ document.addEventListener("DOMContentLoaded", () => {
       showChars: true
     }
   ];
+  const STORY_MAP_QUESTION_CHALLENGE_SCENES = [
+    {
+      speaker: "Risko",
+      text: "¡Vaya, vaya! ¡Y ya van tres! ¿Estás lista para el resto?",
+      background: "historia/mapa1.png",
+      active: "right",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Risko2.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Evelyn",
+      text: "La verdad es que no...",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Risko2.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Risko",
+      text: "¡Esa es la actitud! Coge esta pistola y sígueme.",
+      background: "historia/mapa1.png",
+      active: "right",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Risko2.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Evelyn",
+      text: "¿Qué?",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Risko2.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Risko",
+      text: "Aquí cerca hay un nido de asquerosos monstruos voladores. Si consigues acabar con diez de ellos, me uniré a tu equipo. Yo solo sigo a auténticos pistoleros.",
+      background: "historia/mapa1.png",
+      active: "right",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Risko2.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Evelyn",
+      text: "Eso me pasa por andar invitando al grupo a cualquiera.",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Risko2.png",
+      rightMirror: false,
+      showChars: true
+    }
+  ];
+  const STORY_MAP_QUESTION_CHALLENGE_POST_SCENES = [
+    {
+      speaker: "Risko",
+      text: "¡Espectacular! Eres realmente buena.",
+      background: "historia/mapa1.png",
+      active: "right",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Risko2.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Evelyn",
+      text: "No lo negaré, lo soy.",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Risko2.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Risko",
+      text: "Estoy deseando ver las aventuras que nos depara ATALAYA.",
+      background: "historia/mapa1.png",
+      active: "right",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Risko2.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Evelyn",
+      text: "¿Es buen momento para decir que no pagamos bien?",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Risko2.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Risko",
+      text: "¿Qué?",
+      background: "historia/mapa1.png",
+      active: "right",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Risko2.png",
+      rightMirror: false,
+      showChars: true
+    }
+  ];
   const STORY_MAP_INTRO_SCENES = [
     {
       speaker: "Winchester",
@@ -884,7 +1002,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let storyMapPointIcons = null;
   let storyMapBattleActive = false;
   let currentStoryMapPointId = null;
-  let storyRiskoEncountered = false;
+  let storyRiskoEncounterCount = 0;
+  let storyRiskoJoined = false;
   let storyCombatActive = false;
   let storyCombatStage = 0;
   let storyJackSpawnTimer = null;
@@ -940,6 +1059,30 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch {
       // ignore storage errors
     }
+  }
+
+  function loadArcadeRiskoNoticePending() {
+    try {
+      return window.localStorage?.getItem(ARCADE_RISKO_NOTICE_KEY) === "1";
+    } catch {
+      return false;
+    }
+  }
+
+  function persistArcadeRiskoNoticePending(isPending) {
+    try {
+      if (isPending) window.localStorage?.setItem(ARCADE_RISKO_NOTICE_KEY, "1");
+      else window.localStorage?.removeItem(ARCADE_RISKO_NOTICE_KEY);
+    } catch {
+      // ignore storage errors
+    }
+  }
+
+  function ensureRiskoUnlockedIfJoined() {
+    if (!storyRiskoJoined) return;
+    if (unlockedRecruitCharIds.has("c5")) return;
+    unlockedRecruitCharIds.add("c5");
+    persistUnlockedRecruitCharIds();
   }
 
   function getEmptyStorySaveSlots() {
@@ -1028,7 +1171,19 @@ document.addEventListener("DOMContentLoaded", () => {
     const phase = String(raw?.state?.storyPhase || "");
     const step = Number(raw?.state?.storyStep);
     const stage = Number(raw?.state?.storyCombatStage);
-    const validPhase = ["pre", "post", "epilogue", "mapintro", "mappointquestion", "mappointquestionrepeat", "mappost", "map", "combat"].includes(phase) ? phase : "pre";
+    const validPhase = [
+      "pre",
+      "post",
+      "epilogue",
+      "mapintro",
+      "mappointquestion",
+      "mappointquestionrepeat",
+      "mappointquestionchallenge",
+      "mappointquestionchallengepost",
+      "mappost",
+      "map",
+      "combat"
+    ].includes(phase) ? phase : "pre";
     return {
       savedAt: Number.isFinite(savedAt) ? savedAt : Date.now(),
       label: String(raw.label || "Partida guardada"),
@@ -1038,7 +1193,11 @@ document.addEventListener("DOMContentLoaded", () => {
         storyCombatActive: !!raw?.state?.storyCombatActive,
         storyCombatStage: stage === 2 ? 2 : 1,
         storyMapState: storyMapFlow ? storyMapFlow.normalizeState(raw?.state?.storyMapState) : null,
-        storyRiskoEncountered: !!raw?.state?.storyRiskoEncountered,
+        storyRiskoEncounterCount: Math.max(
+          0,
+          Math.floor(Number(raw?.state?.storyRiskoEncounterCount) || (raw?.state?.storyRiskoEncountered ? 1 : 0))
+        ),
+        storyRiskoJoined: !!raw?.state?.storyRiskoJoined,
         storyCharacterProgress: storyProgress.normalizeProgress(raw?.state?.storyCharacterProgress)
       }
     };
@@ -1101,7 +1260,8 @@ document.addEventListener("DOMContentLoaded", () => {
       storyCombatActive,
       storyCombatStage: storyCombatStage === 2 ? 2 : 1,
       storyMapState: storyMapFlow ? storyMapFlow.normalizeState(storyMapState) : null,
-      storyRiskoEncountered,
+      storyRiskoEncounterCount,
+      storyRiskoJoined,
       storyCharacterProgress
     };
   }
@@ -1124,6 +1284,12 @@ document.addEventListener("DOMContentLoaded", () => {
     storyCharacterProgress = storyProgress.normalizeProgress(payload.storyCharacterProgress);
 
     if (payload.storyCombatActive) {
+      storyRiskoEncounterCount = Math.max(
+        0,
+        Math.floor(Number(payload.storyRiskoEncounterCount) || (payload.storyRiskoEncountered ? 1 : 0))
+      );
+      storyRiskoJoined = !!payload.storyRiskoJoined;
+      ensureRiskoUnlockedIfJoined();
       startStoryCombat(payload.storyCombatStage);
       return true;
     }
@@ -1138,7 +1304,12 @@ document.addEventListener("DOMContentLoaded", () => {
     storyJackUnlocked = false;
     storyJackCompleted = false;
     storyMapState = storyMapFlow ? storyMapFlow.normalizeState(payload.storyMapState) : null;
-    storyRiskoEncountered = !!payload.storyRiskoEncountered;
+    storyRiskoEncounterCount = Math.max(
+      0,
+      Math.floor(Number(payload.storyRiskoEncounterCount) || (payload.storyRiskoEncountered ? 1 : 0))
+    );
+    storyRiskoJoined = !!payload.storyRiskoJoined;
+    ensureRiskoUnlockedIfJoined();
     storyPhase = payload.storyPhase === "combat" ? "pre" : payload.storyPhase;
     if (storyPhase === "map") {
       storyStep = 0;
@@ -1273,7 +1444,8 @@ document.addEventListener("DOMContentLoaded", () => {
           storyJackUnlocked,
           storyJackCompleted,
           storyMapState: storyMapFlow ? storyMapFlow.normalizeState(storyMapState) : null,
-          storyRiskoEncountered,
+          storyRiskoEncounterCount,
+          storyRiskoJoined,
           storyCharacterProgress
         }
       };
@@ -1297,7 +1469,8 @@ document.addEventListener("DOMContentLoaded", () => {
         storyCombatStage,
         storyJackUnlocked,
         storyJackCompleted,
-        storyRiskoEncountered,
+        storyRiskoEncounterCount,
+        storyRiskoJoined,
         tutorialPending,
         score,
         failedMissionsCount,
@@ -1336,10 +1509,15 @@ document.addEventListener("DOMContentLoaded", () => {
     storyCombatStage = Number(state?.storyCombatStage) === 2 ? 2 : 0;
     storyJackUnlocked = !!state?.storyJackUnlocked;
     storyJackCompleted = !!state?.storyJackCompleted;
-    storyRiskoEncountered = !!state?.storyRiskoEncountered;
+    storyRiskoEncounterCount = Math.max(
+      0,
+      Math.floor(Number(state?.storyRiskoEncounterCount) || (state?.storyRiskoEncountered ? 1 : 0))
+    );
+    storyRiskoJoined = !!state?.storyRiskoJoined;
+    ensureRiskoUnlockedIfJoined();
     storyMapState = storyMapFlow ? storyMapFlow.normalizeState(state?.storyMapState) : null;
     storyCharacterProgress = storyProgress.normalizeProgress(state?.storyCharacterProgress);
-    storyPhase = ["pre", "post", "epilogue", "mapintro", "mappointquestion", "mappointquestionrepeat", "map", "mappost"].includes(state?.storyPhase) ? state.storyPhase : "pre";
+    storyPhase = ["pre", "post", "epilogue", "mapintro", "mappointquestion", "mappointquestionrepeat", "mappointquestionchallenge", "mappointquestionchallengepost", "map", "mappost"].includes(state?.storyPhase) ? state.storyPhase : "pre";
     storyStep = Math.max(0, Math.floor(Number(state?.storyStep) || 0));
 
     introScreen.classList.add("hidden");
@@ -1374,7 +1552,12 @@ document.addEventListener("DOMContentLoaded", () => {
     storyPhase = "combat";
     storyJackUnlocked = !!state?.storyJackUnlocked;
     storyJackCompleted = !!state?.storyJackCompleted;
-    storyRiskoEncountered = !!state?.storyRiskoEncountered;
+    storyRiskoEncounterCount = Math.max(
+      0,
+      Math.floor(Number(state?.storyRiskoEncounterCount) || (state?.storyRiskoEncountered ? 1 : 0))
+    );
+    storyRiskoJoined = !!state?.storyRiskoJoined;
+    ensureRiskoUnlockedIfJoined();
     storyCharacterProgress = storyProgress.normalizeProgress(state?.storyCharacterProgress);
     tutorialPending = !!state?.tutorialPending;
     storyStep = Math.max(0, Math.floor(Number(state?.storyStep) || 0));
@@ -2115,6 +2298,48 @@ document.addEventListener("DOMContentLoaded", () => {
     miniGameMoveLeft = false;
     miniGameMoveRight = false;
     setMiniGameStatus(isWin ? "Victoria" : "Derrota");
+    if (miniGameContext === "story_risko_trial" && miniGameStoryChallengeActive) {
+      if (!isWin) return;
+      triggerMiniGameVictoryEffect(() => {
+        miniGameStoryChallengeActive = false;
+        miniGameContext = "standalone";
+        introScreen.classList.add("hidden");
+        storyScreen?.classList.remove("hidden");
+        recruitScreen?.classList.add("hidden");
+        storeScreen?.classList.add("hidden");
+        userScreen?.classList.add("hidden");
+        startScreen.classList.add("hidden");
+        teamScreen.classList.add("hidden");
+        gameRoot.classList.add("hidden");
+        miniGamesScreen?.classList.add("hidden");
+        storyPhase = "mappointquestionchallengepost";
+        storyStep = 0;
+        renderStoryStep();
+        resetViewportTop();
+      });
+    }
+  }
+
+  function triggerMiniGameVictoryEffect(onDone) {
+    if (!miniGameArena) {
+      if (typeof onDone === "function") onDone();
+      return;
+    }
+    miniGameArena.classList.remove("victory");
+    requestAnimationFrame(() => miniGameArena.classList.add("victory"));
+    const arenaRect = getMiniArenaRect();
+    if (arenaRect) {
+      for (let i = 0; i < 14; i++) {
+        const x = rand(24, Math.max(24, arenaRect.width - 24));
+        const y = rand(24, Math.max(24, arenaRect.height - 24));
+        const size = rand(34, 86);
+        setTimeout(() => spawnMiniExplosion(x, y, size), i * 45);
+      }
+    }
+    setTimeout(() => {
+      miniGameArena?.classList.remove("victory");
+      if (typeof onDone === "function") onDone();
+    }, 900);
   }
 
   function triggerMiniGameHitEffect() {
@@ -2265,6 +2490,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function goToMiniGamesScreen() {
     if (!miniGamesScreen) return;
+    miniGameContext = "standalone";
+    miniGameStoryChallengeActive = false;
     stopGameLoops();
     clearMatchmakingState();
     introScreen.classList.add("hidden");
@@ -2278,6 +2505,8 @@ document.addEventListener("DOMContentLoaded", () => {
     miniGamesScreen.classList.remove("hidden");
     miniGameShootBtn?.classList.toggle("hidden", !isMobileStoryViewport());
     miniGameMobileControls?.classList.toggle("hidden", !isMobileStoryViewport());
+    miniGameBackBtn?.classList.remove("hidden");
+    miniGameRetryBtn?.classList.remove("hidden");
     startMiniGame();
     resetViewportTop();
   }
@@ -2354,6 +2583,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (storyPhase === "mapintro") return isMobileStoryViewport() ? STORY_MAP_INTRO_SCENES_MOBILE : STORY_MAP_INTRO_SCENES;
     if (storyPhase === "mappointquestion") return STORY_MAP_QUESTION_SCENES;
     if (storyPhase === "mappointquestionrepeat") return STORY_MAP_QUESTION_REPEAT_SCENES;
+    if (storyPhase === "mappointquestionchallenge") return STORY_MAP_QUESTION_CHALLENGE_SCENES;
+    if (storyPhase === "mappointquestionchallengepost") return STORY_MAP_QUESTION_CHALLENGE_POST_SCENES;
     if (storyPhase === "mappost") return STORY_MAP_POST_SCENES;
     if (storyPhase === "post") return STORY_POST_COMBAT_SCENES;
     if (storyPhase === "epilogue") return STORY_EPILOGUE_SCENES;
@@ -3069,17 +3300,82 @@ document.addEventListener("DOMContentLoaded", () => {
     renderStoryStep();
   }
 
+  function startStoryRiskoChallengeMiniGame() {
+    if (!miniGamesScreen) return;
+    miniGameContext = "story_risko_trial";
+    miniGameStoryChallengeActive = true;
+    stopGameLoops();
+    clearMatchmakingState();
+    introScreen.classList.add("hidden");
+    storyScreen?.classList.add("hidden");
+    recruitScreen?.classList.add("hidden");
+    storeScreen?.classList.add("hidden");
+    userScreen?.classList.add("hidden");
+    startScreen.classList.add("hidden");
+    teamScreen.classList.add("hidden");
+    gameRoot.classList.add("hidden");
+    miniGamesScreen.classList.remove("hidden");
+    miniGameShootBtn?.classList.toggle("hidden", !isMobileStoryViewport());
+    miniGameMobileControls?.classList.toggle("hidden", !isMobileStoryViewport());
+    miniGameBackBtn?.classList.add("hidden");
+    miniGameRetryBtn?.classList.remove("hidden");
+    startMiniGame();
+    resetViewportTop();
+  }
+
+  function completeStoryRiskoJoinFlow() {
+    storyRiskoEncounterCount = Math.max(storyRiskoEncounterCount, 3);
+    storyRiskoJoined = true;
+    if (!unlockedRecruitCharIds.has("c5")) {
+      unlockedRecruitCharIds.add("c5");
+      persistUnlockedRecruitCharIds();
+      renderUserCollection();
+      renderUserAvatarPicker();
+    }
+    arcadeRiskoNoticePending = true;
+    persistArcadeRiskoNoticePending(true);
+    finalTitleEl.textContent = "HISTORIA";
+    if (finalLabelEl) finalLabelEl.textContent = "Nuevo personaje";
+    finalScoreEl.textContent = "";
+    const finalText = finalModal.querySelector(".modal-text");
+    if (finalText) finalText.textContent = "Risko se ha unido a tu grupo.";
+    setFinalModalPrimaryAction("Continuar", () => {
+      completeStoryMapBattle(currentStoryMapPointId);
+    });
+    showModal(finalModal);
+  }
+
   function startStoryMapBattle(pointId) {
     if (!storyMapFlow || !storyMapFlow.isPointUnlocked(storyMapState, pointId)) return;
     const iconSrc = String(storyMapPointIcons?.[pointId] || "");
     const isConversationPoint = iconSrc.includes("iconomapaconversacion.png");
     const isQuestionPoint = iconSrc.includes("iconomapainterrogante.png");
-    if (isConversationPoint || (isQuestionPoint && storyRiskoEncountered)) {
+    if (isConversationPoint && !storyRiskoJoined && storyRiskoEncounterCount < 1) {
       currentStoryMapPointId = pointId;
       storyMapBattleActive = false;
       storyCombatActive = false;
       storyCombatStage = 0;
-      storyPhase = isConversationPoint ? "mappointquestion" : "mappointquestionrepeat";
+      storyPhase = "mappointquestion";
+      storyStep = 0;
+      renderStoryStep();
+      return;
+    }
+    if (isQuestionPoint && !storyRiskoJoined && storyRiskoEncounterCount >= 2) {
+      currentStoryMapPointId = pointId;
+      storyMapBattleActive = false;
+      storyCombatActive = false;
+      storyCombatStage = 0;
+      storyPhase = "mappointquestionchallenge";
+      storyStep = 0;
+      renderStoryStep();
+      return;
+    }
+    if (isQuestionPoint && !storyRiskoJoined && storyRiskoEncounterCount >= 1) {
+      currentStoryMapPointId = pointId;
+      storyMapBattleActive = false;
+      storyCombatActive = false;
+      storyCombatStage = 0;
+      storyPhase = "mappointquestionrepeat";
       storyStep = 0;
       renderStoryStep();
       return;
@@ -3094,6 +3390,7 @@ document.addEventListener("DOMContentLoaded", () => {
     tutorialPending = false;
     pendingMissions = [...STORY_BASE_MISSIONS];
     selectedTeamCardIds = new Set(["card_celia", "card_castri", "card_lorena"]);
+    if (storyRiskoJoined) selectedTeamCardIds.add("card_risko");
     if (!applyTeamFromCardIds([...selectedTeamCardIds])) {
       goToTeamScreen();
       return;
@@ -3132,6 +3429,17 @@ document.addEventListener("DOMContentLoaded", () => {
     teamScreen.classList.add("hidden");
     gameRoot.classList.add("hidden");
     resetViewportTop();
+    if (mode === "arcade" && arcadeRiskoNoticePending) {
+      arcadeRiskoNoticePending = false;
+      persistArcadeRiskoNoticePending(false);
+      finalTitleEl.textContent = "ARCADE";
+      if (finalLabelEl) finalLabelEl.textContent = "Nuevo personaje";
+      finalScoreEl.textContent = "";
+      const finalText = finalModal.querySelector(".modal-text");
+      if (finalText) finalText.textContent = "Risko desbloqueada en el modo ARCADE.";
+      setFinalModalPrimaryAction("Continuar", () => {});
+      showModal(finalModal);
+    }
   }
 
   function renderStoryStep() {
@@ -3190,7 +3498,8 @@ document.addEventListener("DOMContentLoaded", () => {
     currentStoryMapPointId = null;
     storyMapState = storyMapFlow ? storyMapFlow.createInitialState() : null;
     resetStoryMapPointIcons();
-    storyRiskoEncountered = false;
+    storyRiskoEncounterCount = 0;
+    storyRiskoJoined = false;
     storyJackUnlocked = false;
     storyJackCompleted = false;
     storyPhase = "pre";
@@ -3214,11 +3523,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (evelynIdx >= 0) avatarIndex = evelynIdx;
     renderAvatarCarousel(0);
 
-    if (normalizedStage === 1) {
-      selectedTeamCardIds = new Set(["card_celia", "card_castri", "card_lorena"]);
-    } else {
-      selectedTeamCardIds = new Set(["card_celia", "card_castri", "card_lorena"]);
-    }
+    selectedTeamCardIds = new Set(["card_celia", "card_castri", "card_lorena"]);
+    if (storyRiskoJoined) selectedTeamCardIds.add("card_risko");
     pendingBattleEffectKey = normalizedStage === 2 ? "pueblo" : "none";
     if (!applyTeamFromCardIds([...selectedTeamCardIds])) {
       goToTeamScreen();
@@ -3273,12 +3579,21 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     if (storyPhase === "mappointquestion") {
-      storyRiskoEncountered = true;
+      storyRiskoEncounterCount = Math.max(storyRiskoEncounterCount, 1);
       completeStoryMapBattle(currentStoryMapPointId);
       return;
     }
     if (storyPhase === "mappointquestionrepeat") {
+      storyRiskoEncounterCount = Math.max(storyRiskoEncounterCount, 2);
       completeStoryMapBattle(currentStoryMapPointId);
+      return;
+    }
+    if (storyPhase === "mappointquestionchallenge") {
+      startStoryRiskoChallengeMiniGame();
+      return;
+    }
+    if (storyPhase === "mappointquestionchallengepost") {
+      completeStoryRiskoJoinFlow();
       return;
     }
     if (storyPhase === "mappost") {
@@ -5057,6 +5372,8 @@ document.addEventListener("DOMContentLoaded", () => {
     setSpecialArmedUI(false);
     tutorialPending = false;
     tutorialStep = 0;
+    miniGameContext = "standalone";
+    miniGameStoryChallengeActive = false;
     storyLevelUpQueue = [];
     storyJackUnlocked = false;
     storyJackCompleted = false;
@@ -5152,7 +5469,26 @@ document.addEventListener("DOMContentLoaded", () => {
   storyMenuBtn?.addEventListener("click", setIntroVisible);
   storySkipBtn?.addEventListener("click", skipStoryPhase);
   userBackBtn?.addEventListener("click", setIntroVisible);
-  miniGameBackBtn?.addEventListener("click", setIntroVisible);
+  miniGameBackBtn?.addEventListener("click", () => {
+    if (miniGameContext === "story_risko_trial") {
+      miniGameStoryChallengeActive = false;
+      miniGameContext = "standalone";
+      storyPhase = "map";
+      storyStep = 0;
+      introScreen.classList.add("hidden");
+      storyScreen?.classList.remove("hidden");
+      recruitScreen?.classList.add("hidden");
+      storeScreen?.classList.add("hidden");
+      userScreen?.classList.add("hidden");
+      startScreen.classList.add("hidden");
+      teamScreen.classList.add("hidden");
+      gameRoot.classList.add("hidden");
+      miniGamesScreen?.classList.add("hidden");
+      renderStoryStep();
+      return;
+    }
+    setIntroVisible();
+  });
   miniGameRetryBtn?.addEventListener("click", startMiniGame);
   let miniGameLastShotAt = 0;
   const onMiniGameShootPress = (e) => {
