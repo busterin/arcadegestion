@@ -604,7 +604,7 @@ document.addEventListener("DOMContentLoaded", () => {
     },
     {
       speaker: "Evelyn",
-      text: "¿Me estás amenazando? Espera... ¿nos conocemos?",
+      text: "Somos el grupo de mercenarios Atalaya. No queremos problemas... de momento.",
       background: "historia/mapa1.png",
       active: "left",
       leftSrc: "images/Evelyn.png",
@@ -614,7 +614,7 @@ document.addEventListener("DOMContentLoaded", () => {
     },
     {
       speaker: "Risko",
-      text: "Puede que sí o puede que no. Sois de Atalaya ¿verdad?",
+      text: "¿Atalaya? Vuestro nombre os precede. Yo soy Risko, encantada de conoceros.",
       background: "historia/mapa1.png",
       active: "right",
       leftSrc: "images/Evelyn.png",
@@ -624,7 +624,7 @@ document.addEventListener("DOMContentLoaded", () => {
     },
     {
       speaker: "Evelyn",
-      text: "¿No sabía que éramos tan famosos?",
+      text: "¿Risko? ¿La legendaria pistolera?",
       background: "historia/mapa1.png",
       active: "left",
       leftSrc: "images/Evelyn.png",
@@ -634,7 +634,7 @@ document.addEventListener("DOMContentLoaded", () => {
     },
     {
       speaker: "Risko",
-      text: "Toma esta moneda de plata. Cuando reúnas tres, hablaremos de nuevo.",
+      text: "Las \"leyendas\" tienden a exagerar pero supongo que esa soy yo, si.",
       background: "historia/mapa1.png",
       active: "right",
       leftSrc: "images/Evelyn.png",
@@ -644,7 +644,47 @@ document.addEventListener("DOMContentLoaded", () => {
     },
     {
       speaker: "Evelyn",
-      text: "No he entendido nada de nada...",
+      text: "Se que trabajas en solitario pero en Atalaya nos vendría bien alguien como tu.",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Risko2.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Risko",
+      text: "¿Así sin más? No deberías fiarte de cualquiera que te encuentres, muchacha. A veces los rumores y las historias exageran.",
+      background: "historia/mapa1.png",
+      active: "right",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Risko2.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Evelyn",
+      text: "No insistiré, lo dejo de tu mano.",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Risko2.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Risko",
+      text: "Me gusta tu actitud así que te voy a proponer algo. Sigue buscándome, y la tercera vez que nos veamos, tendrás que demostrarme que eres digna.",
+      background: "historia/mapa1.png",
+      active: "right",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Risko2.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Evelyn",
+      text: "Creo que ya me estoy arrepintiendo de la propuesta...",
       background: "historia/mapa1.png",
       active: "left",
       leftSrc: "images/Evelyn.png",
