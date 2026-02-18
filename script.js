@@ -410,6 +410,11 @@ document.addEventListener("DOMContentLoaded", () => {
     { key: "tienda", label: "TIENDA", img: "images/tienda.png" },
     { key: "cuenta", label: "CUENTA", img: "images/cuenta.png" }
   ];
+  const INTRO_MENU_HIDDEN_KEYS = new Set(["reclutar", "tienda"]);
+
+  function getVisibleIntroMenuOptions() {
+    return INTRO_MENU_OPTIONS.filter((option) => !INTRO_MENU_HIDDEN_KEYS.has(option.key));
+  }
   const STORY_PRE_COMBAT_SCENES = [
     {
       speaker: "",
@@ -3023,7 +3028,8 @@ document.addEventListener("DOMContentLoaded", () => {
     stopMiniGameLoop();
     clearMiniGameProjectilesAndMonsters();
     const targetMenuKey = resolveIntroMenuKeyFromContext();
-    const targetIndex = INTRO_MENU_OPTIONS.findIndex((option) => option.key === targetMenuKey);
+    const menuOptions = getVisibleIntroMenuOptions();
+    const targetIndex = menuOptions.findIndex((option) => option.key === targetMenuKey);
     introMenuIndex = targetIndex >= 0 ? targetIndex : 0;
     renderIntroMenu(0);
     introScreen.classList.remove("hidden");
@@ -3052,7 +3058,8 @@ document.addEventListener("DOMContentLoaded", () => {
       return "arcade";
     }
 
-    return INTRO_MENU_OPTIONS[introMenuIndex]?.key || "arcade";
+    const menuOptions = getVisibleIntroMenuOptions();
+    return menuOptions[introMenuIndex]?.key || "arcade";
   }
 
   function resetViewportTop() {
@@ -3091,7 +3098,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderIntroMenu(direction = 0) {
-    const item = INTRO_MENU_OPTIONS[introMenuIndex];
+    const menuOptions = getVisibleIntroMenuOptions();
+    if (!menuOptions.length) return;
+    introMenuIndex = clamp(introMenuIndex, 0, Math.max(0, menuOptions.length - 1));
+    const item = menuOptions[introMenuIndex];
     if (!item) return;
     if (introMenuImg) {
       introMenuBtn?.classList.remove("no-image");
@@ -3111,17 +3121,21 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function prevIntroMenuOption() {
-    introMenuIndex = (introMenuIndex - 1 + INTRO_MENU_OPTIONS.length) % INTRO_MENU_OPTIONS.length;
+    const menuOptions = getVisibleIntroMenuOptions();
+    if (!menuOptions.length) return;
+    introMenuIndex = (introMenuIndex - 1 + menuOptions.length) % menuOptions.length;
     renderIntroMenu(-1);
   }
 
   function nextIntroMenuOption() {
-    introMenuIndex = (introMenuIndex + 1) % INTRO_MENU_OPTIONS.length;
+    const menuOptions = getVisibleIntroMenuOptions();
+    if (!menuOptions.length) return;
+    introMenuIndex = (introMenuIndex + 1) % menuOptions.length;
     renderIntroMenu(1);
   }
 
   function activateIntroMenuOption() {
-    const current = INTRO_MENU_OPTIONS[introMenuIndex];
+    const current = getVisibleIntroMenuOptions()[introMenuIndex];
     if (!current) return;
     if (current.key === "arcade") goToStartScreen("arcade");
     if (current.key === "versus") goToStartScreen("versus");
