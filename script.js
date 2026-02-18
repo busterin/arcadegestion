@@ -127,6 +127,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const storyMapConnections = document.getElementById("storyMapConnections");
   const storyMapPoints = document.getElementById("storyMapPoints");
   const storyMapRouteFill = document.getElementById("storyMapRouteFill");
+  const storyMapMenuBtn = document.getElementById("storyMapMenuBtn");
   const storyLeftChar = document.getElementById("storyLeftChar");
   const storyRightChar = document.getElementById("storyRightChar");
   const storyLeftSupportChar = document.getElementById("storyLeftSupportChar");
@@ -999,6 +1000,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let lastRenderedStorySceneKey = "";
   let storyPhase = "pre";
   let storyMapState = storyMapFlow ? storyMapFlow.createInitialState() : null;
+  let storyMapRunHistory = [];
   let storyMapPointIcons = null;
   let storyMapBattleActive = false;
   let currentStoryMapPointId = null;
@@ -1087,6 +1089,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function getEmptyStorySaveSlots() {
     return Array.from({ length: STORY_SAVE_SLOT_COUNT }, () => null);
+  }
+
+  function normalizeStoryMapRunHistory(raw) {
+    if (!storyMapFlow || !Array.isArray(raw)) return [];
+    return raw
+      .map((entry) => storyMapFlow.normalizeState(entry))
+      .slice(-20);
   }
 
   function enqueueStoryLevelUp(charId, nextLevel) {
@@ -1193,6 +1202,7 @@ document.addEventListener("DOMContentLoaded", () => {
         storyCombatActive: !!raw?.state?.storyCombatActive,
         storyCombatStage: stage === 2 ? 2 : 1,
         storyMapState: storyMapFlow ? storyMapFlow.normalizeState(raw?.state?.storyMapState) : null,
+        storyMapRunHistory: normalizeStoryMapRunHistory(raw?.state?.storyMapRunHistory),
         storyRiskoEncounterCount: Math.max(
           0,
           Math.floor(Number(raw?.state?.storyRiskoEncounterCount) || (raw?.state?.storyRiskoEncountered ? 1 : 0))
@@ -1260,6 +1270,7 @@ document.addEventListener("DOMContentLoaded", () => {
       storyCombatActive,
       storyCombatStage: storyCombatStage === 2 ? 2 : 1,
       storyMapState: storyMapFlow ? storyMapFlow.normalizeState(storyMapState) : null,
+      storyMapRunHistory: normalizeStoryMapRunHistory(storyMapRunHistory),
       storyRiskoEncounterCount,
       storyRiskoJoined,
       storyCharacterProgress
@@ -1304,6 +1315,7 @@ document.addEventListener("DOMContentLoaded", () => {
     storyJackUnlocked = false;
     storyJackCompleted = false;
     storyMapState = storyMapFlow ? storyMapFlow.normalizeState(payload.storyMapState) : null;
+    storyMapRunHistory = normalizeStoryMapRunHistory(payload.storyMapRunHistory);
     storyRiskoEncounterCount = Math.max(
       0,
       Math.floor(Number(payload.storyRiskoEncounterCount) || (payload.storyRiskoEncountered ? 1 : 0))
@@ -1444,6 +1456,7 @@ document.addEventListener("DOMContentLoaded", () => {
           storyJackUnlocked,
           storyJackCompleted,
           storyMapState: storyMapFlow ? storyMapFlow.normalizeState(storyMapState) : null,
+          storyMapRunHistory: normalizeStoryMapRunHistory(storyMapRunHistory),
           storyRiskoEncounterCount,
           storyRiskoJoined,
           storyCharacterProgress
@@ -1469,6 +1482,7 @@ document.addEventListener("DOMContentLoaded", () => {
         storyCombatStage,
         storyJackUnlocked,
         storyJackCompleted,
+        storyMapRunHistory: normalizeStoryMapRunHistory(storyMapRunHistory),
         storyRiskoEncounterCount,
         storyRiskoJoined,
         tutorialPending,
@@ -1509,6 +1523,7 @@ document.addEventListener("DOMContentLoaded", () => {
     storyCombatStage = Number(state?.storyCombatStage) === 2 ? 2 : 0;
     storyJackUnlocked = !!state?.storyJackUnlocked;
     storyJackCompleted = !!state?.storyJackCompleted;
+    storyMapRunHistory = normalizeStoryMapRunHistory(state?.storyMapRunHistory);
     storyRiskoEncounterCount = Math.max(
       0,
       Math.floor(Number(state?.storyRiskoEncounterCount) || (state?.storyRiskoEncountered ? 1 : 0))
@@ -1552,6 +1567,7 @@ document.addEventListener("DOMContentLoaded", () => {
     storyPhase = "combat";
     storyJackUnlocked = !!state?.storyJackUnlocked;
     storyJackCompleted = !!state?.storyJackCompleted;
+    storyMapRunHistory = normalizeStoryMapRunHistory(state?.storyMapRunHistory);
     storyRiskoEncounterCount = Math.max(
       0,
       Math.floor(Number(state?.storyRiskoEncounterCount) || (state?.storyRiskoEncountered ? 1 : 0))
@@ -3270,8 +3286,15 @@ document.addEventListener("DOMContentLoaded", () => {
     storyMapRouteFill.style.height = `${Math.round(progress * 100)}%`;
   }
 
-  function showStoryMapConversation() {
-    storyPhase = "mappost";
+  function startNextStoryMapRun() {
+    if (storyMapFlow && storyMapState) {
+      storyMapRunHistory.push(storyMapFlow.normalizeState(storyMapState));
+      if (storyMapRunHistory.length > 20) storyMapRunHistory.shift();
+    }
+    storyMapState = storyMapFlow ? storyMapFlow.createInitialState() : null;
+    resetStoryMapPointIcons();
+    ensureStoryMapPointIcons();
+    storyPhase = "map";
     storyStep = 0;
     renderStoryStep();
   }
@@ -3292,7 +3315,7 @@ document.addEventListener("DOMContentLoaded", () => {
     gameRoot.classList.add("hidden");
     resetViewportTop();
     if (storyMapState?.bossCompleted) {
-      showStoryMapConversation();
+      startNextStoryMapRun();
       return;
     }
     storyPhase = "map";
@@ -3448,8 +3471,10 @@ document.addEventListener("DOMContentLoaded", () => {
       renderStoryMapLayer();
       if (storySkipBtn) storySkipBtn.classList.add("hidden");
       if (storyMenuBtn) storyMenuBtn.classList.add("hidden");
+      storyMapMenuBtn?.classList.remove("hidden");
       return;
     }
+    storyMapMenuBtn?.classList.add("hidden");
     if (storyPhase === "mapintro") {
       storyScreen?.classList.add("story-mapintro");
       renderStoryMapLayer({ hideDialog: false, hideChars: false, readOnly: true });
@@ -3497,6 +3522,7 @@ document.addEventListener("DOMContentLoaded", () => {
     storyMapBattleActive = false;
     currentStoryMapPointId = null;
     storyMapState = storyMapFlow ? storyMapFlow.createInitialState() : null;
+    storyMapRunHistory = [];
     resetStoryMapPointIcons();
     storyRiskoEncounterCount = 0;
     storyRiskoJoined = false;
@@ -5468,6 +5494,7 @@ document.addEventListener("DOMContentLoaded", () => {
   storyNextBtn?.addEventListener("click", nextStoryStep);
   storyMenuBtn?.addEventListener("click", setIntroVisible);
   storySkipBtn?.addEventListener("click", skipStoryPhase);
+  storyMapMenuBtn?.addEventListener("click", setIntroVisible);
   userBackBtn?.addEventListener("click", setIntroVisible);
   miniGameBackBtn?.addEventListener("click", () => {
     if (miniGameContext === "story_risko_trial") {
