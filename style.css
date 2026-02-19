@@ -1126,6 +1126,16 @@ img{ max-width:100%; height:auto; }
   align-items:flex-start;
   gap: 6px;
 }
+.hud-monster-countdown{
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(0,0,0,.34);
+  font-weight: 900;
+  font-size: 14px;
+  letter-spacing: .2px;
+  align-self: center;
+}
 .hud .btn{ white-space: nowrap; }
 .hud-story-hint{
   max-width: min(360px, 48vw);

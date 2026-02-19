@@ -27,6 +27,8 @@ document.addEventListener("DOMContentLoaded", () => {
   ];
   const STORY_JACK_MISSION_ID = "m5";
   const STORY_JACK_DELAY_MS = 2 * 60 * 1000;
+  const STORY_MONSTER_HUNT_TARGET = 8;
+  const STORY_MONSTER_HUNT_DURATION_MS = 5 * 60 * 1000;
 
   const VERSUS_WIN_TARGET = 8;
   const VERSUS_WS_PATH = "/versus";
@@ -63,6 +65,38 @@ document.addEventListener("DOMContentLoaded", () => {
   ];
   const STORY_BASE_MISSIONS = MISSIONS.filter((m) => m.id !== STORY_JACK_MISSION_ID);
   const STORY_JACK_MISSION = MISSIONS.find((m) => m.id === STORY_JACK_MISSION_ID) || null;
+  const STORY_MONSTER_HUNT_MISSIONS = [
+    {
+      id: "mh1",
+      title: "Monstruo terrestre",
+      internalTags: ["cuerpoacuerpo"],
+      img: "misiones/terrestre.PNG",
+      text: "¡Preparaos para el combate!"
+    },
+    {
+      id: "mh2",
+      title: "Monstruo volador",
+      internalTags: ["adistancia"],
+      img: "misiones/volador.PNG",
+      text: "¡Preparaos para el combate!"
+    },
+    {
+      id: "mh3",
+      title: "Monstruo acuático",
+      internalTags: ["magia", "adistancia"],
+      img: "misiones/acuatico.PNG",
+      text: "¡Preparaos para el combate!"
+    },
+    {
+      id: "mh4",
+      title: "Grupo de monstruos terrestres",
+      internalTags: ["cuerpoacuerpo"],
+      img: "misiones/terrestres.PNG",
+      text: "¡Preparaos para el combate!",
+      maxChars: 2,
+      monsterPairRequired: true
+    }
+  ];
 
   const CHARACTERS = [
     { id: "c1", name: "Winchester", tags: ["magia", "adistancia", "cuerpoacuerpo"] },
@@ -200,6 +234,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const rivalImg = document.getElementById("rivalImg");
   const progressEl = document.getElementById("progress");
   const hudLabelEl = document.querySelector(".hud-label");
+  const storyMonsterCountdown = document.getElementById("storyMonsterCountdown");
   const hudStoryHintEl = document.getElementById("hudStoryHint");
   const activeEffectBtn = document.getElementById("activeEffectBtn");
   const trainEffectCounter = document.getElementById("trainEffectCounter");
@@ -1001,6 +1036,70 @@ document.addEventListener("DOMContentLoaded", () => {
       showChars: true
     }
   ];
+  const STORY_MAP_MONSTER_ALERT_SCENES = [
+    {
+      speaker: "Camus",
+      text: "¡Maldita sea! Esta zona está plagada de monstruos.",
+      background: "historia/mapa1.png",
+      active: "right",
+      leftSrc: "images/Evelyn.png",
+      leftSupportSrc: "historia/Winchester2.png",
+      rightSrc: "historia/Camus2.png",
+      rightMirror: false,
+      rightSupportSrc: "historia/Jane2.png",
+      showChars: true
+    },
+    {
+      speaker: "Winchester",
+      text: "¿Pero de donde han salido?",
+      background: "historia/mapa1.png",
+      active: "left-support",
+      leftSrc: "images/Evelyn.png",
+      leftSupportSrc: "historia/Winchester2.png",
+      rightSrc: "historia/Camus2.png",
+      rightMirror: false,
+      rightSupportSrc: "historia/Jane2.png",
+      showChars: true
+    },
+    {
+      speaker: "Evelyn",
+      text: "Tenemos que acabar con ellos antes de que dañen a los civiles.",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "images/Evelyn.png",
+      leftSupportSrc: "historia/Winchester2.png",
+      rightSrc: "historia/Camus2.png",
+      rightMirror: false,
+      rightSupportSrc: "historia/Jane2.png",
+      showChars: true
+    },
+    {
+      speaker: "Jane",
+      text: "Tenemos un tiempo límite. Demosles caza.",
+      background: "historia/mapa1.png",
+      active: "right-support",
+      leftSrc: "images/Evelyn.png",
+      leftSupportSrc: "historia/Winchester2.png",
+      rightSrc: "historia/Camus2.png",
+      rightMirror: false,
+      rightSupportSrc: "historia/Jane2.png",
+      showChars: true
+    }
+  ];
+  const STORY_MAP_MONSTER_ALERT_POST_SCENES = [
+    {
+      speaker: "Winchester",
+      text: "¡Así se hace! Buen trabajo, equipo.",
+      background: "historia/mapa1.png",
+      active: "left-support",
+      leftSrc: "images/Evelyn.png",
+      leftSupportSrc: "historia/Winchester2.png",
+      rightSrc: "historia/Camus2.png",
+      rightMirror: false,
+      rightSupportSrc: "historia/Jane2.png",
+      showChars: true
+    }
+  ];
   const STORY_MAP_INTRO_SCENES = [
     {
       speaker: "Winchester",
@@ -1140,6 +1239,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let storyMapRunHistory = [];
   let storyMapPointIcons = null;
   let storyMapBattleActive = false;
+  let storyMapMonsterHuntActive = false;
   let currentStoryMapPointId = null;
   let storyRiskoEncounterCount = 0;
   let storyRiskoJoined = false;
@@ -1364,6 +1464,8 @@ document.addEventListener("DOMContentLoaded", () => {
       "mappointquestionchallenge",
       "mappointquestionchallengepost",
       "mappointjane",
+      "mappointmonsterintro",
+      "mappointmonsterpost",
       "mappost",
       "map",
       "combat"
@@ -1378,6 +1480,7 @@ document.addEventListener("DOMContentLoaded", () => {
         storyCombatStage: stage === 2 ? 2 : 1,
         storyMapState: storyMapFlow ? storyMapFlow.normalizeState(raw?.state?.storyMapState) : null,
         storyMapRunHistory: normalizeStoryMapRunHistory(raw?.state?.storyMapRunHistory),
+        storyMapMonsterHuntActive: !!raw?.state?.storyMapMonsterHuntActive,
         storyRiskoEncounterCount: Math.max(
           0,
           Math.floor(Number(raw?.state?.storyRiskoEncounterCount) || (raw?.state?.storyRiskoEncountered ? 1 : 0))
@@ -1447,6 +1550,7 @@ document.addEventListener("DOMContentLoaded", () => {
       storyCombatStage: storyCombatStage === 2 ? 2 : 1,
       storyMapState: storyMapFlow ? storyMapFlow.normalizeState(storyMapState) : null,
       storyMapRunHistory: normalizeStoryMapRunHistory(storyMapRunHistory),
+      storyMapMonsterHuntActive,
       storyRiskoEncounterCount,
       storyRiskoJoined,
       storyJaneFriendshipLevel,
@@ -1493,6 +1597,7 @@ document.addEventListener("DOMContentLoaded", () => {
     storyJackCompleted = false;
     storyMapState = storyMapFlow ? storyMapFlow.normalizeState(payload.storyMapState) : null;
     storyMapRunHistory = normalizeStoryMapRunHistory(payload.storyMapRunHistory);
+    storyMapMonsterHuntActive = !!payload.storyMapMonsterHuntActive;
     storyRiskoEncounterCount = Math.max(
       0,
       Math.floor(Number(payload.storyRiskoEncounterCount) || (payload.storyRiskoEncountered ? 1 : 0))
@@ -1635,6 +1740,7 @@ document.addEventListener("DOMContentLoaded", () => {
           storyJackCompleted,
           storyMapState: storyMapFlow ? storyMapFlow.normalizeState(storyMapState) : null,
           storyMapRunHistory: normalizeStoryMapRunHistory(storyMapRunHistory),
+          storyMapMonsterHuntActive,
           storyRiskoEncounterCount,
           storyRiskoJoined,
           storyJaneFriendshipLevel,
@@ -1662,6 +1768,7 @@ document.addEventListener("DOMContentLoaded", () => {
         storyJackUnlocked,
         storyJackCompleted,
         storyMapRunHistory: normalizeStoryMapRunHistory(storyMapRunHistory),
+        storyMapMonsterHuntActive,
         storyRiskoEncounterCount,
         storyRiskoJoined,
         storyJaneFriendshipLevel,
@@ -1704,6 +1811,7 @@ document.addEventListener("DOMContentLoaded", () => {
     storyJackUnlocked = !!state?.storyJackUnlocked;
     storyJackCompleted = !!state?.storyJackCompleted;
     storyMapRunHistory = normalizeStoryMapRunHistory(state?.storyMapRunHistory);
+    storyMapMonsterHuntActive = !!state?.storyMapMonsterHuntActive;
     storyRiskoEncounterCount = Math.max(
       0,
       Math.floor(Number(state?.storyRiskoEncounterCount) || (state?.storyRiskoEncountered ? 1 : 0))
@@ -1713,7 +1821,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ensureRiskoUnlockedIfJoined();
     storyMapState = storyMapFlow ? storyMapFlow.normalizeState(state?.storyMapState) : null;
     storyCharacterProgress = storyProgress.normalizeProgress(state?.storyCharacterProgress);
-    storyPhase = ["pre", "post", "epilogue", "mapintro", "mappointquestion", "mappointquestionrepeat", "mappointquestionchallenge", "mappointquestionchallengepost", "mappointjane", "map", "mappost"].includes(state?.storyPhase) ? state.storyPhase : "pre";
+    storyPhase = ["pre", "post", "epilogue", "mapintro", "mappointquestion", "mappointquestionrepeat", "mappointquestionchallenge", "mappointquestionchallengepost", "mappointjane", "mappointmonsterintro", "mappointmonsterpost", "map", "mappost"].includes(state?.storyPhase) ? state.storyPhase : "pre";
     storyStep = Math.max(0, Math.floor(Number(state?.storyStep) || 0));
 
     introScreen.classList.add("hidden");
@@ -1749,6 +1857,7 @@ document.addEventListener("DOMContentLoaded", () => {
     storyJackUnlocked = !!state?.storyJackUnlocked;
     storyJackCompleted = !!state?.storyJackCompleted;
     storyMapRunHistory = normalizeStoryMapRunHistory(state?.storyMapRunHistory);
+    storyMapMonsterHuntActive = !!state?.storyMapMonsterHuntActive;
     storyRiskoEncounterCount = Math.max(
       0,
       Math.floor(Number(state?.storyRiskoEncounterCount) || (state?.storyRiskoEncountered ? 1 : 0))
@@ -2772,6 +2881,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function getCurrentArcadeWinTarget() {
+    if (storyMapMonsterHuntActive) return STORY_MONSTER_HUNT_TARGET;
     if (storyMapBattleActive) return STORY_MAP_BATTLE_WIN_TARGET;
     if (storyCombatActive && storyCombatStage === 1) return STORY_COMBAT_WIN_TARGET;
     return ARCADE_WIN_TARGET;
@@ -2784,6 +2894,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (storyPhase === "mappointquestionchallenge") return STORY_MAP_QUESTION_CHALLENGE_SCENES;
     if (storyPhase === "mappointquestionchallengepost") return STORY_MAP_QUESTION_CHALLENGE_POST_SCENES;
     if (storyPhase === "mappointjane") return STORY_MAP_JANE_SCENES;
+    if (storyPhase === "mappointmonsterintro") return STORY_MAP_MONSTER_ALERT_SCENES;
+    if (storyPhase === "mappointmonsterpost") return STORY_MAP_MONSTER_ALERT_POST_SCENES;
     if (storyPhase === "mappost") return STORY_MAP_POST_SCENES;
     if (storyPhase === "post") return STORY_POST_COMBAT_SCENES;
     if (storyPhase === "epilogue") return STORY_EPILOGUE_SCENES;
@@ -2806,6 +2918,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function getMissionPoolForCurrentMode() {
+    if (storyMapMonsterHuntActive) return STORY_MONSTER_HUNT_MISSIONS;
     if (storyMapBattleActive) return STORY_BASE_MISSIONS;
     if (!storyCombatActive) return MISSIONS;
     if (storyCombatStage === 1) return STORY_BASE_MISSIONS;
@@ -2817,6 +2930,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function refillPendingMissions() {
+    if (storyMapMonsterHuntActive) {
+      pendingMissions = [...STORY_MONSTER_HUNT_MISSIONS];
+      return;
+    }
     const pool = getMissionPoolForCurrentMode();
     pendingMissions = pool.filter((m) => !completedMissionIds.has(m.id) && !activePoints.has(m.id));
   }
@@ -3169,14 +3286,22 @@ document.addEventListener("DOMContentLoaded", () => {
         hudStoryHintEl.classList.add("hidden");
       }
     } else {
-      if (hudLabelEl) hudLabelEl.textContent = "Misiones";
-      if (storyCombatActive && storyCombatStage === 2) {
-        progressEl.textContent = String(score);
+      if (storyMapMonsterHuntActive) {
+        if (hudLabelEl) hudLabelEl.textContent = "Monstruos cazados";
+        progressEl.textContent = `${score}/${STORY_MONSTER_HUNT_TARGET}`;
       } else {
-        progressEl.textContent = String(score) + "/" + String(getCurrentArcadeWinTarget());
+        if (hudLabelEl) hudLabelEl.textContent = "Misiones";
+        if (storyCombatActive && storyCombatStage === 2) {
+          progressEl.textContent = String(score);
+        } else {
+          progressEl.textContent = String(score) + "/" + String(getCurrentArcadeWinTarget());
+        }
       }
       if (hudStoryHintEl) {
-        if (storyCombatActive && storyCombatStage === 1) {
+        if (storyMapMonsterHuntActive) {
+          hudStoryHintEl.textContent = "";
+          hudStoryHintEl.classList.add("hidden");
+        } else if (storyCombatActive && storyCombatStage === 1) {
           hudStoryHintEl.textContent = "Completa 3 misiones para superar el tutorial.";
           hudStoryHintEl.classList.remove("hidden");
         } else if (storyCombatActive && storyCombatStage === 2) {
@@ -3186,6 +3311,16 @@ document.addEventListener("DOMContentLoaded", () => {
           hudStoryHintEl.textContent = "";
           hudStoryHintEl.classList.add("hidden");
         }
+      }
+    }
+    if (storyMonsterCountdown) {
+      storyMonsterCountdown.classList.toggle("hidden", !storyMapMonsterHuntActive);
+      if (storyMapMonsterHuntActive) {
+        const remainingMs = Math.max(0, gameEndAt - performance.now());
+        const totalSec = Math.ceil(remainingMs / 1000);
+        const mm = String(Math.floor(totalSec / 60)).padStart(2, "0");
+        const ss = String(totalSec % 60).padStart(2, "0");
+        storyMonsterCountdown.textContent = `Tiempo: ${mm}:${ss}`;
       }
     }
     const canSkipStoryBattle = currentMode !== "versus" && (storyCombatActive || storyMapBattleActive);
@@ -3498,6 +3633,7 @@ document.addEventListener("DOMContentLoaded", () => {
     storyMapState = storyMapFlow.completePoint(storyMapState, pointId);
     currentStoryMapPointId = null;
     storyMapBattleActive = false;
+    storyMapMonsterHuntActive = false;
     resetGame();
     introScreen.classList.add("hidden");
     storyScreen?.classList.remove("hidden");
@@ -3540,6 +3676,34 @@ document.addEventListener("DOMContentLoaded", () => {
     resetViewportTop();
   }
 
+  function startStoryMonsterHuntBattle() {
+    resetGame();
+    currentStoryMapPointId = currentStoryMapPointId || null;
+    storyMapBattleActive = true;
+    storyMapMonsterHuntActive = true;
+    selectedMode = "arcade";
+    currentMode = "arcade";
+    storyCombatActive = false;
+    storyCombatStage = 0;
+    tutorialPending = false;
+    pendingMissions = [...STORY_MONSTER_HUNT_MISSIONS];
+    selectedTeamCardIds = new Set(["card_celia", "card_castri", "card_lorena"]);
+    if (storyRiskoJoined) selectedTeamCardIds.add("card_risko");
+    if (!applyTeamFromCardIds([...selectedTeamCardIds])) {
+      goToTeamScreen();
+      return;
+    }
+    pendingBattleEffectKey = "pueblo";
+    introScreen.classList.add("hidden");
+    storyScreen?.classList.add("hidden");
+    recruitScreen?.classList.add("hidden");
+    userScreen?.classList.add("hidden");
+    startScreen.classList.add("hidden");
+    teamScreen.classList.add("hidden");
+    gameRoot.classList.remove("hidden");
+    startGame();
+  }
+
   function completeStoryRiskoJoinFlow() {
     storyRiskoEncounterCount = Math.max(storyRiskoEncounterCount, 3);
     storyRiskoJoined = true;
@@ -3569,6 +3733,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!storyMapFlow || !storyMapFlow.isPointUnlocked(storyMapState, pointId)) return;
     const iconSrc = String(storyMapPointIcons?.[pointId] || "");
     const isConversationPoint = iconSrc.includes("iconomapaconversacion.png");
+    const isQuestionPoint = iconSrc.includes("iconomapainterrogante.png");
     if (isConversationPoint && !storyRiskoJoined) {
       const riskoPhase = storyRiskoEncounterCount >= 2
         ? "mappointquestionchallenge"
@@ -3596,9 +3761,21 @@ document.addEventListener("DOMContentLoaded", () => {
       renderStoryStep();
       return;
     }
+    if (isQuestionPoint) {
+      currentStoryMapPointId = pointId;
+      storyMapBattleActive = false;
+      storyMapMonsterHuntActive = false;
+      storyCombatActive = false;
+      storyCombatStage = 0;
+      storyPhase = "mappointmonsterintro";
+      storyStep = 0;
+      renderStoryStep();
+      return;
+    }
     resetGame();
     currentStoryMapPointId = pointId;
     storyMapBattleActive = true;
+    storyMapMonsterHuntActive = false;
     selectedMode = "arcade";
     currentMode = "arcade";
     storyCombatActive = false;
@@ -3719,6 +3896,7 @@ document.addEventListener("DOMContentLoaded", () => {
     storyCombatActive = false;
     storyCombatStage = 0;
     storyMapBattleActive = false;
+    storyMapMonsterHuntActive = false;
     currentStoryMapPointId = null;
     storyMapState = storyMapFlow ? storyMapFlow.createInitialState() : null;
     storyMapRunHistory = [];
@@ -3739,6 +3917,7 @@ document.addEventListener("DOMContentLoaded", () => {
     selectedMode = "arcade";
     currentMode = "arcade";
     storyCombatActive = true;
+    storyMapMonsterHuntActive = false;
     storyCombatStage = normalizedStage;
     storyPhase = "combat";
     storyCombatStartAt = performance.now();
@@ -3819,6 +3998,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (storyPhase === "mappointquestionchallengepost") {
       completeStoryRiskoJoinFlow();
+      return;
+    }
+    if (storyPhase === "mappointmonsterintro") {
+      startStoryMonsterHuntBattle();
+      return;
+    }
+    if (storyPhase === "mappointmonsterpost") {
+      storyMapMonsterHuntActive = false;
+      completeStoryMapBattle(currentStoryMapPointId);
       return;
     }
     if (storyPhase === "mappointjane") {
@@ -4058,6 +4246,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (isBattleEffectActive("pueblo")) p += 0.1;
+
+    if (storyMapMonsterHuntActive && mission?.monsterPairRequired && chosenList.length < 2) {
+      return 0.1;
+    }
 
     return clamp(p, 0, 1);
   }
@@ -4881,13 +5073,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 1500);
   }
 
-  function startGameClock() {
+  function startGameClock(durationMs = GAME_DURATION_MS) {
     clearInterval(gameClockTimer);
-    gameEndAt = performance.now() + GAME_DURATION_MS;
+    gameEndAt = performance.now() + durationMs;
 
     gameClockTimer = setInterval(() => {
       const now = performance.now();
       if (now >= gameEndAt) endGameByTime();
+      else if (storyMapMonsterHuntActive) updateHud();
     }, 250);
   }
 
@@ -4901,6 +5094,20 @@ document.addEventListener("DOMContentLoaded", () => {
     hideModal(specialModal);
     hideModal(effectModal);
 
+    if (storyMapMonsterHuntActive) {
+      finalTitleEl.textContent = "Derrota";
+      if (finalLabelEl) finalLabelEl.textContent = "Caza de monstruos";
+      finalScoreEl.textContent = `${score}/${STORY_MONSTER_HUNT_TARGET}`;
+      const finalText = finalModal.querySelector(".modal-text");
+      if (finalText) finalText.textContent = "Se acabó el tiempo. Los monstruos siguen sueltos.";
+      setFinalModalPrimaryAction("Volver al mapa", () => {
+        storyMapMonsterHuntActive = false;
+        completeStoryMapBattle(currentStoryMapPointId);
+      });
+      setGlobalPause(true);
+      showModal(finalModal);
+      return;
+    }
     finishArcadeByTime();
   }
 
@@ -4930,6 +5137,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (currentMode === "arcade") clearInterval(gameClockTimer);
     else clearInterval(gameClockTimer);
+    if (storyMapMonsterHuntActive) startGameClock(STORY_MONSTER_HUNT_DURATION_MS);
 
     startLifeTicker();
     scheduleNextSpawn();
@@ -5064,8 +5272,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (completedMissionIds.has(missionId)) return;
     const st = activePoints.get(missionId);
 
-    completedMissionIds.add(missionId);
-    if (missionId === STORY_JACK_MISSION_ID) storyJackCompleted = true;
+    if (!storyMapMonsterHuntActive) completedMissionIds.add(missionId);
+    if (!storyMapMonsterHuntActive && missionId === STORY_JACK_MISSION_ID) storyJackCompleted = true;
     if (st && storyCombatActive) awardStoryMissionSuccessPoints(st);
     if (isBattleEffectActive("castillo") && currentMode !== "versus") {
       setCoins(coins + 5);
@@ -5136,7 +5344,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const idx = randInt(0, pendingMissions.length - 1);
       const mission = pendingMissions.splice(idx, 1)[0];
-      if (mission && !completedMissionIds.has(mission.id) && !activePoints.has(mission.id)) {
+      const canSpawn = storyMapMonsterHuntActive
+        ? !!(mission && !activePoints.has(mission.id))
+        : !!(mission && !completedMissionIds.has(mission.id) && !activePoints.has(mission.id));
+      if (canSpawn) {
         createMissionPoint(mission);
       }
       scheduleNextSpawn();
@@ -5502,6 +5713,27 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function finishArcadeVictory() {
+    if (storyMapMonsterHuntActive) {
+      stopGameLoops();
+      hideModal(missionModal);
+      hideModal(rouletteModal);
+      hideModal(cardInfoModal);
+      hideModal(specialModal);
+      hideModal(effectModal);
+      introScreen.classList.add("hidden");
+      storyScreen?.classList.remove("hidden");
+      recruitScreen?.classList.add("hidden");
+      storeScreen?.classList.add("hidden");
+      userScreen?.classList.add("hidden");
+      startScreen.classList.add("hidden");
+      teamScreen.classList.add("hidden");
+      gameRoot.classList.add("hidden");
+      storyPhase = "mappointmonsterpost";
+      storyStep = 0;
+      renderStoryStep();
+      resetViewportTop();
+      return;
+    }
     if (storyMapBattleActive) {
       completeStoryMapBattle(currentStoryMapPointId);
       return;
@@ -5609,6 +5841,7 @@ document.addEventListener("DOMContentLoaded", () => {
     storyJackUnlocked = false;
     storyJackCompleted = false;
     storyMapBattleActive = false;
+    storyMapMonsterHuntActive = false;
     currentStoryMapPointId = null;
     activeBattleEffect = null;
     pendingBattleEffectKey = null;
