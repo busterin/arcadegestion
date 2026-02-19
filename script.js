@@ -869,6 +869,138 @@ document.addEventListener("DOMContentLoaded", () => {
       showChars: true
     }
   ];
+  const STORY_MAP_JANE_SCENES = [
+    {
+      speaker: "Jane",
+      text: "...",
+      background: "historia/mapa1.png",
+      active: "right",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Jane2.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Evelyn",
+      text: "¿Jane? ¿Estás bien?",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Jane2.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Jane",
+      text: "Si...",
+      background: "historia/mapa1.png",
+      active: "right",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Jane2.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Evelyn",
+      text: "Se que no eres la persona más habladora del mundo... ni la más expresiva... ni la más divertida...",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Jane2.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Jane",
+      text: "¿Intentas animarme o hacerme llorar?",
+      background: "historia/mapa1.png",
+      active: "right",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Jane2.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Evelyn",
+      text: "Perdón, no se me da bien esto. Sólo me preocupaba por ti, a mi manera...",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Jane2.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Jane",
+      text: "Lo se, no hay problema.",
+      background: "historia/mapa1.png",
+      active: "right",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Jane2.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Evelyn",
+      text: "Llevamos ya mucho tiempo los cuatro juntos y a veces pienso que no sé mucho de ti.",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Jane2.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Jane",
+      text: "Porque es así...",
+      background: "historia/mapa1.png",
+      active: "right",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Jane2.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Evelyn",
+      text: "Admiro tu sinceridad.",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Jane2.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Jane",
+      text: "Buena charla, Evelyn. Me gusta hablar contigo.",
+      background: "historia/mapa1.png",
+      active: "right",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Jane2.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Evelyn",
+      text: "Si, tu lo dices... Espero que la próxima vez me cuentes algo, al menos.",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Jane2.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Jane",
+      text: "Cuenta con ello.",
+      background: "historia/mapa1.png",
+      active: "right",
+      leftSrc: "images/Evelyn.png",
+      rightSrc: "historia/Jane2.png",
+      rightMirror: false,
+      showChars: true
+    }
+  ];
   const STORY_MAP_INTRO_SCENES = [
     {
       speaker: "Winchester",
@@ -1011,6 +1143,9 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentStoryMapPointId = null;
   let storyRiskoEncounterCount = 0;
   let storyRiskoJoined = false;
+  let storyJaneFriendshipLevel = 0;
+  let pendingJaneFriendshipNotice = false;
+  let pendingJaneFriendshipPointId = null;
   let storyCombatActive = false;
   let storyCombatStage = 0;
   let storyJackSpawnTimer = null;
@@ -1143,7 +1278,41 @@ document.addEventListener("DOMContentLoaded", () => {
       requestAnimationFrame(maybeShowNextStoryLevelUp);
       return;
     }
+    if (pendingJaneFriendshipNotice) {
+      pendingJaneFriendshipNotice = false;
+      showJaneFriendshipNotice();
+      return;
+    }
     if (!isAnyModalOpen()) setGlobalPause(false);
+  }
+
+  function grantJaneConversationRewards() {
+    const jane = CHARACTERS.find((ch) => String(ch.name).toLowerCase() === "jane");
+    if (!jane || !storyCharacterProgress[jane.id]) {
+      pendingJaneFriendshipNotice = true;
+      showJaneFriendshipNotice();
+      return;
+    }
+    storyJaneFriendshipLevel += 1;
+    pendingJaneFriendshipNotice = true;
+    addStoryCharacterSuccessPoints(jane.id, 3);
+  }
+
+  function showJaneFriendshipNotice() {
+    finalTitleEl.textContent = "JANE";
+    if (finalLabelEl) finalLabelEl.textContent = "Vínculo";
+    finalScoreEl.textContent = "❤";
+    const finalText = finalModal.querySelector(".modal-text");
+    if (finalText) {
+      finalText.innerHTML = '<img class="final-unlock-img" src="historia/Jane2.png" alt="Jane"/>' +
+        "Nivel de amistad +1";
+    }
+    setFinalModalPrimaryAction("Continuar", () => {
+      const pointId = pendingJaneFriendshipPointId;
+      pendingJaneFriendshipPointId = null;
+      completeStoryMapBattle(pointId);
+    });
+    showModal(finalModal);
   }
 
   function addStoryCharacterSuccessPoint(charId) {
@@ -1194,6 +1363,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "mappointquestionrepeat",
       "mappointquestionchallenge",
       "mappointquestionchallengepost",
+      "mappointjane",
       "mappost",
       "map",
       "combat"
@@ -1213,6 +1383,7 @@ document.addEventListener("DOMContentLoaded", () => {
           Math.floor(Number(raw?.state?.storyRiskoEncounterCount) || (raw?.state?.storyRiskoEncountered ? 1 : 0))
         ),
         storyRiskoJoined: !!raw?.state?.storyRiskoJoined,
+        storyJaneFriendshipLevel: Math.max(0, Math.floor(Number(raw?.state?.storyJaneFriendshipLevel) || 0)),
         storyCharacterProgress: storyProgress.normalizeProgress(raw?.state?.storyCharacterProgress)
       }
     };
@@ -1278,6 +1449,7 @@ document.addEventListener("DOMContentLoaded", () => {
       storyMapRunHistory: normalizeStoryMapRunHistory(storyMapRunHistory),
       storyRiskoEncounterCount,
       storyRiskoJoined,
+      storyJaneFriendshipLevel,
       storyCharacterProgress
     };
   }
@@ -1326,6 +1498,7 @@ document.addEventListener("DOMContentLoaded", () => {
       Math.floor(Number(payload.storyRiskoEncounterCount) || (payload.storyRiskoEncountered ? 1 : 0))
     );
     storyRiskoJoined = !!payload.storyRiskoJoined;
+    storyJaneFriendshipLevel = Math.max(0, Math.floor(Number(payload.storyJaneFriendshipLevel) || 0));
     ensureRiskoUnlockedIfJoined();
     storyPhase = payload.storyPhase === "combat" ? "pre" : payload.storyPhase;
     if (storyPhase === "map") {
@@ -1464,6 +1637,7 @@ document.addEventListener("DOMContentLoaded", () => {
           storyMapRunHistory: normalizeStoryMapRunHistory(storyMapRunHistory),
           storyRiskoEncounterCount,
           storyRiskoJoined,
+          storyJaneFriendshipLevel,
           storyCharacterProgress
         }
       };
@@ -1490,6 +1664,7 @@ document.addEventListener("DOMContentLoaded", () => {
         storyMapRunHistory: normalizeStoryMapRunHistory(storyMapRunHistory),
         storyRiskoEncounterCount,
         storyRiskoJoined,
+        storyJaneFriendshipLevel,
         tutorialPending,
         score,
         failedMissionsCount,
@@ -1534,10 +1709,11 @@ document.addEventListener("DOMContentLoaded", () => {
       Math.floor(Number(state?.storyRiskoEncounterCount) || (state?.storyRiskoEncountered ? 1 : 0))
     );
     storyRiskoJoined = !!state?.storyRiskoJoined;
+    storyJaneFriendshipLevel = Math.max(0, Math.floor(Number(state?.storyJaneFriendshipLevel) || 0));
     ensureRiskoUnlockedIfJoined();
     storyMapState = storyMapFlow ? storyMapFlow.normalizeState(state?.storyMapState) : null;
     storyCharacterProgress = storyProgress.normalizeProgress(state?.storyCharacterProgress);
-    storyPhase = ["pre", "post", "epilogue", "mapintro", "mappointquestion", "mappointquestionrepeat", "mappointquestionchallenge", "mappointquestionchallengepost", "map", "mappost"].includes(state?.storyPhase) ? state.storyPhase : "pre";
+    storyPhase = ["pre", "post", "epilogue", "mapintro", "mappointquestion", "mappointquestionrepeat", "mappointquestionchallenge", "mappointquestionchallengepost", "mappointjane", "map", "mappost"].includes(state?.storyPhase) ? state.storyPhase : "pre";
     storyStep = Math.max(0, Math.floor(Number(state?.storyStep) || 0));
 
     introScreen.classList.add("hidden");
@@ -1578,6 +1754,7 @@ document.addEventListener("DOMContentLoaded", () => {
       Math.floor(Number(state?.storyRiskoEncounterCount) || (state?.storyRiskoEncountered ? 1 : 0))
     );
     storyRiskoJoined = !!state?.storyRiskoJoined;
+    storyJaneFriendshipLevel = Math.max(0, Math.floor(Number(state?.storyJaneFriendshipLevel) || 0));
     ensureRiskoUnlockedIfJoined();
     storyCharacterProgress = storyProgress.normalizeProgress(state?.storyCharacterProgress);
     tutorialPending = !!state?.tutorialPending;
@@ -2606,6 +2783,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (storyPhase === "mappointquestionrepeat") return STORY_MAP_QUESTION_REPEAT_SCENES;
     if (storyPhase === "mappointquestionchallenge") return STORY_MAP_QUESTION_CHALLENGE_SCENES;
     if (storyPhase === "mappointquestionchallengepost") return STORY_MAP_QUESTION_CHALLENGE_POST_SCENES;
+    if (storyPhase === "mappointjane") return STORY_MAP_JANE_SCENES;
     if (storyPhase === "mappost") return STORY_MAP_POST_SCENES;
     if (storyPhase === "post") return STORY_POST_COMBAT_SCENES;
     if (storyPhase === "epilogue") return STORY_EPILOGUE_SCENES;
@@ -3305,6 +3483,8 @@ document.addEventListener("DOMContentLoaded", () => {
       storyMapRunHistory.push(storyMapFlow.normalizeState(storyMapState));
       if (storyMapRunHistory.length > 20) storyMapRunHistory.shift();
     }
+    pendingJaneFriendshipNotice = false;
+    pendingJaneFriendshipPointId = null;
     storyMapState = storyMapFlow ? storyMapFlow.createInitialState() : null;
     resetStoryMapPointIcons();
     ensureStoryMapPointIcons();
@@ -3390,13 +3570,28 @@ document.addEventListener("DOMContentLoaded", () => {
     const iconSrc = String(storyMapPointIcons?.[pointId] || "");
     const isConversationPoint = iconSrc.includes("iconomapaconversacion.png");
     if (isConversationPoint && !storyRiskoJoined) {
+      const riskoPhase = storyRiskoEncounterCount >= 2
+        ? "mappointquestionchallenge"
+        : (storyRiskoEncounterCount >= 1 ? "mappointquestionrepeat" : "mappointquestion");
+      const options = ["mappointjane", riskoPhase];
+      const picked = options[randInt(0, options.length - 1)];
       currentStoryMapPointId = pointId;
       storyMapBattleActive = false;
       storyCombatActive = false;
       storyCombatStage = 0;
-      if (storyRiskoEncounterCount >= 2) storyPhase = "mappointquestionchallenge";
-      else if (storyRiskoEncounterCount >= 1) storyPhase = "mappointquestionrepeat";
-      else storyPhase = "mappointquestion";
+      storyPhase = picked;
+      pendingJaneFriendshipPointId = picked === "mappointjane" ? pointId : null;
+      storyStep = 0;
+      renderStoryStep();
+      return;
+    }
+    if (isConversationPoint && storyRiskoJoined) {
+      currentStoryMapPointId = pointId;
+      storyMapBattleActive = false;
+      storyCombatActive = false;
+      storyCombatStage = 0;
+      storyPhase = "mappointjane";
+      pendingJaneFriendshipPointId = pointId;
       storyStep = 0;
       renderStoryStep();
       return;
@@ -3509,6 +3704,9 @@ document.addEventListener("DOMContentLoaded", () => {
     stopMiniGameLoop();
     storyCharacterProgress = storyProgress.createInitialProgress();
     storyLevelUpQueue = [];
+    storyJaneFriendshipLevel = 0;
+    pendingJaneFriendshipNotice = false;
+    pendingJaneFriendshipPointId = null;
     introScreen.classList.add("hidden");
     recruitScreen?.classList.add("hidden");
     storeScreen?.classList.add("hidden");
@@ -3621,6 +3819,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (storyPhase === "mappointquestionchallengepost") {
       completeStoryRiskoJoinFlow();
+      return;
+    }
+    if (storyPhase === "mappointjane") {
+      grantJaneConversationRewards();
       return;
     }
     if (storyPhase === "mappost") {
@@ -5402,6 +5604,8 @@ document.addEventListener("DOMContentLoaded", () => {
     miniGameContext = "standalone";
     miniGameStoryChallengeActive = false;
     storyLevelUpQueue = [];
+    pendingJaneFriendshipNotice = false;
+    pendingJaneFriendshipPointId = null;
     storyJackUnlocked = false;
     storyJackCompleted = false;
     storyMapBattleActive = false;
