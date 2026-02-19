@@ -1553,6 +1553,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let storyReinerCompleted = false;
   let storyJaneFriendshipLevel = 0;
   let storyJaneFortitudeUnlocked = false;
+  let pendingMonsterPostRewardPointId = null;
   let pendingJaneFriendshipNotice = false;
   let pendingJaneFriendshipPointId = null;
   let storyCombatActive = false;
@@ -1687,6 +1688,12 @@ document.addEventListener("DOMContentLoaded", () => {
       requestAnimationFrame(maybeShowNextStoryLevelUp);
       return;
     }
+    if (pendingMonsterPostRewardPointId) {
+      const pointId = pendingMonsterPostRewardPointId;
+      pendingMonsterPostRewardPointId = null;
+      completeStoryMapBattle(pointId);
+      return;
+    }
     if (pendingJaneFriendshipNotice) {
       pendingJaneFriendshipNotice = false;
       showJaneFriendshipNotice();
@@ -1722,6 +1729,19 @@ document.addEventListener("DOMContentLoaded", () => {
       completeStoryMapBattle(pointId);
     });
     showModal(finalModal);
+  }
+
+  function rewardRandomCharacterLevelAfterMonsterEvent() {
+    const candidateIds = ["c1", "c3", "c7"];
+    if (storyRiskoJoined) candidateIds.push("c5");
+    const validIds = candidateIds.filter((charId) => !!storyCharacterProgress?.[charId]);
+    if (!validIds.length) return false;
+    const pickedId = validIds[randInt(0, validIds.length - 1)];
+    const current = storyCharacterProgress[pickedId];
+    if (!current) return false;
+    const pointsToNextLevel = Math.max(1, (current.level * 3) - current.points);
+    addStoryCharacterSuccessPoints(pickedId, pointsToNextLevel);
+    return true;
   }
 
   function addStoryCharacterSuccessPoint(charId) {
@@ -4058,6 +4078,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (storyMapRunHistory.length > 20) storyMapRunHistory.shift();
     }
     pendingJaneFriendshipNotice = false;
+    pendingMonsterPostRewardPointId = null;
     pendingJaneFriendshipPointId = null;
     storyMapState = storyMapFlow ? storyMapFlow.createInitialState() : null;
     resetStoryMapPointIcons();
@@ -4117,8 +4138,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function startStoryMonsterHuntBattle() {
+    const targetPointId = currentStoryMapPointId;
     resetGame();
-    currentStoryMapPointId = currentStoryMapPointId || null;
+    currentStoryMapPointId = targetPointId || null;
     storyMapBattleActive = true;
     storyMapMonsterHuntActive = true;
     storyMapReinerChallengeActive = false;
@@ -4146,8 +4168,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function startStoryReinerChallengeBattle() {
+    const targetPointId = currentStoryMapPointId;
     resetGame();
-    currentStoryMapPointId = currentStoryMapPointId || null;
+    currentStoryMapPointId = targetPointId || null;
     storyMapBattleActive = true;
     storyMapMonsterHuntActive = false;
     storyMapReinerChallengeActive = true;
@@ -4359,6 +4382,7 @@ document.addEventListener("DOMContentLoaded", () => {
     storyCharacterProgress = storyProgress.createInitialProgress();
     storyLevelUpQueue = [];
     storyJaneFriendshipLevel = 0;
+    pendingMonsterPostRewardPointId = null;
     pendingJaneFriendshipNotice = false;
     pendingJaneFriendshipPointId = null;
     introScreen.classList.add("hidden");
@@ -4488,7 +4512,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (storyPhase === "mappointmonsterpost") {
       storyMapMonsterHuntActive = false;
-      completeStoryMapBattle(currentStoryMapPointId);
+      const pointId = currentStoryMapPointId;
+      const rewarded = rewardRandomCharacterLevelAfterMonsterEvent();
+      if (rewarded && storyLevelUpQueue.length) {
+        pendingMonsterPostRewardPointId = pointId;
+      } else {
+        completeStoryMapBattle(pointId);
+      }
       return;
     }
     if (storyPhase === "mappointreinerintro") {
@@ -6444,6 +6474,7 @@ document.addEventListener("DOMContentLoaded", () => {
     miniGameContext = "standalone";
     miniGameStoryChallengeActive = false;
     storyLevelUpQueue = [];
+    pendingMonsterPostRewardPointId = null;
     pendingJaneFriendshipNotice = false;
     pendingJaneFriendshipPointId = null;
     storyJackUnlocked = false;
