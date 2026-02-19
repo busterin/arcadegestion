@@ -29,6 +29,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const STORY_JACK_DELAY_MS = 2 * 60 * 1000;
   const STORY_MONSTER_HUNT_TARGET = 8;
   const STORY_MONSTER_HUNT_DURATION_MS = 5 * 60 * 1000;
+  const STORY_REINER_CHALLENGE_TARGET = 16;
+  const STORY_REINER_CHALLENGE_DURATION_MS = 5 * 60 * 1000;
 
   const VERSUS_WIN_TARGET = 8;
   const VERSUS_WS_PATH = "/versus";
@@ -97,6 +99,38 @@ document.addEventListener("DOMContentLoaded", () => {
       monsterPairRequired: true
     }
   ];
+  const STORY_REINER_CHALLENGE_MISSIONS = [
+    {
+      id: "rh1",
+      title: "Monstruo terrestre",
+      internalTags: ["cuerpoacuerpo"],
+      img: "misiones/terrestre.PNG",
+      text: "¡Preparaos para el combate!"
+    },
+    {
+      id: "rh2",
+      title: "Monstruo volador",
+      internalTags: ["adistancia"],
+      img: "misiones/volador.PNG",
+      text: "¡Preparaos para el combate!"
+    },
+    {
+      id: "rh3",
+      title: "Monstruo acuático",
+      internalTags: ["magia", "adistancia"],
+      img: "misiones/acuatico.PNG",
+      text: "¡Preparaos para el combate!"
+    },
+    {
+      id: "rh4",
+      title: "Grupo de monstruos terrestres",
+      internalTags: ["cuerpoacuerpo"],
+      img: "misiones/terrestres.PNG",
+      text: "¡Preparaos para el combate!",
+      maxChars: 2,
+      monsterPairRequired: true
+    }
+  ];
 
   const CHARACTERS = [
     { id: "c1", name: "Winchester", tags: ["magia", "adistancia", "cuerpoacuerpo"] },
@@ -128,6 +162,17 @@ document.addEventListener("DOMContentLoaded", () => {
     { id: "card_risko", charId: "c5", name: "Risko", img: "images/Risko.png", text: "Carta de apoyo: depura problemas técnicos con calma." },
     { id: "card_pendergast", charId: "c6", name: "Pendergast", img: "images/Pendergast.PNG", text: "Carta de apoyo: dinamiza equipos y formación." }
   ];
+  const REINER_BATTLE_CHARACTER = {
+    id: "reiner_story_event",
+    name: "Reiner",
+    tags: ["magia", "adistancia", "cuerpoacuerpo", "lider", "sigilo", "exploracion", "volar", "curacion"]
+  };
+  const REINER_BATTLE_CARD = {
+    id: "card_reiner_story_event",
+    name: "Reiner",
+    img: "misiones/reiner2.png",
+    text: "Un caballero errante del que poco se sabe, salvo que es todo un entusiasta de los combates y misiones, y de demostrar que es el mejor también."
+  };
 
   const AVATARS = [
     { key: "evelyn", name: "Evelyn", src: "images/Evelyn.png", accountSrc: "images/Evelyn2.PNG", alt: "Evelyn" },
@@ -311,6 +356,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const storySavePromptText = document.getElementById("storySavePromptText");
   const storySaveNowBtn = document.getElementById("storySaveNowBtn");
   const storySaveLaterBtn = document.getElementById("storySaveLaterBtn");
+  const reinerRetryModal = document.getElementById("reinerRetryModal");
+  const reinerRetryNowBtn = document.getElementById("reinerRetryNowBtn");
+  const reinerRetryLaterBtn = document.getElementById("reinerRetryLaterBtn");
   const storyLevelUpModal = document.getElementById("storyLevelUpModal");
   const storyLevelUpImg = document.getElementById("storyLevelUpImg");
   const storyLevelUpName = document.getElementById("storyLevelUpName");
@@ -343,6 +391,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let lockedCharIds = new Set();
   let injuredCharIds = new Set();
   let eliminatedCharIds = new Set();
+  let charInjuryCounts = new Map();
 
   let currentMissionId = null;
   let selectedCharIds = new Set();
@@ -1100,6 +1149,262 @@ document.addEventListener("DOMContentLoaded", () => {
       showChars: true
     }
   ];
+  const STORY_MAP_REINER_INTRO_SCENES = [
+    {
+      speaker: "Reiner",
+      text: "¡Saludos, aventureros!",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "misiones/reiner.png",
+      rightSrc: "images/Evelyn.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Evelyn",
+      text: "Lo que nos faltaba, un caballero errante.",
+      background: "historia/mapa1.png",
+      active: "right",
+      leftSrc: "misiones/reiner.png",
+      rightSrc: "images/Evelyn.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Reiner",
+      text: "¿Que os trae por estas tierras?",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "misiones/reiner.png",
+      rightSrc: "images/Evelyn.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Camus",
+      text: "Lo de siempre, misiones, dinero y esas cosas de la vida.",
+      background: "historia/mapa1.png",
+      active: "right-support",
+      leftSrc: "misiones/reiner.png",
+      rightSrc: "images/Evelyn.png",
+      rightSupportSrc: "historia/Camus2.png",
+      rightMirror: false,
+      rightSupportMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Jane",
+      text: "Realmente ibamos a una fiesta de la gran sociedad pero nos perdimos.",
+      background: "historia/mapa1.png",
+      active: "right-support",
+      leftSrc: "misiones/reiner.png",
+      rightSrc: "images/Evelyn.png",
+      rightSupportSrc: "historia/Jane2.png",
+      rightMirror: false,
+      rightSupportMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Reiner",
+      text: "¡Que chica tan graciosa!",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "misiones/reiner.png",
+      rightSrc: "images/Evelyn.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Jane",
+      text: "¿Graciosa? Eso es nuevo...",
+      background: "historia/mapa1.png",
+      active: "right-support",
+      leftSrc: "misiones/reiner.png",
+      rightSrc: "images/Evelyn.png",
+      rightSupportSrc: "historia/Jane2.png",
+      rightMirror: false,
+      rightSupportMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Reiner",
+      text: "Quizás unos aventureros como vosotros me podáis ayudar.",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "misiones/reiner.png",
+      rightSrc: "images/Evelyn.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Evelyn",
+      text: "Todos los caballeros errantes son iguales...",
+      background: "historia/mapa1.png",
+      active: "right",
+      leftSrc: "misiones/reiner.png",
+      rightSrc: "images/Evelyn.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Reiner",
+      text: "Quiero superar un record, uno que ningún mercenario ni caballero ha logrado completar. ¡16 misiones en 5 minutos!",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "misiones/reiner.png",
+      rightSrc: "images/Evelyn.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Jane",
+      text: "¿Pero que dice este tío?",
+      background: "historia/mapa1.png",
+      active: "right-support",
+      leftSrc: "misiones/reiner.png",
+      rightSrc: "images/Evelyn.png",
+      rightSupportSrc: "historia/Jane2.png",
+      rightMirror: false,
+      rightSupportMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Camus",
+      text: "Que ya tenemos una edad...",
+      background: "historia/mapa1.png",
+      active: "right-support",
+      leftSrc: "misiones/reiner.png",
+      rightSrc: "images/Evelyn.png",
+      rightSupportSrc: "historia/Camus2.png",
+      rightMirror: false,
+      rightSupportMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Reiner",
+      text: "Si lo logramos os daré una suculenta recompensa.",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "misiones/reiner.png",
+      rightSrc: "images/Evelyn.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Camus",
+      text: "Lo que os decía: ¡un tío encantador!",
+      background: "historia/mapa1.png",
+      active: "right-support",
+      leftSrc: "misiones/reiner.png",
+      rightSrc: "images/Evelyn.png",
+      rightSupportSrc: "historia/Camus2.png",
+      rightMirror: false,
+      rightSupportMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Evelyn",
+      text: "Vamos allá.",
+      background: "historia/mapa1.png",
+      active: "right",
+      leftSrc: "misiones/reiner.png",
+      rightSrc: "images/Evelyn.png",
+      rightMirror: false,
+      showChars: true
+    }
+  ];
+  const STORY_MAP_REINER_RETRY_SCENES = [
+    {
+      speaker: "Reiner",
+      text: "Nos encontramos de nuevo...",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "misiones/reiner.png",
+      rightSrc: "images/Evelyn.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Jane",
+      text: "Ya es mala suerte...",
+      background: "historia/mapa1.png",
+      active: "right-support",
+      leftSrc: "misiones/reiner.png",
+      rightSrc: "images/Evelyn.png",
+      rightSupportSrc: "historia/Jane2.png",
+      rightMirror: false,
+      rightSupportMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Reiner",
+      text: "¿Preparados para intentar el gran reto de nuevo?",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "misiones/reiner.png",
+      rightSrc: "images/Evelyn.png",
+      rightMirror: false,
+      showChars: true
+    }
+  ];
+  const STORY_MAP_REINER_SUCCESS_SCENES = [
+    {
+      speaker: "Reiner",
+      text: "¡Sois increibles! Sin duda pasaréis a la historia.",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "misiones/reiner.png",
+      rightSrc: "images/Evelyn.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Jane",
+      text: "Si, a la historia de danos nuestra recompensa.",
+      background: "historia/mapa1.png",
+      active: "right-support",
+      leftSrc: "misiones/reiner.png",
+      rightSrc: "images/Evelyn.png",
+      rightSupportSrc: "historia/Jane2.png",
+      rightMirror: false,
+      rightSupportMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Reiner",
+      text: "Amo a esta muchacha.",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "misiones/reiner.png",
+      rightSrc: "images/Evelyn.png",
+      rightMirror: false,
+      showChars: true
+    }
+  ];
+  const STORY_MAP_REINER_FAIL_SCENES = [
+    {
+      speaker: "Reiner",
+      text: "Vaya, esperaba más de vosotros pero seguir entrenando y algún día lo lograremos.",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "misiones/reiner.png",
+      rightSrc: "images/Evelyn.png",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Jane",
+      text: "Lo que tu digas.",
+      background: "historia/mapa1.png",
+      active: "right-support",
+      leftSrc: "misiones/reiner.png",
+      rightSrc: "images/Evelyn.png",
+      rightSupportSrc: "historia/Jane2.png",
+      rightMirror: false,
+      rightSupportMirror: false,
+      showChars: true
+    }
+  ];
   const STORY_MAP_INTRO_SCENES = [
     {
       speaker: "Winchester",
@@ -1240,10 +1545,14 @@ document.addEventListener("DOMContentLoaded", () => {
   let storyMapPointIcons = null;
   let storyMapBattleActive = false;
   let storyMapMonsterHuntActive = false;
+  let storyMapReinerChallengeActive = false;
   let currentStoryMapPointId = null;
   let storyRiskoEncounterCount = 0;
   let storyRiskoJoined = false;
+  let storyReinerFailedOnce = false;
+  let storyReinerCompleted = false;
   let storyJaneFriendshipLevel = 0;
+  let storyJaneFortitudeUnlocked = false;
   let pendingJaneFriendshipNotice = false;
   let pendingJaneFriendshipPointId = null;
   let storyCombatActive = false;
@@ -1466,6 +1775,10 @@ document.addEventListener("DOMContentLoaded", () => {
       "mappointjane",
       "mappointmonsterintro",
       "mappointmonsterpost",
+      "mappointreinerintro",
+      "mappointreinerretry",
+      "mappointreinerpost",
+      "mappointreinerfailed",
       "mappost",
       "map",
       "combat"
@@ -1481,12 +1794,16 @@ document.addEventListener("DOMContentLoaded", () => {
         storyMapState: storyMapFlow ? storyMapFlow.normalizeState(raw?.state?.storyMapState) : null,
         storyMapRunHistory: normalizeStoryMapRunHistory(raw?.state?.storyMapRunHistory),
         storyMapMonsterHuntActive: !!raw?.state?.storyMapMonsterHuntActive,
+        storyMapReinerChallengeActive: !!raw?.state?.storyMapReinerChallengeActive,
         storyRiskoEncounterCount: Math.max(
           0,
           Math.floor(Number(raw?.state?.storyRiskoEncounterCount) || (raw?.state?.storyRiskoEncountered ? 1 : 0))
         ),
         storyRiskoJoined: !!raw?.state?.storyRiskoJoined,
+        storyReinerFailedOnce: !!raw?.state?.storyReinerFailedOnce,
+        storyReinerCompleted: !!raw?.state?.storyReinerCompleted,
         storyJaneFriendshipLevel: Math.max(0, Math.floor(Number(raw?.state?.storyJaneFriendshipLevel) || 0)),
+        storyJaneFortitudeUnlocked: !!raw?.state?.storyJaneFortitudeUnlocked,
         storyCharacterProgress: storyProgress.normalizeProgress(raw?.state?.storyCharacterProgress)
       }
     };
@@ -1551,9 +1868,13 @@ document.addEventListener("DOMContentLoaded", () => {
       storyMapState: storyMapFlow ? storyMapFlow.normalizeState(storyMapState) : null,
       storyMapRunHistory: normalizeStoryMapRunHistory(storyMapRunHistory),
       storyMapMonsterHuntActive,
+      storyMapReinerChallengeActive,
       storyRiskoEncounterCount,
       storyRiskoJoined,
+      storyReinerFailedOnce,
+      storyReinerCompleted,
       storyJaneFriendshipLevel,
+      storyJaneFortitudeUnlocked,
       storyCharacterProgress
     };
   }
@@ -1598,12 +1919,16 @@ document.addEventListener("DOMContentLoaded", () => {
     storyMapState = storyMapFlow ? storyMapFlow.normalizeState(payload.storyMapState) : null;
     storyMapRunHistory = normalizeStoryMapRunHistory(payload.storyMapRunHistory);
     storyMapMonsterHuntActive = !!payload.storyMapMonsterHuntActive;
+    storyMapReinerChallengeActive = !!payload.storyMapReinerChallengeActive;
     storyRiskoEncounterCount = Math.max(
       0,
       Math.floor(Number(payload.storyRiskoEncounterCount) || (payload.storyRiskoEncountered ? 1 : 0))
     );
     storyRiskoJoined = !!payload.storyRiskoJoined;
+    storyReinerFailedOnce = !!payload.storyReinerFailedOnce;
+    storyReinerCompleted = !!payload.storyReinerCompleted;
     storyJaneFriendshipLevel = Math.max(0, Math.floor(Number(payload.storyJaneFriendshipLevel) || 0));
+    storyJaneFortitudeUnlocked = !!payload.storyJaneFortitudeUnlocked;
     ensureRiskoUnlockedIfJoined();
     storyPhase = payload.storyPhase === "combat" ? "pre" : payload.storyPhase;
     if (storyPhase === "map") {
@@ -1741,9 +2066,13 @@ document.addEventListener("DOMContentLoaded", () => {
           storyMapState: storyMapFlow ? storyMapFlow.normalizeState(storyMapState) : null,
           storyMapRunHistory: normalizeStoryMapRunHistory(storyMapRunHistory),
           storyMapMonsterHuntActive,
+          storyMapReinerChallengeActive,
           storyRiskoEncounterCount,
           storyRiskoJoined,
+          storyReinerFailedOnce,
+          storyReinerCompleted,
           storyJaneFriendshipLevel,
+          storyJaneFortitudeUnlocked,
           storyCharacterProgress
         }
       };
@@ -1769,9 +2098,13 @@ document.addEventListener("DOMContentLoaded", () => {
         storyJackCompleted,
         storyMapRunHistory: normalizeStoryMapRunHistory(storyMapRunHistory),
         storyMapMonsterHuntActive,
+        storyMapReinerChallengeActive,
         storyRiskoEncounterCount,
         storyRiskoJoined,
+        storyReinerFailedOnce,
+        storyReinerCompleted,
         storyJaneFriendshipLevel,
+        storyJaneFortitudeUnlocked,
         tutorialPending,
         score,
         failedMissionsCount,
@@ -1783,6 +2116,7 @@ document.addEventListener("DOMContentLoaded", () => {
         lockedCharIds: [...lockedCharIds],
         injuredCharIds: [...injuredCharIds],
         eliminatedCharIds: [...eliminatedCharIds],
+        injuryCounts: [...charInjuryCounts.entries()],
         pendingMissionIds: pendingMissionIds.filter((id) => pool.some((m) => m.id === id)),
         activePoints: serializeActivePointsForContinue(),
         missionPickFromBarActive,
@@ -1812,16 +2146,20 @@ document.addEventListener("DOMContentLoaded", () => {
     storyJackCompleted = !!state?.storyJackCompleted;
     storyMapRunHistory = normalizeStoryMapRunHistory(state?.storyMapRunHistory);
     storyMapMonsterHuntActive = !!state?.storyMapMonsterHuntActive;
+    storyMapReinerChallengeActive = !!state?.storyMapReinerChallengeActive;
     storyRiskoEncounterCount = Math.max(
       0,
       Math.floor(Number(state?.storyRiskoEncounterCount) || (state?.storyRiskoEncountered ? 1 : 0))
     );
     storyRiskoJoined = !!state?.storyRiskoJoined;
+    storyReinerFailedOnce = !!state?.storyReinerFailedOnce;
+    storyReinerCompleted = !!state?.storyReinerCompleted;
     storyJaneFriendshipLevel = Math.max(0, Math.floor(Number(state?.storyJaneFriendshipLevel) || 0));
+    storyJaneFortitudeUnlocked = !!state?.storyJaneFortitudeUnlocked;
     ensureRiskoUnlockedIfJoined();
     storyMapState = storyMapFlow ? storyMapFlow.normalizeState(state?.storyMapState) : null;
     storyCharacterProgress = storyProgress.normalizeProgress(state?.storyCharacterProgress);
-    storyPhase = ["pre", "post", "epilogue", "mapintro", "mappointquestion", "mappointquestionrepeat", "mappointquestionchallenge", "mappointquestionchallengepost", "mappointjane", "mappointmonsterintro", "mappointmonsterpost", "map", "mappost"].includes(state?.storyPhase) ? state.storyPhase : "pre";
+    storyPhase = ["pre", "post", "epilogue", "mapintro", "mappointquestion", "mappointquestionrepeat", "mappointquestionchallenge", "mappointquestionchallengepost", "mappointjane", "mappointmonsterintro", "mappointmonsterpost", "mappointreinerintro", "mappointreinerretry", "mappointreinerpost", "mappointreinerfailed", "map", "mappost"].includes(state?.storyPhase) ? state.storyPhase : "pre";
     storyStep = Math.max(0, Math.floor(Number(state?.storyStep) || 0));
 
     introScreen.classList.add("hidden");
@@ -1858,19 +2196,25 @@ document.addEventListener("DOMContentLoaded", () => {
     storyJackCompleted = !!state?.storyJackCompleted;
     storyMapRunHistory = normalizeStoryMapRunHistory(state?.storyMapRunHistory);
     storyMapMonsterHuntActive = !!state?.storyMapMonsterHuntActive;
+    storyMapReinerChallengeActive = !!state?.storyMapReinerChallengeActive;
     storyRiskoEncounterCount = Math.max(
       0,
       Math.floor(Number(state?.storyRiskoEncounterCount) || (state?.storyRiskoEncountered ? 1 : 0))
     );
     storyRiskoJoined = !!state?.storyRiskoJoined;
+    storyReinerFailedOnce = !!state?.storyReinerFailedOnce;
+    storyReinerCompleted = !!state?.storyReinerCompleted;
     storyJaneFriendshipLevel = Math.max(0, Math.floor(Number(state?.storyJaneFriendshipLevel) || 0));
+    storyJaneFortitudeUnlocked = !!state?.storyJaneFortitudeUnlocked;
     ensureRiskoUnlockedIfJoined();
     storyCharacterProgress = storyProgress.normalizeProgress(state?.storyCharacterProgress);
     tutorialPending = !!state?.tutorialPending;
     storyStep = Math.max(0, Math.floor(Number(state?.storyStep) || 0));
     storyCombatStartAt = performance.now() - Math.max(0, Number(state?.elapsedCombatMs) || 0);
     pendingBattleEffectKey = typeof state?.activeBattleEffectKey === "string" ? state.activeBattleEffectKey : null;
-    if (!pendingBattleEffectKey) pendingBattleEffectKey = stage === 2 ? "pueblo" : "none";
+    if (!pendingBattleEffectKey) {
+      pendingBattleEffectKey = (storyMapMonsterHuntActive || storyMapReinerChallengeActive || stage === 2) ? "pueblo" : "none";
+    }
 
     const savedTeamIds = Array.isArray(state?.selectedTeamCardIds) ? state.selectedTeamCardIds : [];
     if (!applyTeamFromCardIds(savedTeamIds)) {
@@ -1882,6 +2226,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       selectedTeamCardIds = new Set(savedTeamIds);
     }
+    if (storyMapReinerChallengeActive) injectReinerIntoBattleRoster();
 
     const avatars = clampAvatarIndex();
     const savedAvatarIndex = Number(state?.avatarIndex);
@@ -1894,6 +2239,15 @@ document.addEventListener("DOMContentLoaded", () => {
     lockedCharIds = new Set(Array.isArray(state?.lockedCharIds) ? state.lockedCharIds : []);
     injuredCharIds = new Set(Array.isArray(state?.injuredCharIds) ? state.injuredCharIds : []);
     eliminatedCharIds = new Set(Array.isArray(state?.eliminatedCharIds) ? state.eliminatedCharIds : []);
+    const savedInjuryCounts = Array.isArray(state?.injuryCounts) ? state.injuryCounts : [];
+    charInjuryCounts = new Map(
+      savedInjuryCounts
+        .map((entry) => [entry?.[0], Math.max(0, Math.floor(Number(entry?.[1]) || 0))])
+        .filter((entry) => typeof entry[0] === "string" && entry[1] > 0)
+    );
+    injuredCharIds.forEach((cid) => {
+      if (!charInjuryCounts.has(cid)) charInjuryCounts.set(cid, 1);
+    });
     activePoints = new Map();
 
     const pool = getMissionPoolForCurrentMode();
@@ -2858,6 +3212,7 @@ document.addEventListener("DOMContentLoaded", () => {
       rivalTeamModal.classList.contains("show") ||
       storyEntryModal?.classList.contains("show") ||
       storySavePromptModal?.classList.contains("show") ||
+      reinerRetryModal?.classList.contains("show") ||
       storyLevelUpModal?.classList.contains("show")
     );
   }
@@ -2880,8 +3235,80 @@ document.addEventListener("DOMContentLoaded", () => {
     score += delta;
   }
 
+  function isStorySpecialTimedBattle() {
+    return storyMapMonsterHuntActive || storyMapReinerChallengeActive;
+  }
+
+  function getCharacterStoryLevelByName(name) {
+    if (String(name || "").trim().toLowerCase() === "reiner") return 20;
+    return storyProgress.getCharacterLevelByName(name, storyCharacterProgress);
+  }
+
+  function getStoryInjuryLimitForCharacter(ch) {
+    if (!ch) return 2;
+    if (storyJaneFortitudeUnlocked && String(ch.name || "").trim().toLowerCase() === "jane") return 3;
+    return 2;
+  }
+
+  function injectReinerIntoBattleRoster() {
+    if (!storyMapReinerChallengeActive) return;
+    if (!availableCharacters.some((ch) => ch.id === REINER_BATTLE_CHARACTER.id)) {
+      if (availableCharacters.length >= 6 || availableCards.length >= 6) {
+        const removableCard = [...availableCards]
+          .sort((a, b) => getCharacterStoryLevelByName(a.name) - getCharacterStoryLevelByName(b.name))[0] || null;
+        if (removableCard) {
+          const removableName = removableCard.name;
+          selectedTeamCardIds.delete(removableCard.id);
+          availableCards = availableCards.filter((card) => card.id !== removableCard.id);
+          const removableCharacter = availableCharacters.find((ch) => ch.name === removableName);
+          if (removableCharacter) {
+            availableCharacters = availableCharacters.filter((ch) => ch.id !== removableCharacter.id);
+            lockedCharIds.delete(removableCharacter.id);
+            injuredCharIds.delete(removableCharacter.id);
+            eliminatedCharIds.delete(removableCharacter.id);
+            selectedCharIds.delete(removableCharacter.id);
+            charInjuryCounts.delete(removableCharacter.id);
+          }
+        }
+      }
+      availableCharacters.push({ ...REINER_BATTLE_CHARACTER });
+    }
+    if (!availableCards.some((card) => card.id === REINER_BATTLE_CARD.id)) {
+      availableCards.push({ ...REINER_BATTLE_CARD });
+    }
+    selectedTeamCardIds = new Set(availableCards.map((card) => card.id));
+  }
+
+  function openReinerRetryChoiceModal() {
+    if (!reinerRetryModal) {
+      completeStoryMapBattle(currentStoryMapPointId);
+      return;
+    }
+    setGlobalPause(true);
+    showModal(reinerRetryModal);
+  }
+
+  function closeReinerRetryChoiceModal() {
+    hideModal(reinerRetryModal);
+    if (!isAnyModalOpen()) setGlobalPause(false);
+  }
+
+  function showJaneFortitudeUnlockedNotice(onDone) {
+    finalTitleEl.textContent = "JANE";
+    if (finalLabelEl) finalLabelEl.textContent = "Habilidad desbloqueada";
+    finalScoreEl.textContent = "";
+    const finalText = finalModal.querySelector(".modal-text");
+    if (finalText) {
+      finalText.innerHTML = '<img class="final-unlock-img" src="historia/Jane2.png" alt="Jane"/>' +
+        "¡Habilidad desbloqueada! Fortaleza envidiable: Para eliminar a Jane, esta tiene que sufrir tres heridas en vez de dos.";
+    }
+    setFinalModalPrimaryAction("Continuar", onDone);
+    showModal(finalModal);
+  }
+
   function getCurrentArcadeWinTarget() {
     if (storyMapMonsterHuntActive) return STORY_MONSTER_HUNT_TARGET;
+    if (storyMapReinerChallengeActive) return STORY_REINER_CHALLENGE_TARGET;
     if (storyMapBattleActive) return STORY_MAP_BATTLE_WIN_TARGET;
     if (storyCombatActive && storyCombatStage === 1) return STORY_COMBAT_WIN_TARGET;
     return ARCADE_WIN_TARGET;
@@ -2896,6 +3323,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (storyPhase === "mappointjane") return STORY_MAP_JANE_SCENES;
     if (storyPhase === "mappointmonsterintro") return STORY_MAP_MONSTER_ALERT_SCENES;
     if (storyPhase === "mappointmonsterpost") return STORY_MAP_MONSTER_ALERT_POST_SCENES;
+    if (storyPhase === "mappointreinerintro") return STORY_MAP_REINER_INTRO_SCENES;
+    if (storyPhase === "mappointreinerretry") return STORY_MAP_REINER_RETRY_SCENES;
+    if (storyPhase === "mappointreinerpost") return STORY_MAP_REINER_SUCCESS_SCENES;
+    if (storyPhase === "mappointreinerfailed") return STORY_MAP_REINER_FAIL_SCENES;
     if (storyPhase === "mappost") return STORY_MAP_POST_SCENES;
     if (storyPhase === "post") return STORY_POST_COMBAT_SCENES;
     if (storyPhase === "epilogue") return STORY_EPILOGUE_SCENES;
@@ -2919,6 +3350,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function getMissionPoolForCurrentMode() {
     if (storyMapMonsterHuntActive) return STORY_MONSTER_HUNT_MISSIONS;
+    if (storyMapReinerChallengeActive) return STORY_REINER_CHALLENGE_MISSIONS;
     if (storyMapBattleActive) return STORY_BASE_MISSIONS;
     if (!storyCombatActive) return MISSIONS;
     if (storyCombatStage === 1) return STORY_BASE_MISSIONS;
@@ -2932,6 +3364,10 @@ document.addEventListener("DOMContentLoaded", () => {
   function refillPendingMissions() {
     if (storyMapMonsterHuntActive) {
       pendingMissions = [...STORY_MONSTER_HUNT_MISSIONS];
+      return;
+    }
+    if (storyMapReinerChallengeActive) {
+      pendingMissions = [...STORY_REINER_CHALLENGE_MISSIONS];
       return;
     }
     const pool = getMissionPoolForCurrentMode();
@@ -3289,6 +3725,9 @@ document.addEventListener("DOMContentLoaded", () => {
       if (storyMapMonsterHuntActive) {
         if (hudLabelEl) hudLabelEl.textContent = "Monstruos cazados";
         progressEl.textContent = `${score}/${STORY_MONSTER_HUNT_TARGET}`;
+      } else if (storyMapReinerChallengeActive) {
+        if (hudLabelEl) hudLabelEl.textContent = "Misiones";
+        progressEl.textContent = `${score}/${STORY_REINER_CHALLENGE_TARGET}`;
       } else {
         if (hudLabelEl) hudLabelEl.textContent = "Misiones";
         if (storyCombatActive && storyCombatStage === 2) {
@@ -3298,7 +3737,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
       if (hudStoryHintEl) {
-        if (storyMapMonsterHuntActive) {
+        if (storyMapMonsterHuntActive || storyMapReinerChallengeActive) {
           hudStoryHintEl.textContent = "";
           hudStoryHintEl.classList.add("hidden");
         } else if (storyCombatActive && storyCombatStage === 1) {
@@ -3314,8 +3753,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
     if (storyMonsterCountdown) {
-      storyMonsterCountdown.classList.toggle("hidden", !storyMapMonsterHuntActive);
-      if (storyMapMonsterHuntActive) {
+      storyMonsterCountdown.classList.toggle("hidden", !isStorySpecialTimedBattle());
+      if (isStorySpecialTimedBattle()) {
         const remainingMs = Math.max(0, gameEndAt - performance.now());
         const totalSec = Math.ceil(remainingMs / 1000);
         const mm = String(Math.floor(totalSec / 60)).padStart(2, "0");
@@ -3634,6 +4073,7 @@ document.addEventListener("DOMContentLoaded", () => {
     currentStoryMapPointId = null;
     storyMapBattleActive = false;
     storyMapMonsterHuntActive = false;
+    storyMapReinerChallengeActive = false;
     resetGame();
     introScreen.classList.add("hidden");
     storyScreen?.classList.remove("hidden");
@@ -3681,6 +4121,7 @@ document.addEventListener("DOMContentLoaded", () => {
     currentStoryMapPointId = currentStoryMapPointId || null;
     storyMapBattleActive = true;
     storyMapMonsterHuntActive = true;
+    storyMapReinerChallengeActive = false;
     selectedMode = "arcade";
     currentMode = "arcade";
     storyCombatActive = false;
@@ -3693,6 +4134,36 @@ document.addEventListener("DOMContentLoaded", () => {
       goToTeamScreen();
       return;
     }
+    pendingBattleEffectKey = "pueblo";
+    introScreen.classList.add("hidden");
+    storyScreen?.classList.add("hidden");
+    recruitScreen?.classList.add("hidden");
+    userScreen?.classList.add("hidden");
+    startScreen.classList.add("hidden");
+    teamScreen.classList.add("hidden");
+    gameRoot.classList.remove("hidden");
+    startGame();
+  }
+
+  function startStoryReinerChallengeBattle() {
+    resetGame();
+    currentStoryMapPointId = currentStoryMapPointId || null;
+    storyMapBattleActive = true;
+    storyMapMonsterHuntActive = false;
+    storyMapReinerChallengeActive = true;
+    selectedMode = "arcade";
+    currentMode = "arcade";
+    storyCombatActive = false;
+    storyCombatStage = 0;
+    tutorialPending = false;
+    pendingMissions = [...STORY_REINER_CHALLENGE_MISSIONS];
+    selectedTeamCardIds = new Set(["card_celia", "card_castri", "card_lorena"]);
+    if (storyRiskoJoined) selectedTeamCardIds.add("card_risko");
+    if (!applyTeamFromCardIds([...selectedTeamCardIds])) {
+      goToTeamScreen();
+      return;
+    }
+    injectReinerIntoBattleRoster();
     pendingBattleEffectKey = "pueblo";
     introScreen.classList.add("hidden");
     storyScreen?.classList.add("hidden");
@@ -3765,9 +4236,14 @@ document.addEventListener("DOMContentLoaded", () => {
       currentStoryMapPointId = pointId;
       storyMapBattleActive = false;
       storyMapMonsterHuntActive = false;
+      storyMapReinerChallengeActive = false;
       storyCombatActive = false;
       storyCombatStage = 0;
-      storyPhase = "mappointmonsterintro";
+      const options = ["mappointmonsterintro"];
+      if (!storyReinerCompleted) {
+        options.push(storyReinerFailedOnce ? "mappointreinerretry" : "mappointreinerintro");
+      }
+      storyPhase = options[randInt(0, options.length - 1)];
       storyStep = 0;
       renderStoryStep();
       return;
@@ -3776,6 +4252,7 @@ document.addEventListener("DOMContentLoaded", () => {
     currentStoryMapPointId = pointId;
     storyMapBattleActive = true;
     storyMapMonsterHuntActive = false;
+    storyMapReinerChallengeActive = false;
     selectedMode = "arcade";
     currentMode = "arcade";
     storyCombatActive = false;
@@ -3897,12 +4374,16 @@ document.addEventListener("DOMContentLoaded", () => {
     storyCombatStage = 0;
     storyMapBattleActive = false;
     storyMapMonsterHuntActive = false;
+    storyMapReinerChallengeActive = false;
     currentStoryMapPointId = null;
     storyMapState = storyMapFlow ? storyMapFlow.createInitialState() : null;
     storyMapRunHistory = [];
     resetStoryMapPointIcons();
     storyRiskoEncounterCount = 0;
     storyRiskoJoined = false;
+    storyReinerFailedOnce = false;
+    storyReinerCompleted = false;
+    storyJaneFortitudeUnlocked = false;
     storyJackUnlocked = false;
     storyJackCompleted = false;
     storyPhase = "pre";
@@ -3918,6 +4399,7 @@ document.addEventListener("DOMContentLoaded", () => {
     currentMode = "arcade";
     storyCombatActive = true;
     storyMapMonsterHuntActive = false;
+    storyMapReinerChallengeActive = false;
     storyCombatStage = normalizedStage;
     storyPhase = "combat";
     storyCombatStartAt = performance.now();
@@ -4007,6 +4489,29 @@ document.addEventListener("DOMContentLoaded", () => {
     if (storyPhase === "mappointmonsterpost") {
       storyMapMonsterHuntActive = false;
       completeStoryMapBattle(currentStoryMapPointId);
+      return;
+    }
+    if (storyPhase === "mappointreinerintro") {
+      startStoryReinerChallengeBattle();
+      return;
+    }
+    if (storyPhase === "mappointreinerretry") {
+      openReinerRetryChoiceModal();
+      return;
+    }
+    if (storyPhase === "mappointreinerfailed") {
+      completeStoryMapBattle(currentStoryMapPointId);
+      return;
+    }
+    if (storyPhase === "mappointreinerpost") {
+      if (storyJaneFortitudeUnlocked) {
+        completeStoryMapBattle(currentStoryMapPointId);
+        return;
+      }
+      storyJaneFortitudeUnlocked = true;
+      showJaneFortitudeUnlockedNotice(() => {
+        completeStoryMapBattle(currentStoryMapPointId);
+      });
       return;
     }
     if (storyPhase === "mappointjane") {
@@ -4134,6 +4639,10 @@ document.addEventListener("DOMContentLoaded", () => {
   function applyTeamFromCardIds(cardIds) {
     const allCards = [...CARDS, ...RECRUITABLE_CARDS];
     const allCharacters = [...CHARACTERS, ...RECRUITABLE_CHARACTERS];
+    if (storyMapReinerChallengeActive) {
+      allCards.push(REINER_BATTLE_CARD);
+      allCharacters.push(REINER_BATTLE_CHARACTER);
+    }
     const selectedCards = cardIds
       .map((id) => allCards.find((c) => c.id === id))
       .filter(Boolean)
@@ -4247,7 +4756,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (isBattleEffectActive("pueblo")) p += 0.1;
 
-    if (storyMapMonsterHuntActive && mission?.monsterPairRequired && chosenList.length < 2) {
+    if ((storyMapMonsterHuntActive || storyMapReinerChallengeActive) && mission?.monsterPairRequired && chosenList.length < 2) {
       return 0.1;
     }
 
@@ -4557,6 +5066,32 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function finishGameNoCharacters() {
+    if (storyMapReinerChallengeActive) {
+      stopGameLoops();
+      hideModal(missionModal);
+      hideModal(rouletteModal);
+      hideModal(cardInfoModal);
+      hideModal(specialModal);
+      hideModal(effectModal);
+      hideModal(finalModal);
+      hideModal(storyLevelUpModal);
+      storyReinerFailedOnce = true;
+      storyMapReinerChallengeActive = false;
+      introScreen.classList.add("hidden");
+      storyScreen?.classList.remove("hidden");
+      recruitScreen?.classList.add("hidden");
+      storeScreen?.classList.add("hidden");
+      userScreen?.classList.add("hidden");
+      startScreen.classList.add("hidden");
+      teamScreen.classList.add("hidden");
+      gameRoot.classList.add("hidden");
+      storyPhase = "mappointreinerfailed";
+      storyStep = 0;
+      renderStoryStep();
+      resetViewportTop();
+      return;
+    }
+
     stopGameLoops();
     hideModal(missionModal);
     hideModal(rouletteModal);
@@ -4600,9 +5135,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const isFemale = femaleNames.has(injuredName);
     const eliminatedText = isFemale ? "ha sido eliminada del combate." : "ha sido eliminado del combate.";
     const injuredText = isFemale ? "ha quedado herida." : "ha quedado herido.";
+    const currentInjuries = Math.max(0, Math.floor(Number(charInjuryCounts.get(injuredId)) || 0));
+    const injuryLimit = getStoryInjuryLimitForCharacter(injuredChar);
+    const nextInjuries = currentInjuries + 1;
 
-    if (injuredCharIds.has(injuredId)) {
+    if (nextInjuries >= injuryLimit) {
       injuredCharIds.delete(injuredId);
+      charInjuryCounts.delete(injuredId);
       eliminatedCharIds.add(injuredId);
       lockedCharIds.delete(injuredId);
       selectedCharIds.delete(injuredId);
@@ -4617,8 +5156,13 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    charInjuryCounts.set(injuredId, nextInjuries);
     injuredCharIds.add(injuredId);
     updateTeamBarAvailability();
+    if (injuryLimit > 2 && String(injuredName).toLowerCase() === "jane") {
+      showGameStatusNotice(`${injuredName} ${injuredText} (${nextInjuries}/${injuryLimit})`, "warn");
+      return;
+    }
     showGameStatusNotice(`${injuredName} ${injuredText}`, "warn");
   }
 
@@ -5080,7 +5624,7 @@ document.addEventListener("DOMContentLoaded", () => {
     gameClockTimer = setInterval(() => {
       const now = performance.now();
       if (now >= gameEndAt) endGameByTime();
-      else if (storyMapMonsterHuntActive) updateHud();
+      else if (isStorySpecialTimedBattle()) updateHud();
     }, 250);
   }
 
@@ -5108,6 +5652,23 @@ document.addEventListener("DOMContentLoaded", () => {
       showModal(finalModal);
       return;
     }
+    if (storyMapReinerChallengeActive) {
+      storyReinerFailedOnce = true;
+      storyMapReinerChallengeActive = false;
+      introScreen.classList.add("hidden");
+      storyScreen?.classList.remove("hidden");
+      recruitScreen?.classList.add("hidden");
+      storeScreen?.classList.add("hidden");
+      userScreen?.classList.add("hidden");
+      startScreen.classList.add("hidden");
+      teamScreen.classList.add("hidden");
+      gameRoot.classList.add("hidden");
+      storyPhase = "mappointreinerfailed";
+      storyStep = 0;
+      renderStoryStep();
+      resetViewportTop();
+      return;
+    }
     finishArcadeByTime();
   }
 
@@ -5120,6 +5681,8 @@ document.addEventListener("DOMContentLoaded", () => {
     specialUsed = false;
     specialArmed = false;
     setSpecialArmedUI(false);
+
+    if (storyMapReinerChallengeActive) injectReinerIntoBattleRoster();
 
     applySelectedAvatarToMap();
 
@@ -5138,6 +5701,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (currentMode === "arcade") clearInterval(gameClockTimer);
     else clearInterval(gameClockTimer);
     if (storyMapMonsterHuntActive) startGameClock(STORY_MONSTER_HUNT_DURATION_MS);
+    if (storyMapReinerChallengeActive) startGameClock(STORY_REINER_CHALLENGE_DURATION_MS);
 
     startLifeTicker();
     scheduleNextSpawn();
@@ -5272,8 +5836,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (completedMissionIds.has(missionId)) return;
     const st = activePoints.get(missionId);
 
-    if (!storyMapMonsterHuntActive) completedMissionIds.add(missionId);
-    if (!storyMapMonsterHuntActive && missionId === STORY_JACK_MISSION_ID) storyJackCompleted = true;
+    const isSpecialHunt = storyMapMonsterHuntActive || storyMapReinerChallengeActive;
+    if (!isSpecialHunt) completedMissionIds.add(missionId);
+    if (!isSpecialHunt && missionId === STORY_JACK_MISSION_ID) storyJackCompleted = true;
     if (st && storyCombatActive) awardStoryMissionSuccessPoints(st);
     if (isBattleEffectActive("castillo") && currentMode !== "versus") {
       setCoins(coins + 5);
@@ -5344,7 +5909,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const idx = randInt(0, pendingMissions.length - 1);
       const mission = pendingMissions.splice(idx, 1)[0];
-      const canSpawn = storyMapMonsterHuntActive
+      const canSpawn = (storyMapMonsterHuntActive || storyMapReinerChallengeActive)
         ? !!(mission && !activePoints.has(mission.id))
         : !!(mission && !completedMissionIds.has(mission.id) && !activePoints.has(mission.id));
       if (canSpawn) {
@@ -5616,6 +6181,10 @@ document.addEventListener("DOMContentLoaded", () => {
       risko: {
         infoText: "Los Pinkerton eran una banda organizada muy conocida en la región. Como una suerte de Robin Hoods, robaban a los ricos para dárselo a los pobres y la población los amaba y temía a partes iguales. Un día que Risko estaba buscando recursos por la zona, su banda, la que hubiera sido su familia durante tanto tiempo, fue masacrada por el ejército del Sur, a modo de advertencia para todo aquel que quisiera tomarse la justicia por su mano. Consumida por la rabia y el dolor, comenzó una cruzada de venganza que solo terminará cuando no quede ni un soldado en pie."
       },
+      reiner: {
+        infoText: "Un caballero errante del que poco se sabe, salvo que es todo un entusiasta de los combates y misiones, y de demostrar que es el mejor también.",
+        skillsText: "Sin habilidades actualmente"
+      },
       friday: {
         infoText: "El calendario indicaba que era viernes el día que encontraron a una pequeña niña que no recordaba nada y cuya existencia era un misterio. Criada por una acaudalada familia, Friday estudió en las mejores escuelas y logró entrar en la prestigiosa escuela de aviación donde logró cumplir su sueño de surcar los cielos. Sin embargo, pequeñas visiones la acechan mientras duerme, como si retazos de su pasado la advirtieran de un peligro por llegar."
       }
@@ -5623,7 +6192,21 @@ document.addEventListener("DOMContentLoaded", () => {
     const specialInfo = SPECIAL_CARD_INFO[cardName];
     const isWinchester = cardName === "winchester";
     const winchesterAltOwned = purchasedStoreItems.has(WINCHESTER_STORE_ITEM_ID);
-    const skillsHtml = storyProgress.getCardSkillsHtml(cardData.name, storyCharacterProgress);
+    let skillsHtml = storyProgress.getCardSkillsHtml(cardData.name, storyCharacterProgress);
+    if (cardName === "jane" && storyJaneFortitudeUnlocked) {
+      const fortitudeHtml = `
+        <article class="card-skill">
+          <div class="card-skill-name">Fortaleza envidiable</div>
+          <div class="card-skill-state">Desbloqueada</div>
+          <div class="card-skill-desc">Para eliminar a Jane, tiene que sufrir tres heridas en vez de dos.</div>
+        </article>
+      `;
+      if (skillsHtml) {
+        skillsHtml = skillsHtml.replace(/<\/div>\s*$/, `${fortitudeHtml}</div>`);
+      } else {
+        skillsHtml = `<div class="card-skills">${fortitudeHtml}</div>`;
+      }
+    }
     currentCardInfoData = {
       infoText: specialInfo?.infoText || cardData?.infoText || "En construcción",
       skillsText: specialInfo?.skillsText || cardData?.skillsText || "En construcción",
@@ -5635,7 +6218,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (cardInfoLevel) {
       const showLevel = isStoryContextVisible();
       if (showLevel) {
-        cardInfoLevel.textContent = `Nivel ${storyProgress.getCharacterLevelByName(cardData.name, storyCharacterProgress)}`;
+        cardInfoLevel.textContent = `Nivel ${getCharacterStoryLevelByName(cardData.name)}`;
       }
       cardInfoLevel.classList.toggle("hidden", !showLevel);
     }
@@ -5734,6 +6317,29 @@ document.addEventListener("DOMContentLoaded", () => {
       resetViewportTop();
       return;
     }
+    if (storyMapReinerChallengeActive) {
+      stopGameLoops();
+      hideModal(missionModal);
+      hideModal(rouletteModal);
+      hideModal(cardInfoModal);
+      hideModal(specialModal);
+      hideModal(effectModal);
+      storyReinerCompleted = true;
+      storyMapReinerChallengeActive = false;
+      introScreen.classList.add("hidden");
+      storyScreen?.classList.remove("hidden");
+      recruitScreen?.classList.add("hidden");
+      storeScreen?.classList.add("hidden");
+      userScreen?.classList.add("hidden");
+      startScreen.classList.add("hidden");
+      teamScreen.classList.add("hidden");
+      gameRoot.classList.add("hidden");
+      storyPhase = "mappointreinerpost";
+      storyStep = 0;
+      renderStoryStep();
+      resetViewportTop();
+      return;
+    }
     if (storyMapBattleActive) {
       completeStoryMapBattle(currentStoryMapPointId);
       return;
@@ -5803,6 +6409,7 @@ document.addEventListener("DOMContentLoaded", () => {
     hideModal(rivalTeamModal);
     hideModal(storyLevelUpModal);
     hideModal(storyChapterSplashModal);
+    hideModal(reinerRetryModal);
 
     stopGameLoops();
 
@@ -5822,6 +6429,7 @@ document.addEventListener("DOMContentLoaded", () => {
     lockedCharIds = new Set();
     injuredCharIds = new Set();
     eliminatedCharIds = new Set();
+    charInjuryCounts = new Map();
 
     currentMissionId = null;
     selectedCharIds = new Set();
@@ -5842,6 +6450,7 @@ document.addEventListener("DOMContentLoaded", () => {
     storyJackCompleted = false;
     storyMapBattleActive = false;
     storyMapMonsterHuntActive = false;
+    storyMapReinerChallengeActive = false;
     currentStoryMapPointId = null;
     activeBattleEffect = null;
     pendingBattleEffectKey = null;
@@ -6104,6 +6713,12 @@ document.addEventListener("DOMContentLoaded", () => {
         hideModal(storySavePromptModal);
         return;
       }
+      if (reinerRetryModal?.classList.contains("show")) {
+        e.preventDefault();
+        closeReinerRetryChoiceModal();
+        completeStoryMapBattle(currentStoryMapPointId);
+        return;
+      }
       if (storyLevelUpModal?.classList.contains("show")) {
         e.preventDefault();
         closeStoryLevelUpModal();
@@ -6261,6 +6876,20 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   storySavePromptModal?.addEventListener("click", (e) => {
     if (e.target === storySavePromptModal) hideModal(storySavePromptModal);
+  });
+  reinerRetryNowBtn?.addEventListener("click", () => {
+    closeReinerRetryChoiceModal();
+    startStoryReinerChallengeBattle();
+  });
+  reinerRetryLaterBtn?.addEventListener("click", () => {
+    closeReinerRetryChoiceModal();
+    completeStoryMapBattle(currentStoryMapPointId);
+  });
+  reinerRetryModal?.addEventListener("click", (e) => {
+    if (e.target === reinerRetryModal) {
+      closeReinerRetryChoiceModal();
+      completeStoryMapBattle(currentStoryMapPointId);
+    }
   });
   storyLevelUpOkBtn?.addEventListener("click", closeStoryLevelUpModal);
   storyLevelUpModal?.addEventListener("click", (e) => {

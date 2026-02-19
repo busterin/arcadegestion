@@ -1625,6 +1625,20 @@ img{ max-width:100%; height:auto; }
   color: var(--muted);
 }
 
+.reiner-retry-media{
+  display:flex;
+  justify-content:center;
+  margin: 10px 0 2px;
+}
+
+.reiner-retry-img{
+  width: clamp(120px, 28vw, 170px);
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 18px rgba(0,0,0,.38));
+}
+
 .roulette-card{
   width:min(460px, 100%);
 }
