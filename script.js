@@ -1157,7 +1157,7 @@ document.addEventListener("DOMContentLoaded", () => {
       active: "left",
       leftSrc: "misiones/reiner.png",
       rightSrc: "images/Evelyn.png",
-      rightMirror: false,
+      rightMirror: true,
       showChars: true
     },
     {
@@ -1167,7 +1167,7 @@ document.addEventListener("DOMContentLoaded", () => {
       active: "right",
       leftSrc: "misiones/reiner.png",
       rightSrc: "images/Evelyn.png",
-      rightMirror: false,
+      rightMirror: true,
       showChars: true
     },
     {
@@ -1177,7 +1177,7 @@ document.addEventListener("DOMContentLoaded", () => {
       active: "left",
       leftSrc: "misiones/reiner.png",
       rightSrc: "images/Evelyn.png",
-      rightMirror: false,
+      rightMirror: true,
       showChars: true
     },
     {
@@ -1188,7 +1188,7 @@ document.addEventListener("DOMContentLoaded", () => {
       leftSrc: "misiones/reiner.png",
       rightSrc: "images/Evelyn.png",
       rightSupportSrc: "historia/Camus2.png",
-      rightMirror: false,
+      rightMirror: true,
       rightSupportMirror: false,
       showChars: true
     },
@@ -1200,7 +1200,7 @@ document.addEventListener("DOMContentLoaded", () => {
       leftSrc: "misiones/reiner.png",
       rightSrc: "images/Evelyn.png",
       rightSupportSrc: "historia/Jane2.png",
-      rightMirror: false,
+      rightMirror: true,
       rightSupportMirror: false,
       showChars: true
     },
@@ -1211,7 +1211,7 @@ document.addEventListener("DOMContentLoaded", () => {
       active: "left",
       leftSrc: "misiones/reiner.png",
       rightSrc: "images/Evelyn.png",
-      rightMirror: false,
+      rightMirror: true,
       showChars: true
     },
     {
@@ -1222,7 +1222,7 @@ document.addEventListener("DOMContentLoaded", () => {
       leftSrc: "misiones/reiner.png",
       rightSrc: "images/Evelyn.png",
       rightSupportSrc: "historia/Jane2.png",
-      rightMirror: false,
+      rightMirror: true,
       rightSupportMirror: false,
       showChars: true
     },
@@ -1233,7 +1233,7 @@ document.addEventListener("DOMContentLoaded", () => {
       active: "left",
       leftSrc: "misiones/reiner.png",
       rightSrc: "images/Evelyn.png",
-      rightMirror: false,
+      rightMirror: true,
       showChars: true
     },
     {
@@ -1243,7 +1243,7 @@ document.addEventListener("DOMContentLoaded", () => {
       active: "right",
       leftSrc: "misiones/reiner.png",
       rightSrc: "images/Evelyn.png",
-      rightMirror: false,
+      rightMirror: true,
       showChars: true
     },
     {
@@ -1253,7 +1253,7 @@ document.addEventListener("DOMContentLoaded", () => {
       active: "left",
       leftSrc: "misiones/reiner.png",
       rightSrc: "images/Evelyn.png",
-      rightMirror: false,
+      rightMirror: true,
       showChars: true
     },
     {
@@ -1264,7 +1264,7 @@ document.addEventListener("DOMContentLoaded", () => {
       leftSrc: "misiones/reiner.png",
       rightSrc: "images/Evelyn.png",
       rightSupportSrc: "historia/Jane2.png",
-      rightMirror: false,
+      rightMirror: true,
       rightSupportMirror: false,
       showChars: true
     },
@@ -1276,7 +1276,7 @@ document.addEventListener("DOMContentLoaded", () => {
       leftSrc: "misiones/reiner.png",
       rightSrc: "images/Evelyn.png",
       rightSupportSrc: "historia/Camus2.png",
-      rightMirror: false,
+      rightMirror: true,
       rightSupportMirror: false,
       showChars: true
     },
@@ -1287,7 +1287,7 @@ document.addEventListener("DOMContentLoaded", () => {
       active: "left",
       leftSrc: "misiones/reiner.png",
       rightSrc: "images/Evelyn.png",
-      rightMirror: false,
+      rightMirror: true,
       showChars: true
     },
     {
@@ -1298,7 +1298,7 @@ document.addEventListener("DOMContentLoaded", () => {
       leftSrc: "misiones/reiner.png",
       rightSrc: "images/Evelyn.png",
       rightSupportSrc: "historia/Camus2.png",
-      rightMirror: false,
+      rightMirror: true,
       rightSupportMirror: false,
       showChars: true
     },
@@ -1309,7 +1309,7 @@ document.addEventListener("DOMContentLoaded", () => {
       active: "right",
       leftSrc: "misiones/reiner.png",
       rightSrc: "images/Evelyn.png",
-      rightMirror: false,
+      rightMirror: true,
       showChars: true
     }
   ];
@@ -1321,7 +1321,7 @@ document.addEventListener("DOMContentLoaded", () => {
       active: "left",
       leftSrc: "misiones/reiner.png",
       rightSrc: "images/Evelyn.png",
-      rightMirror: false,
+      rightMirror: true,
       showChars: true
     },
     {
@@ -1332,7 +1332,7 @@ document.addEventListener("DOMContentLoaded", () => {
       leftSrc: "misiones/reiner.png",
       rightSrc: "images/Evelyn.png",
       rightSupportSrc: "historia/Jane2.png",
-      rightMirror: false,
+      rightMirror: true,
       rightSupportMirror: false,
       showChars: true
     },
@@ -1343,7 +1343,7 @@ document.addEventListener("DOMContentLoaded", () => {
       active: "left",
       leftSrc: "misiones/reiner.png",
       rightSrc: "images/Evelyn.png",
-      rightMirror: false,
+      rightMirror: true,
       showChars: true
     }
   ];
@@ -1355,7 +1355,7 @@ document.addEventListener("DOMContentLoaded", () => {
       active: "left",
       leftSrc: "misiones/reiner.png",
       rightSrc: "images/Evelyn.png",
-      rightMirror: false,
+      rightMirror: true,
       showChars: true
     },
     {
@@ -1366,7 +1366,7 @@ document.addEventListener("DOMContentLoaded", () => {
       leftSrc: "misiones/reiner.png",
       rightSrc: "images/Evelyn.png",
       rightSupportSrc: "historia/Jane2.png",
-      rightMirror: false,
+      rightMirror: true,
       rightSupportMirror: false,
       showChars: true
     },
@@ -1377,7 +1377,7 @@ document.addEventListener("DOMContentLoaded", () => {
       active: "left",
       leftSrc: "misiones/reiner.png",
       rightSrc: "images/Evelyn.png",
-      rightMirror: false,
+      rightMirror: true,
       showChars: true
     }
   ];
@@ -1389,7 +1389,7 @@ document.addEventListener("DOMContentLoaded", () => {
       active: "left",
       leftSrc: "misiones/reiner.png",
       rightSrc: "images/Evelyn.png",
-      rightMirror: false,
+      rightMirror: true,
       showChars: true
     },
     {
@@ -1400,7 +1400,7 @@ document.addEventListener("DOMContentLoaded", () => {
       leftSrc: "misiones/reiner.png",
       rightSrc: "images/Evelyn.png",
       rightSupportSrc: "historia/Jane2.png",
-      rightMirror: false,
+      rightMirror: true,
       rightSupportMirror: false,
       showChars: true
     }
@@ -3392,7 +3392,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function getMissionPoolForCurrentMode() {
     if (storyMapMonsterHuntActive) return STORY_MONSTER_HUNT_MISSIONS;
-    if (storyMapReinerChallengeActive) return STORY_REINER_CHALLENGE_MISSIONS;
+    if (storyMapReinerChallengeActive) return STORY_BASE_MISSIONS;
     if (storyMapBattleActive) return STORY_BASE_MISSIONS;
     if (!storyCombatActive) return MISSIONS;
     if (storyCombatStage === 1) return STORY_BASE_MISSIONS;
@@ -3409,7 +3409,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     if (storyMapReinerChallengeActive) {
-      pendingMissions = [...STORY_REINER_CHALLENGE_MISSIONS];
+      pendingMissions = [...STORY_BASE_MISSIONS];
       return;
     }
     const pool = getMissionPoolForCurrentMode();
@@ -4201,7 +4201,7 @@ document.addEventListener("DOMContentLoaded", () => {
     storyCombatActive = false;
     storyCombatStage = 0;
     tutorialPending = false;
-    pendingMissions = [...STORY_REINER_CHALLENGE_MISSIONS];
+    pendingMissions = [...STORY_BASE_MISSIONS];
     selectedTeamCardIds = new Set(["card_celia", "card_castri", "card_lorena"]);
     if (storyRiskoJoined) selectedTeamCardIds.add("card_risko");
     if (!applyTeamFromCardIds([...selectedTeamCardIds])) {

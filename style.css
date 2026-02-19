@@ -1498,6 +1498,33 @@ img{ max-width:100%; height:auto; }
   object-fit: contain;
   filter: drop-shadow(0 10px 20px rgba(0,0,0,.32));
 }
+#finalModal .modal-card{
+  width: min(460px, 100%);
+}
+#finalModal .modal-head{
+  justify-content: center;
+}
+#finalModal .modal-head > div{
+  width: 100%;
+}
+#finalModal .modal-title,
+#finalModal .modal-text{
+  text-align: center;
+}
+#finalModal .final-score{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 4px;
+}
+.final-label{
+  text-align: center;
+}
+.final-value{
+  text-align: center;
+}
 
 .icon-btn{
   border:none;
@@ -2198,6 +2225,9 @@ img{ max-width:100%; height:auto; }
 
 .story-levelup-card .modal-head{
   justify-content: center;
+}
+.story-levelup-card{
+  width: min(430px, 100%);
 }
 
 .story-levelup-content{
