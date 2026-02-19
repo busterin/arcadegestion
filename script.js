@@ -1551,6 +1551,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let storyRiskoJoined = false;
   let storyReinerFailedOnce = false;
   let storyReinerCompleted = false;
+  let storyMonsterEventCompleted = false;
+  let storyJaneConversationCompleted = false;
   let storyJaneFriendshipLevel = 0;
   let storyJaneFortitudeUnlocked = false;
   let pendingMonsterPostRewardPointId = null;
@@ -1822,6 +1824,8 @@ document.addEventListener("DOMContentLoaded", () => {
         storyRiskoJoined: !!raw?.state?.storyRiskoJoined,
         storyReinerFailedOnce: !!raw?.state?.storyReinerFailedOnce,
         storyReinerCompleted: !!raw?.state?.storyReinerCompleted,
+        storyMonsterEventCompleted: !!raw?.state?.storyMonsterEventCompleted,
+        storyJaneConversationCompleted: !!raw?.state?.storyJaneConversationCompleted || Number(raw?.state?.storyJaneFriendshipLevel) > 0,
         storyJaneFriendshipLevel: Math.max(0, Math.floor(Number(raw?.state?.storyJaneFriendshipLevel) || 0)),
         storyJaneFortitudeUnlocked: !!raw?.state?.storyJaneFortitudeUnlocked,
         storyCharacterProgress: storyProgress.normalizeProgress(raw?.state?.storyCharacterProgress)
@@ -1893,6 +1897,8 @@ document.addEventListener("DOMContentLoaded", () => {
       storyRiskoJoined,
       storyReinerFailedOnce,
       storyReinerCompleted,
+      storyMonsterEventCompleted,
+      storyJaneConversationCompleted,
       storyJaneFriendshipLevel,
       storyJaneFortitudeUnlocked,
       storyCharacterProgress
@@ -1922,6 +1928,12 @@ document.addEventListener("DOMContentLoaded", () => {
         Math.floor(Number(payload.storyRiskoEncounterCount) || (payload.storyRiskoEncountered ? 1 : 0))
       );
       storyRiskoJoined = !!payload.storyRiskoJoined;
+      storyReinerFailedOnce = !!payload.storyReinerFailedOnce;
+      storyReinerCompleted = !!payload.storyReinerCompleted;
+      storyMonsterEventCompleted = !!payload.storyMonsterEventCompleted;
+      storyJaneConversationCompleted = !!payload.storyJaneConversationCompleted || Math.max(0, Math.floor(Number(payload.storyJaneFriendshipLevel) || 0)) > 0;
+      storyJaneFriendshipLevel = Math.max(0, Math.floor(Number(payload.storyJaneFriendshipLevel) || 0));
+      storyJaneFortitudeUnlocked = !!payload.storyJaneFortitudeUnlocked;
       ensureRiskoUnlockedIfJoined();
       startStoryCombat(payload.storyCombatStage);
       return true;
@@ -1947,6 +1959,8 @@ document.addEventListener("DOMContentLoaded", () => {
     storyRiskoJoined = !!payload.storyRiskoJoined;
     storyReinerFailedOnce = !!payload.storyReinerFailedOnce;
     storyReinerCompleted = !!payload.storyReinerCompleted;
+    storyMonsterEventCompleted = !!payload.storyMonsterEventCompleted;
+    storyJaneConversationCompleted = !!payload.storyJaneConversationCompleted || Math.max(0, Math.floor(Number(payload.storyJaneFriendshipLevel) || 0)) > 0;
     storyJaneFriendshipLevel = Math.max(0, Math.floor(Number(payload.storyJaneFriendshipLevel) || 0));
     storyJaneFortitudeUnlocked = !!payload.storyJaneFortitudeUnlocked;
     ensureRiskoUnlockedIfJoined();
@@ -2091,6 +2105,8 @@ document.addEventListener("DOMContentLoaded", () => {
           storyRiskoJoined,
           storyReinerFailedOnce,
           storyReinerCompleted,
+          storyMonsterEventCompleted,
+          storyJaneConversationCompleted,
           storyJaneFriendshipLevel,
           storyJaneFortitudeUnlocked,
           storyCharacterProgress
@@ -2123,6 +2139,8 @@ document.addEventListener("DOMContentLoaded", () => {
         storyRiskoJoined,
         storyReinerFailedOnce,
         storyReinerCompleted,
+        storyMonsterEventCompleted,
+        storyJaneConversationCompleted,
         storyJaneFriendshipLevel,
         storyJaneFortitudeUnlocked,
         tutorialPending,
@@ -2174,6 +2192,8 @@ document.addEventListener("DOMContentLoaded", () => {
     storyRiskoJoined = !!state?.storyRiskoJoined;
     storyReinerFailedOnce = !!state?.storyReinerFailedOnce;
     storyReinerCompleted = !!state?.storyReinerCompleted;
+    storyMonsterEventCompleted = !!state?.storyMonsterEventCompleted;
+    storyJaneConversationCompleted = !!state?.storyJaneConversationCompleted || Math.max(0, Math.floor(Number(state?.storyJaneFriendshipLevel) || 0)) > 0;
     storyJaneFriendshipLevel = Math.max(0, Math.floor(Number(state?.storyJaneFriendshipLevel) || 0));
     storyJaneFortitudeUnlocked = !!state?.storyJaneFortitudeUnlocked;
     ensureRiskoUnlockedIfJoined();
@@ -2224,6 +2244,8 @@ document.addEventListener("DOMContentLoaded", () => {
     storyRiskoJoined = !!state?.storyRiskoJoined;
     storyReinerFailedOnce = !!state?.storyReinerFailedOnce;
     storyReinerCompleted = !!state?.storyReinerCompleted;
+    storyMonsterEventCompleted = !!state?.storyMonsterEventCompleted;
+    storyJaneConversationCompleted = !!state?.storyJaneConversationCompleted || Math.max(0, Math.floor(Number(state?.storyJaneFriendshipLevel) || 0)) > 0;
     storyJaneFriendshipLevel = Math.max(0, Math.floor(Number(state?.storyJaneFriendshipLevel) || 0));
     storyJaneFortitudeUnlocked = !!state?.storyJaneFortitudeUnlocked;
     ensureRiskoUnlockedIfJoined();
@@ -4232,7 +4254,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const riskoPhase = storyRiskoEncounterCount >= 2
         ? "mappointquestionchallenge"
         : (storyRiskoEncounterCount >= 1 ? "mappointquestionrepeat" : "mappointquestion");
-      const options = ["mappointjane", riskoPhase];
+      const options = [riskoPhase];
+      if (!storyJaneConversationCompleted) options.push("mappointjane");
       const picked = options[randInt(0, options.length - 1)];
       currentStoryMapPointId = pointId;
       storyMapBattleActive = false;
@@ -4245,6 +4268,9 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     if (isConversationPoint && storyRiskoJoined) {
+      if (storyJaneConversationCompleted) {
+        // Sin eventos disponibles en este icono: usar flujo de batalla normal.
+      } else {
       currentStoryMapPointId = pointId;
       storyMapBattleActive = false;
       storyCombatActive = false;
@@ -4254,6 +4280,7 @@ document.addEventListener("DOMContentLoaded", () => {
       storyStep = 0;
       renderStoryStep();
       return;
+      }
     }
     if (isQuestionPoint) {
       currentStoryMapPointId = pointId;
@@ -4262,14 +4289,19 @@ document.addEventListener("DOMContentLoaded", () => {
       storyMapReinerChallengeActive = false;
       storyCombatActive = false;
       storyCombatStage = 0;
-      const options = ["mappointmonsterintro"];
+      const options = [];
+      if (!storyMonsterEventCompleted) options.push("mappointmonsterintro");
       if (!storyReinerCompleted) {
         options.push(storyReinerFailedOnce ? "mappointreinerretry" : "mappointreinerintro");
       }
+      if (options.length < 1) {
+        // Sin eventos disponibles en este icono: usar flujo de batalla normal.
+      } else {
       storyPhase = options[randInt(0, options.length - 1)];
       storyStep = 0;
       renderStoryStep();
       return;
+      }
     }
     resetGame();
     currentStoryMapPointId = pointId;
@@ -4407,6 +4439,8 @@ document.addEventListener("DOMContentLoaded", () => {
     storyRiskoJoined = false;
     storyReinerFailedOnce = false;
     storyReinerCompleted = false;
+    storyMonsterEventCompleted = false;
+    storyJaneConversationCompleted = false;
     storyJaneFortitudeUnlocked = false;
     storyJackUnlocked = false;
     storyJackCompleted = false;
@@ -4512,6 +4546,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (storyPhase === "mappointmonsterpost") {
       storyMapMonsterHuntActive = false;
+      storyMonsterEventCompleted = true;
       const pointId = currentStoryMapPointId;
       const rewarded = rewardRandomCharacterLevelAfterMonsterEvent();
       if (rewarded && storyLevelUpQueue.length) {
@@ -4545,6 +4580,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     if (storyPhase === "mappointjane") {
+      storyJaneConversationCompleted = true;
       grantJaneConversationRewards();
       return;
     }
