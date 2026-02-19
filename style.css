@@ -262,6 +262,7 @@ img{ max-width:100%; height:auto; }
   position: relative;
   flex: 1 1 auto;
   min-height: 0;
+  z-index: 1;
 }
 
 .story-char{
@@ -328,6 +329,8 @@ img{ max-width:100%; height:auto; }
   height: 250px;
   display: flex;
   flex-direction: column;
+  position: relative;
+  z-index: 20;
 }
 
 .story-speaker{
@@ -1519,6 +1522,9 @@ img{ max-width:100%; height:auto; }
   text-align: center;
   gap: 4px;
 }
+#finalModal .modal-actions{
+  justify-content: center;
+}
 .final-label{
   text-align: center;
 }
@@ -2228,6 +2234,9 @@ img{ max-width:100%; height:auto; }
 }
 .story-levelup-card{
   width: min(430px, 100%);
+}
+#storyLevelUpModal .modal-actions{
+  justify-content: center;
 }
 
 .story-levelup-content{
