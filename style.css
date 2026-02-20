@@ -476,6 +476,11 @@ img{ max-width:100%; height:auto; }
   100% { background-position: right center; }
 }
 
+@keyframes storyPanOrbisMobile {
+  0% { background-position: left center; }
+  100% { background-position: right center; }
+}
+
 /* ---------- RECLUTAR ---------- */
 .recruit-card{
   width: min(620px, 100%);
@@ -2162,6 +2167,11 @@ img{ max-width:100%; height:auto; }
     background-size: auto 100% !important;
     background-position: left center;
     animation: storyPanGroupMobile 16s ease-in-out infinite alternate;
+  }
+  .story-screen.story-pan-orbis-mobile{
+    background-size: auto 100% !important;
+    background-position: left center !important;
+    animation: storyPanOrbisMobile 22s linear infinite alternate;
   }
 
   #teamScreen .start-card{

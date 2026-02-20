@@ -499,6 +499,21 @@ document.addEventListener("DOMContentLoaded", () => {
   function getVisibleIntroMenuOptions() {
     return INTRO_MENU_OPTIONS.filter((option) => !INTRO_MENU_HIDDEN_KEYS.has(option.key));
   }
+  const STORY_WORLD_INTRO_SCENES = [
+    {
+      speaker: "",
+      text: "¡Saludos, viajeros!\nOs damos la bienvenida al continente de Orbis, nuestro mundo. Orbis siempre fue una tierra de paz y prosperidad pero todo cambió con la Gran Guerra. Nuestro preciado continente se fragmentó y las cinco grandes regiones se volvieron más autónomas y desconfiadas que nunca. Muchos aprovecharon la situación para alzarse con el poder; lo que antaño fuera un mundo libre, ahora se encontraba bajo el control de personas que se autoproclamaron reyes. Y es que la pérdida de tecnología que sufrió Orbis tras innumerables batallas repercutió también en sus gentes y costumbres, volviendo a tradiciones y pensamientos de antaño. Todo esto ha creado un clima de inseguridad donde cada uno se gana la vida como puede y no es seguro andar solo por los caminos. Los grupos de mercenarios abundan, gente sin escrúpulos que hace de todo por dinero. Y nuestra historia comienza precisamente con uno de esos grupos, uno especialmente peculiar...",
+      background: "historia/mapaorbis.PNG",
+      showChars: false
+    },
+    {
+      speaker: "",
+      text: "",
+      backgroundCss: "#000",
+      showChars: false,
+      autoAdvanceMs: 2000
+    }
+  ];
   const STORY_PRE_COMBAT_SCENES = [
     {
       speaker: "",
@@ -2223,6 +2238,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const step = Number(raw?.state?.storyStep);
     const stage = Number(raw?.state?.storyCombatStage);
     const validPhase = [
+      "worldintro",
       "pre",
       "post",
       "epilogue",
@@ -2636,7 +2652,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ensureRiskoUnlockedIfJoined();
     storyMapState = storyMapFlow ? storyMapFlow.normalizeState(state?.storyMapState) : null;
     storyCharacterProgress = storyProgress.normalizeProgress(state?.storyCharacterProgress);
-    storyPhase = ["pre", "post", "epilogue", "mapintro", "mappointquestion", "mappointquestionrepeat", "mappointquestionchallenge", "mappointquestionchallengepost", "mappointjane", "mappointmonsterintro", "mappointmonsterpost", "mappointreinerintro", "mappointreinerretry", "mappointreinerpost", "mappointreinerfailed", "map", "mappost"].includes(state?.storyPhase) ? state.storyPhase : "pre";
+    storyPhase = ["worldintro", "pre", "post", "epilogue", "mapintro", "mappointquestion", "mappointquestionrepeat", "mappointquestionchallenge", "mappointquestionchallengepost", "mappointjane", "mappointmonsterintro", "mappointmonsterpost", "mappointreinerintro", "mappointreinerretry", "mappointreinerpost", "mappointreinerfailed", "map", "mappost"].includes(state?.storyPhase) ? state.storyPhase : "pre";
     storyStep = Math.max(0, Math.floor(Number(state?.storyStep) || 0));
 
     introScreen.classList.add("hidden");
@@ -3794,6 +3810,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function getStorySceneList() {
+    if (storyPhase === "worldintro") return STORY_WORLD_INTRO_SCENES;
     if (storyPhase === "mapintro") return isMobileStoryViewport() ? STORY_MAP_INTRO_SCENES_MOBILE : STORY_MAP_INTRO_SCENES;
     if (storyPhase === "mappointquestion") return STORY_MAP_QUESTION_SCENES;
     if (storyPhase === "mappointquestionrepeat") return STORY_MAP_QUESTION_REPEAT_SCENES;
@@ -4090,6 +4107,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const showChars = scene.showChars !== false;
     const bgLower = String(scene.background || "").toLowerCase();
     const isWidePanScene = bgLower.includes("1grupocharla.png") || bgLower.includes("1combatebandidos.png");
+    const isOrbisMapScene = bgLower.includes("mapaorbis.png");
 
     if (storySpeaker) {
       storySpeaker.textContent = scene.speaker || "";
@@ -4098,10 +4116,15 @@ document.addEventListener("DOMContentLoaded", () => {
     if (storyText) storyText.textContent = scene.text || "";
 
     if (storyScreen) {
-      storyScreen.style.background = scene.background
-        ? `url("${scene.background}") center center / cover no-repeat`
-        : 'url("images/portadainicio.PNG") center center / cover no-repeat';
+      if (scene.backgroundCss) {
+        storyScreen.style.background = String(scene.backgroundCss);
+      } else {
+        storyScreen.style.background = scene.background
+          ? `url("${scene.background}") center center / cover no-repeat`
+          : 'url("images/portadainicio.PNG") center center / cover no-repeat';
+      }
       storyScreen.classList.toggle("story-pan-group-mobile", isWidePanScene);
+      storyScreen.classList.toggle("story-pan-orbis-mobile", isOrbisMapScene);
     }
     if (storyStage) storyStage.style.background = "";
 
@@ -4880,8 +4903,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const shouldAutoAdvance = !!(
       scene &&
       Number(scene.autoAdvanceMs) > 0 &&
-      isLastPage &&
-      storyStep < scenes.length - 1
+      isLastPage
     );
     if (shouldAutoAdvance) {
       if (storyNextBtn) storyNextBtn.disabled = true;
@@ -4929,7 +4951,7 @@ document.addEventListener("DOMContentLoaded", () => {
     storyJaneFortitudeUnlocked = false;
     storyJackUnlocked = false;
     storyJackCompleted = false;
-    storyPhase = "pre";
+    storyPhase = "worldintro";
     storyStep = 0;
     renderStoryStep();
     resetViewportTop();
@@ -4986,6 +5008,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (storyStep < scenes.length - 1) {
       storyStep += 1;
       storySceneTextPageIndex = 0;
+      renderStoryStep();
+      return;
+    }
+    if (storyPhase === "worldintro") {
+      storyPhase = "pre";
+      storyStep = 0;
       renderStoryStep();
       return;
     }
@@ -5075,6 +5103,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function skipStoryPhase() {
+    if (storyPhase === "worldintro") {
+      storyPhase = "pre";
+      storyStep = 0;
+      renderStoryStep();
+      return;
+    }
     if (storyPhase === "pre") {
       startStoryCombat(1);
       return;
