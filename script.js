@@ -608,7 +608,7 @@ document.addEventListener("DOMContentLoaded", () => {
       background: "historia/1fondopueblo.PNG",
       active: "left",
       leftSrc: "images/Evelyn.png",
-      leftSupportSrc: "historia/Winchester2.png",
+      leftSupportSrc: "historia/winchester2.PNG",
       rightSrc: "historia/Camus2.png",
       rightMirror: false,
       rightSupportSrc: "historia/Jane2.png",
@@ -620,7 +620,7 @@ document.addEventListener("DOMContentLoaded", () => {
       background: "historia/1fondopueblo.PNG",
       active: "right",
       leftSrc: "images/Evelyn.png",
-      leftSupportSrc: "historia/Winchester2.png",
+      leftSupportSrc: "historia/winchester2.PNG",
       rightSrc: "historia/Camus2.png",
       rightMirror: false,
       rightSupportSrc: "historia/Jane2.png",
@@ -632,7 +632,7 @@ document.addEventListener("DOMContentLoaded", () => {
       background: "historia/1fondopueblo.PNG",
       active: "left-support",
       leftSrc: "images/Evelyn.png",
-      leftSupportSrc: "historia/Winchester2.png",
+      leftSupportSrc: "historia/winchester2.PNG",
       rightSrc: "historia/Camus2.png",
       rightMirror: false,
       rightSupportSrc: "historia/Jane2.png",
@@ -644,7 +644,7 @@ document.addEventListener("DOMContentLoaded", () => {
       background: "historia/1fondopueblo.PNG",
       active: "right-support",
       leftSrc: "images/Evelyn.png",
-      leftSupportSrc: "historia/Winchester2.png",
+      leftSupportSrc: "historia/winchester2.PNG",
       rightSrc: "historia/Camus2.png",
       rightMirror: false,
       rightSupportSrc: "historia/Jane2.png",
@@ -664,7 +664,7 @@ document.addEventListener("DOMContentLoaded", () => {
       background: "historia/1fondopueblo.PNG",
       active: "left",
       leftSrc: "images/Evelyn.png",
-      leftSupportSrc: "historia/Winchester2.png",
+      leftSupportSrc: "historia/winchester2.PNG",
       rightSrc: "historia/Camus2.png",
       rightMirror: false,
       rightSupportSrc: "historia/Jane2.png",
@@ -702,7 +702,7 @@ document.addEventListener("DOMContentLoaded", () => {
       background: "historia/mapa1.png",
       active: "right",
       leftSrc: "images/Evelyn.png",
-      leftSupportSrc: "historia/Winchester2.png",
+      leftSupportSrc: "historia/winchester2.PNG",
       rightSrc: "historia/soldado.PNG",
       rightMirror: false,
       showChars: true
@@ -713,7 +713,7 @@ document.addEventListener("DOMContentLoaded", () => {
       background: "historia/mapa1.png",
       active: "left",
       leftSrc: "historia/evelyn3.PNG",
-      leftSupportSrc: "historia/Winchester2.png",
+      leftSupportSrc: "historia/winchester2.PNG",
       rightSrc: "historia/soldado.PNG",
       rightMirror: false,
       showChars: true
@@ -724,7 +724,7 @@ document.addEventListener("DOMContentLoaded", () => {
       background: "historia/mapa1.png",
       active: "left-support",
       leftSrc: "historia/evelyn3.PNG",
-      leftSupportSrc: "historia/Winchester2.png",
+      leftSupportSrc: "historia/winchester2.PNG",
       rightSrc: "historia/soldado.PNG",
       rightMirror: false,
       showChars: true
@@ -735,7 +735,7 @@ document.addEventListener("DOMContentLoaded", () => {
       background: "historia/mapa1.png",
       active: "right",
       leftSrc: "historia/evelyn3.PNG",
-      leftSupportSrc: "historia/Winchester2.png",
+      leftSupportSrc: "historia/winchester2.PNG",
       rightSrc: "historia/soldado.PNG",
       rightMirror: false,
       showChars: true
@@ -772,7 +772,7 @@ document.addEventListener("DOMContentLoaded", () => {
       background: "historia/mapa1.png",
       active: "left-support",
       leftSrc: "images/Evelyn.png",
-      leftSupportSrc: "historia/Winchester2.png",
+      leftSupportSrc: "historia/winchester2.PNG",
       showRight: false,
       showChars: true
     },
@@ -794,7 +794,7 @@ document.addEventListener("DOMContentLoaded", () => {
       background: "historia/mapa1.png",
       active: "left",
       leftSrc: "images/Evelyn.png",
-      leftSupportSrc: "historia/Winchester2.png",
+      leftSupportSrc: "historia/winchester2.PNG",
       showRight: false,
       showChars: true
     },
@@ -828,7 +828,7 @@ document.addEventListener("DOMContentLoaded", () => {
       background: "historia/mapa1.png",
       active: "left-support",
       leftSrc: "images/Evelyn.png",
-      leftSupportSrc: "historia/Winchester2.png",
+      leftSupportSrc: "historia/winchester2.PNG",
       showRight: false,
       showChars: true
     },
@@ -901,7 +901,7 @@ document.addEventListener("DOMContentLoaded", () => {
       background: "historia/mapa1.png",
       active: "left-support",
       leftSrc: "images/Evelyn.png",
-      leftSupportSrc: "historia/Winchester2.png",
+      leftSupportSrc: "historia/winchester2.PNG",
       rightSrc: "historia/reyliander.PNG",
       rightMirror: false,
       showChars: true
@@ -912,7 +912,7 @@ document.addEventListener("DOMContentLoaded", () => {
       background: "historia/mapa1.png",
       active: "right",
       leftSrc: "images/Evelyn.png",
-      leftSupportSrc: "historia/Winchester2.png",
+      leftSupportSrc: "historia/winchester2.PNG",
       rightSrc: "historia/reyliander2.PNG",
       rightMirror: false,
       showChars: true
@@ -949,7 +949,7 @@ document.addEventListener("DOMContentLoaded", () => {
       background: "historia/mapa1.png",
       active: "left",
       leftSrc: "images/Evelyn.png",
-      leftSupportSrc: "historia/Winchester2.png",
+      leftSupportSrc: "historia/winchester2.PNG",
       rightSrc: "historia/reyliander2.PNG",
       rightMirror: false,
       showChars: true
@@ -960,7 +960,7 @@ document.addEventListener("DOMContentLoaded", () => {
       background: "historia/mapa1.png",
       active: "right",
       leftSrc: "images/Evelyn.png",
-      leftSupportSrc: "historia/Winchester2.png",
+      leftSupportSrc: "historia/winchester2.PNG",
       rightSrc: "historia/reyliander2.PNG",
       rightMirror: false,
       showChars: true
@@ -971,7 +971,7 @@ document.addEventListener("DOMContentLoaded", () => {
       background: "historia/mapa1.png",
       active: "left",
       leftSrc: "images/Evelyn.png",
-      leftSupportSrc: "historia/Winchester2.png",
+      leftSupportSrc: "historia/winchester2.PNG",
       rightSrc: "historia/reyliander2.PNG",
       rightMirror: false,
       showChars: true
@@ -982,7 +982,7 @@ document.addEventListener("DOMContentLoaded", () => {
       background: "historia/mapa1.png",
       active: "right",
       leftSrc: "images/Evelyn.png",
-      leftSupportSrc: "historia/Winchester2.png",
+      leftSupportSrc: "historia/winchester2.PNG",
       rightSrc: "historia/reyliander3.PNG",
       rightMirror: false,
       showChars: true
@@ -1006,7 +1006,7 @@ document.addEventListener("DOMContentLoaded", () => {
       background: "historia/mapa1.png",
       active: "left-support",
       leftSrc: "images/Evelyn.png",
-      leftSupportSrc: "historia/Winchester2.png",
+      leftSupportSrc: "historia/winchester2.PNG",
       rightSrc: "historia/reyliander3.PNG",
       rightMirror: false,
       showChars: true
@@ -1017,7 +1017,7 @@ document.addEventListener("DOMContentLoaded", () => {
       background: "historia/mapa1.png",
       active: "right",
       leftSrc: "images/Evelyn.png",
-      leftSupportSrc: "historia/Winchester2.png",
+      leftSupportSrc: "historia/winchester2.PNG",
       rightSrc: "historia/reyliander2.PNG",
       rightMirror: false,
       showChars: true
@@ -1041,7 +1041,7 @@ document.addEventListener("DOMContentLoaded", () => {
       background: "historia/mapa1.png",
       active: "right",
       leftSrc: "images/Evelyn.png",
-      leftSupportSrc: "historia/Winchester2.png",
+      leftSupportSrc: "historia/winchester2.PNG",
       rightSrc: "historia/reyliander.PNG",
       rightMirror: false,
       showChars: true
@@ -1052,7 +1052,7 @@ document.addEventListener("DOMContentLoaded", () => {
       background: "historia/mapa1.png",
       active: "left",
       leftSrc: "images/Evelyn.png",
-      leftSupportSrc: "historia/Winchester2.png",
+      leftSupportSrc: "historia/winchester2.PNG",
       rightSrc: "historia/reyliander.PNG",
       rightMirror: false,
       showChars: true
@@ -1063,7 +1063,7 @@ document.addEventListener("DOMContentLoaded", () => {
       background: "historia/mapa1.png",
       active: "right",
       leftSrc: "images/Evelyn.png",
-      leftSupportSrc: "historia/Winchester2.png",
+      leftSupportSrc: "historia/winchester2.PNG",
       rightSrc: "historia/reyliander.PNG",
       rightMirror: false,
       showChars: true
@@ -1074,7 +1074,7 @@ document.addEventListener("DOMContentLoaded", () => {
       background: "historia/mapa1.png",
       active: "left",
       leftSrc: "images/Evelyn.png",
-      leftSupportSrc: "historia/Winchester2.png",
+      leftSupportSrc: "historia/winchester2.PNG",
       rightSrc: "historia/reyliander.PNG",
       rightMirror: false,
       showChars: true
@@ -1085,7 +1085,7 @@ document.addEventListener("DOMContentLoaded", () => {
       background: "historia/mapa1.png",
       active: "right",
       leftSrc: "images/Evelyn.png",
-      leftSupportSrc: "historia/Winchester2.png",
+      leftSupportSrc: "historia/winchester2.PNG",
       rightSrc: "historia/reyliander.PNG",
       rightMirror: false,
       showChars: true
@@ -1112,7 +1112,7 @@ document.addEventListener("DOMContentLoaded", () => {
     "historia/Camus2.png",
     "historia/Jane2.png",
     "historia/jane3.PNG",
-    "historia/Winchester2.png",
+    "historia/winchester2.PNG",
     "historia/evelyn3.PNG",
     "historia/soldado.PNG",
     "historia/reyliander.PNG",
@@ -1528,7 +1528,7 @@ document.addEventListener("DOMContentLoaded", () => {
       background: "historia/mapa1.png",
       active: "right",
       leftSrc: "images/Evelyn.png",
-      leftSupportSrc: "historia/Winchester2.png",
+      leftSupportSrc: "historia/winchester2.PNG",
       rightSrc: "historia/Camus2.png",
       rightMirror: false,
       rightSupportSrc: "historia/Jane2.png",
@@ -1540,7 +1540,7 @@ document.addEventListener("DOMContentLoaded", () => {
       background: "historia/mapa1.png",
       active: "left-support",
       leftSrc: "images/Evelyn.png",
-      leftSupportSrc: "historia/Winchester2.png",
+      leftSupportSrc: "historia/winchester2.PNG",
       rightSrc: "historia/Camus2.png",
       rightMirror: false,
       rightSupportSrc: "historia/Jane2.png",
@@ -1552,7 +1552,7 @@ document.addEventListener("DOMContentLoaded", () => {
       background: "historia/mapa1.png",
       active: "left",
       leftSrc: "images/Evelyn.png",
-      leftSupportSrc: "historia/Winchester2.png",
+      leftSupportSrc: "historia/winchester2.PNG",
       rightSrc: "historia/Camus2.png",
       rightMirror: false,
       rightSupportSrc: "historia/Jane2.png",
@@ -1564,7 +1564,7 @@ document.addEventListener("DOMContentLoaded", () => {
       background: "historia/mapa1.png",
       active: "right-support",
       leftSrc: "images/Evelyn.png",
-      leftSupportSrc: "historia/Winchester2.png",
+      leftSupportSrc: "historia/winchester2.PNG",
       rightSrc: "historia/Camus2.png",
       rightMirror: false,
       rightSupportSrc: "historia/Jane2.png",
@@ -1578,7 +1578,7 @@ document.addEventListener("DOMContentLoaded", () => {
       background: "historia/mapa1.png",
       active: "left-support",
       leftSrc: "images/Evelyn.png",
-      leftSupportSrc: "historia/Winchester2.png",
+      leftSupportSrc: "historia/winchester2.PNG",
       rightSrc: "historia/Camus2.png",
       rightMirror: false,
       rightSupportSrc: "historia/Jane2.png",
@@ -1847,7 +1847,7 @@ document.addEventListener("DOMContentLoaded", () => {
       text: "Este es el mapa de misión. Aquí vemos las rutas disponibles hasta llegar a nuestro objetivo.\n\nCuando eliges un lugar, el resto de la misma línea ya no podrán ser explorados. Decide con cautela.",
       background: "historia/mapa1.png",
       active: "left",
-      leftSrc: "historia/Winchester2.png",
+      leftSrc: "historia/winchester2.PNG",
       showChars: true,
       showRight: false
     },
@@ -1856,7 +1856,7 @@ document.addEventListener("DOMContentLoaded", () => {
       text: "El icono de las espadas representa una batalla. Tendremos que completar varios encargos de mercenarios.\n\nEl icono del bocadillo representa una conversación. Quizás conozcamos a nuevos personajes o misiones.",
       background: "historia/mapa1.png",
       active: "left",
-      leftSrc: "historia/Winchester2.png",
+      leftSrc: "historia/winchester2.PNG",
       showChars: true,
       showRight: false
     },
@@ -1865,7 +1865,7 @@ document.addEventListener("DOMContentLoaded", () => {
       text: "El icono del cofre promete un tesoro valioso y en el del interrogante nadie sabe lo que puede pasar.\n\n¡Vamos! ¡Rumbo al castillo!",
       background: "historia/mapa1.png",
       active: "left",
-      leftSrc: "historia/Winchester2.png",
+      leftSrc: "historia/winchester2.PNG",
       showChars: true,
       showRight: false
     }
@@ -1876,7 +1876,7 @@ document.addEventListener("DOMContentLoaded", () => {
       text: "Este es el mapa de misión. Aquí vemos las rutas disponibles hasta llegar a nuestro objetivo.",
       background: "historia/mapa1.png",
       active: "left",
-      leftSrc: "historia/Winchester2.png",
+      leftSrc: "historia/winchester2.PNG",
       showChars: true,
       showRight: false
     },
@@ -1885,7 +1885,7 @@ document.addEventListener("DOMContentLoaded", () => {
       text: "Cuando eliges un lugar, el resto de la misma línea ya no podrán ser explorados. Decide con cautela.",
       background: "historia/mapa1.png",
       active: "left",
-      leftSrc: "historia/Winchester2.png",
+      leftSrc: "historia/winchester2.PNG",
       showChars: true,
       showRight: false
     },
@@ -1894,7 +1894,7 @@ document.addEventListener("DOMContentLoaded", () => {
       text: "El icono de las espadas representa una batalla. Tendremos que completar varios encargos de mercenarios.",
       background: "historia/mapa1.png",
       active: "left",
-      leftSrc: "historia/Winchester2.png",
+      leftSrc: "historia/winchester2.PNG",
       showChars: true,
       showRight: false
     },
@@ -1903,7 +1903,7 @@ document.addEventListener("DOMContentLoaded", () => {
       text: "El icono del bocadillo representa una conversación. Quizás conozcamos a nuevos personajes o misiones.",
       background: "historia/mapa1.png",
       active: "left",
-      leftSrc: "historia/Winchester2.png",
+      leftSrc: "historia/winchester2.PNG",
       showChars: true,
       showRight: false
     },
@@ -1912,7 +1912,7 @@ document.addEventListener("DOMContentLoaded", () => {
       text: "El icono del cofre promete un tesoro valioso y en el del interrogante nadie sabe lo que puede pasar.",
       background: "historia/mapa1.png",
       active: "left",
-      leftSrc: "historia/Winchester2.png",
+      leftSrc: "historia/winchester2.PNG",
       showChars: true,
       showRight: false
     },
@@ -1921,7 +1921,7 @@ document.addEventListener("DOMContentLoaded", () => {
       text: "¡Vamos! ¡Rumbo al castillo!",
       background: "historia/mapa1.png",
       active: "left",
-      leftSrc: "historia/Winchester2.png",
+      leftSrc: "historia/winchester2.PNG",
       showChars: true,
       showRight: false
     }
@@ -4124,10 +4124,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (showLeft && storyLeftChar) setImageWithFallback(storyLeftChar, scene.leftSrc, "images/Evelyn.png");
     if (showRight && storyRightChar) setImageWithFallback(storyRightChar, scene.rightSrc, "images/Landom.png?v=20260210-4");
-    if (showLeftSupport && storyLeftSupportChar) setImageWithFallback(storyLeftSupportChar, scene.leftSupportSrc, "historia/Winchester2.png");
+    if (showLeftSupport && storyLeftSupportChar) setImageWithFallback(storyLeftSupportChar, scene.leftSupportSrc, "historia/winchester2.PNG");
     if (showRightSupport && storyRightSupportChar) setImageWithFallback(storyRightSupportChar, scene.rightSupportSrc, "historia/Jane2.png");
     storyLeftChar?.classList.toggle("mirror", scene.leftMirror === true);
-    storyLeftSupportChar?.classList.toggle("mirror", scene.leftSupportMirror === true);
+    const leftSupportSrc = String(scene.leftSupportSrc || "").toLowerCase();
+    const isJaneSupport = leftSupportSrc.includes("jane2") || leftSupportSrc.includes("jane3");
+    storyLeftSupportChar?.classList.toggle("mirror", scene.leftSupportMirror === true && !isJaneSupport);
     storyRightChar?.classList.toggle("no-mirror", scene.rightMirror === false);
     storyRightSupportChar?.classList.toggle("no-mirror", scene.rightSupportMirror === false);
     storyLeftChar?.classList.toggle("active", scene.active === "left");
