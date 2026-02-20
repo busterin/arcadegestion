@@ -681,6 +681,7 @@ document.addEventListener("DOMContentLoaded", () => {
       leftMirror: true,
       leftSupportSrc: "historia/Jane2.png",
       leftSupportMirror: true,
+      showRight: false,
       showChars: true
     },
     {
@@ -692,6 +693,7 @@ document.addEventListener("DOMContentLoaded", () => {
       leftMirror: true,
       leftSupportSrc: "historia/Jane2.png",
       leftSupportMirror: true,
+      showRight: false,
       showChars: true
     },
     {
@@ -1105,6 +1107,19 @@ document.addEventListener("DOMContentLoaded", () => {
       showLeft: false,
       showChars: true
     }
+  ];
+  const STORY_MAP_POST_PRELOAD_IMAGES = [
+    "historia/Camus2.png",
+    "historia/Jane2.png",
+    "historia/jane3.PNG",
+    "historia/Winchester2.png",
+    "historia/evelyn3.PNG",
+    "historia/soldado.PNG",
+    "historia/reyliander.PNG",
+    "historia/reyliander2.PNG",
+    "historia/reyliander3.PNG",
+    "historia/princesa.PNG",
+    "images/Evelyn.png"
   ];
   const STORY_MAP_QUESTION_SCENES = [
     {
@@ -3954,6 +3969,16 @@ document.addEventListener("DOMContentLoaded", () => {
     el.src = primary;
   }
 
+  function preloadImageSources(sources) {
+    const list = Array.isArray(sources) ? sources : [];
+    list.forEach((src) => {
+      if (!src) return;
+      const img = new Image();
+      img.decoding = "async";
+      img.src = src;
+    });
+  }
+
   function getActiveBattleEffect() {
     if (currentMode === "versus") return null;
     return activeBattleEffect;
@@ -4673,6 +4698,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function startStoryMapBattle(pointId) {
     if (!storyMapFlow || !storyMapFlow.isPointUnlocked(storyMapState, pointId)) return;
+    if (pointId === "boss") {
+      storyMapState = storyMapFlow.completePoint(storyMapState, pointId);
+      currentStoryMapPointId = pointId;
+      storyMapBattleActive = false;
+      storyMapMonsterHuntActive = false;
+      storyMapReinerChallengeActive = false;
+      storyCombatActive = false;
+      storyCombatStage = 0;
+      preloadImageSources(STORY_MAP_POST_PRELOAD_IMAGES);
+      storyPhase = "mappost";
+      storyStep = 0;
+      renderStoryStep();
+      return;
+    }
     const iconSrc = String(storyMapPointIcons?.[pointId] || "");
     const isConversationPoint = iconSrc.includes("iconomapaconversacion.png");
     const isQuestionPoint = iconSrc.includes("iconomapainterrogante.png");
@@ -7477,6 +7516,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const initialProfileName = normalizeUserProfileName(loadUserProfileName() || DEFAULT_PROFILE_NAME);
   setUserProfileName(initialProfileName);
   persistUserProfileName(initialProfileName);
+  preloadImageSources(STORY_MAP_POST_PRELOAD_IMAGES);
   updateHud();
   ensureVersusTransport();
 });
