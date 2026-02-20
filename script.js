@@ -674,14 +674,435 @@ document.addEventListener("DOMContentLoaded", () => {
   const STORY_MAP_POST_SCENES = [
     {
       speaker: "Camus",
-      text: "No me gusta nada lo que hemos encontrado. Esto no ha terminado.",
-      background: "historia/1fondopueblo.PNG",
+      text: "Este castillo es hermoso, me recuerda a los viejos tiempos.",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "historia/Camus2.png",
+      leftMirror: true,
+      leftSupportSrc: "historia/Jane2.png",
+      leftSupportMirror: true,
+      showChars: true
+    },
+    {
+      speaker: "Jane",
+      text: "Mis viejos tiempos no eran tan lujosos, me temo.",
+      background: "historia/mapa1.png",
+      active: "left-support",
+      leftSrc: "historia/Camus2.png",
+      leftMirror: true,
+      leftSupportSrc: "historia/Jane2.png",
+      leftSupportMirror: true,
+      showChars: true
+    },
+    {
+      speaker: "Soldado",
+      text: "¿Quienes sois? Identificaos. ¡Ya!",
+      background: "historia/mapa1.png",
       active: "right",
       leftSrc: "images/Evelyn.png",
       leftSupportSrc: "historia/Winchester2.png",
-      rightSrc: "historia/Camus2.png",
+      rightSrc: "historia/soldado.PNG",
       rightMirror: false,
-      rightSupportSrc: "historia/Jane2.png",
+      showChars: true
+    },
+    {
+      speaker: "Evelyn",
+      text: "Qué hostil...",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "historia/evelyn3.PNG",
+      leftSupportSrc: "historia/Winchester2.png",
+      rightSrc: "historia/soldado.PNG",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Winchester",
+      text: "Somos el grupo de mercenarios ATALAYA. Combatiendo contra unos bandidos, les arrebatamos esto, que creemos pertenece a su majestad.",
+      background: "historia/mapa1.png",
+      active: "left-support",
+      leftSrc: "historia/evelyn3.PNG",
+      leftSupportSrc: "historia/Winchester2.png",
+      rightSrc: "historia/soldado.PNG",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Soldado",
+      text: "No me hagáis perder el... ¿Eso es? ¿Una \"Argo\"?",
+      background: "historia/mapa1.png",
+      active: "right",
+      leftSrc: "historia/evelyn3.PNG",
+      leftSupportSrc: "historia/Winchester2.png",
+      rightSrc: "historia/soldado.PNG",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Jane",
+      text: "¿Una qué?",
+      background: "historia/mapa1.png",
+      active: "left-support",
+      leftSrc: "historia/Camus2.png",
+      leftMirror: true,
+      leftSupportSrc: "historia/Jane2.png",
+      leftSupportMirror: true,
+      rightSrc: "historia/soldado.PNG",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Soldado",
+      text: "Ahora vuelvo, no os mováis de aquí.",
+      background: "historia/mapa1.png",
+      active: "right",
+      leftSrc: "historia/Camus2.png",
+      leftMirror: true,
+      leftSupportSrc: "historia/Jane2.png",
+      leftSupportMirror: true,
+      rightSrc: "historia/soldado.PNG",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Winchester",
+      text: "¡Eh! ¡Me la ha quitado de las manos!",
+      background: "historia/mapa1.png",
+      active: "left-support",
+      leftSrc: "images/Evelyn.png",
+      leftSupportSrc: "historia/Winchester2.png",
+      showRight: false,
+      showChars: true
+    },
+    {
+      speaker: "Camus",
+      text: "Una Argo... Me pareció valiosa pero no imaginé que lo fuera tanto.",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "historia/Camus2.png",
+      leftMirror: true,
+      leftSupportSrc: "historia/Jane2.png",
+      leftSupportMirror: true,
+      showRight: false,
+      showChars: true
+    },
+    {
+      speaker: "Evelyn",
+      text: "¿Puedes ilustrarnos, eminencia?",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "images/Evelyn.png",
+      leftSupportSrc: "historia/Winchester2.png",
+      showRight: false,
+      showChars: true
+    },
+    {
+      speaker: "Camus",
+      text: "Menos sorna, Evelyn. Una Argo es una piedra preciosa cuya presencia data de la creación misma de Orbis. Existen muy pocas en el mundo y es un privilegio haber visto una, ya que la mayoría de las personas morirán sin siquiera tener tamaña reliquia cerca.",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "historia/Camus2.png",
+      leftMirror: true,
+      leftSupportSrc: "historia/Jane2.png",
+      leftSupportMirror: true,
+      showRight: false,
+      showChars: true
+    },
+    {
+      speaker: "Jane",
+      text: "Y Winchester la ha llevado en el bolsillo como si fuese un trozo de tela ¡Já!",
+      background: "historia/mapa1.png",
+      active: "left-support",
+      leftSrc: "historia/Camus2.png",
+      leftMirror: true,
+      leftSupportSrc: "historia/jane3.PNG",
+      leftSupportMirror: true,
+      showRight: false,
+      showChars: true
+    },
+    {
+      speaker: "Winchester",
+      text: "¡Eso no es cierto, arquera del tres al cuarto!",
+      background: "historia/mapa1.png",
+      active: "left-support",
+      leftSrc: "images/Evelyn.png",
+      leftSupportSrc: "historia/Winchester2.png",
+      showRight: false,
+      showChars: true
+    },
+    {
+      speaker: "Jane",
+      text: "Eres la reina de los insultos...",
+      background: "historia/mapa1.png",
+      active: "left-support",
+      leftSrc: "historia/Camus2.png",
+      leftMirror: true,
+      leftSupportSrc: "historia/Jane2.png",
+      leftSupportMirror: true,
+      showRight: false,
+      showChars: true
+    },
+    {
+      speaker: "Camus",
+      text: "Eran conocidas por albergar un gran poder mágico y dicen que cuando estás mucho tiempo cerca de una, embuyes parte de su poder mágico.",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "historia/Camus2.png",
+      leftMirror: true,
+      leftSupportSrc: "historia/Jane2.png",
+      leftSupportMirror: true,
+      showRight: false,
+      showChars: true
+    },
+    {
+      speaker: "Rey Liander",
+      text: "¡Bravo! ¡Vuestro mago es un hombre muy sabio!",
+      background: "historia/mapa1.png",
+      active: "right",
+      leftSrc: "historia/Camus2.png",
+      leftMirror: true,
+      leftSupportSrc: "historia/Jane2.png",
+      leftSupportMirror: true,
+      rightSrc: "historia/reyliander.PNG",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Camus",
+      text: "¡Su majestad!",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "historia/Camus2.png",
+      leftMirror: true,
+      leftSupportSrc: "historia/Jane2.png",
+      leftSupportMirror: true,
+      rightSrc: "historia/reyliander.PNG",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Jane",
+      text: "¿Tenemos que hacer una reverencia?",
+      background: "historia/mapa1.png",
+      active: "left-support",
+      leftSrc: "historia/Camus2.png",
+      leftMirror: true,
+      leftSupportSrc: "historia/Jane2.png",
+      leftSupportMirror: true,
+      rightSrc: "historia/reyliander.PNG",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Winchester",
+      text: "¡Claro! ¡No nos dejes mal!",
+      background: "historia/mapa1.png",
+      active: "left-support",
+      leftSrc: "images/Evelyn.png",
+      leftSupportSrc: "historia/Winchester2.png",
+      rightSrc: "historia/reyliander.PNG",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Rey Liander",
+      text: "No son necesarias las formalidades. Esto que me habéis traído es muy valioso y os honra mucho haberlo hecho, si la hubierais vendido ahora seríais inmensamente ricos.",
+      background: "historia/mapa1.png",
+      active: "right",
+      leftSrc: "images/Evelyn.png",
+      leftSupportSrc: "historia/Winchester2.png",
+      rightSrc: "historia/reyliander2.PNG",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Jane",
+      text: "¿Qué seríamos qué?",
+      background: "historia/mapa1.png",
+      active: "left-support",
+      leftSrc: "historia/Camus2.png",
+      leftMirror: true,
+      leftSupportSrc: "historia/Jane2.png",
+      leftSupportMirror: true,
+      rightSrc: "historia/reyliander2.PNG",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Camus",
+      text: "¡Ejem!",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "historia/Camus2.png",
+      leftMirror: true,
+      leftSupportSrc: "historia/Jane2.png",
+      leftSupportMirror: true,
+      rightSrc: "historia/reyliander2.PNG",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Evelyn",
+      text: "Lo que quiere decir es que estamos encantados de poder ayudar.",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "images/Evelyn.png",
+      leftSupportSrc: "historia/Winchester2.png",
+      rightSrc: "historia/reyliander2.PNG",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Rey Liander",
+      text: "Me gusta ser un hombre agradecido. Le dijisteis a mi soldado que os llamábais ATALAYA ¿Verdad?",
+      background: "historia/mapa1.png",
+      active: "right",
+      leftSrc: "images/Evelyn.png",
+      leftSupportSrc: "historia/Winchester2.png",
+      rightSrc: "historia/reyliander2.PNG",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Evelyn",
+      text: "Así es.",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "images/Evelyn.png",
+      leftSupportSrc: "historia/Winchester2.png",
+      rightSrc: "historia/reyliander2.PNG",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Rey Liander",
+      text: "Pues bien, ATALAYA, con este pase real podréis recorrer todo Kardun bajo mi protección, lo que os permitirá llegar a zonas no accesibles para cualquiera y solicitar ayuda de mis soldados, si así lo necesitaseis.",
+      background: "historia/mapa1.png",
+      active: "right",
+      leftSrc: "images/Evelyn.png",
+      leftSupportSrc: "historia/Winchester2.png",
+      rightSrc: "historia/reyliander3.PNG",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Jane",
+      text: "Muy bien, ¿y la letra pequeña?",
+      background: "historia/mapa1.png",
+      active: "left-support",
+      leftSrc: "historia/Camus2.png",
+      leftMirror: true,
+      leftSupportSrc: "historia/Jane2.png",
+      leftSupportMirror: true,
+      rightSrc: "historia/reyliander3.PNG",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Winchester",
+      text: "¡Jane!",
+      background: "historia/mapa1.png",
+      active: "left-support",
+      leftSrc: "images/Evelyn.png",
+      leftSupportSrc: "historia/Winchester2.png",
+      rightSrc: "historia/reyliander3.PNG",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Rey Liander",
+      text: "No la regañes, tiene razón. Tengo que pediros un favor.",
+      background: "historia/mapa1.png",
+      active: "right",
+      leftSrc: "images/Evelyn.png",
+      leftSupportSrc: "historia/Winchester2.png",
+      rightSrc: "historia/reyliander2.PNG",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Jane",
+      text: "...",
+      background: "historia/mapa1.png",
+      active: "left-support",
+      leftSrc: "historia/Camus2.png",
+      leftMirror: true,
+      leftSupportSrc: "historia/Jane2.png",
+      leftSupportMirror: true,
+      rightSrc: "historia/reyliander2.PNG",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Rey Liander",
+      text: "Necesito que atraveséis Kardun hasta Theryn, la región conocida como Los bosques velados. Como bien sabéis allí no hay gobernante. Dicen tener un concilio y acatar las decisiones del pueblo pero no es cierto. Allí se esconde otra \"Argo\", arrebatada a mi familia hace mucho tiempo... Me gustaría recuperarla, ahora que habéis tenido una durante un tiempo, tendréis más facilidad para sentir otras piedras Argo.",
+      background: "historia/mapa1.png",
+      active: "right",
+      leftSrc: "images/Evelyn.png",
+      leftSupportSrc: "historia/Winchester2.png",
+      rightSrc: "historia/reyliander.PNG",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Evelyn",
+      text: "¿Ah sí? Jamás había escuchado de tal magia.",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "images/Evelyn.png",
+      leftSupportSrc: "historia/Winchester2.png",
+      rightSrc: "historia/reyliander.PNG",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Rey Liander",
+      text: "Es una magia ancestral muy rara pero cuando estéis cerca de otra Argo, os daréis cuenta de que estaba en lo cierto. Traédmela y os colmaré de riquezas y, lo más importante, estaré en deuda con vosotros.",
+      background: "historia/mapa1.png",
+      active: "right",
+      leftSrc: "images/Evelyn.png",
+      leftSupportSrc: "historia/Winchester2.png",
+      rightSrc: "historia/reyliander.PNG",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Evelyn",
+      text: "Suena bien, cuenta con nuestra ayuda. Volveremos lo antes posible con una nueva Argo.",
+      background: "historia/mapa1.png",
+      active: "left",
+      leftSrc: "images/Evelyn.png",
+      leftSupportSrc: "historia/Winchester2.png",
+      rightSrc: "historia/reyliander.PNG",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "Rey Liander",
+      text: "Lo espero con ansias.",
+      background: "historia/mapa1.png",
+      active: "right",
+      leftSrc: "images/Evelyn.png",
+      leftSupportSrc: "historia/Winchester2.png",
+      rightSrc: "historia/reyliander.PNG",
+      rightMirror: false,
+      showChars: true
+    },
+    {
+      speaker: "",
+      text: "",
+      background: "historia/mapa1.png",
+      showChars: false,
+      autoAdvanceMs: 2000
+    },
+    {
+      speaker: "¿?",
+      text: "Padre... ¿Cómo has podido?",
+      background: "historia/mapa1.png",
+      active: "right",
+      rightSrc: "historia/princesa.PNG",
+      rightMirror: false,
+      showLeft: false,
       showChars: true
     }
   ];
@@ -1539,6 +1960,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let storySceneTextPages = [];
   let storySceneTextPageIndex = 0;
   let lastRenderedStorySceneKey = "";
+  let storyAutoAdvanceTimer = null;
   let storyPhase = "pre";
   let storyMapState = storyMapFlow ? storyMapFlow.createInitialState() : null;
   let storyMapRunHistory = [];
@@ -3679,6 +4101,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (showRight && storyRightChar) setImageWithFallback(storyRightChar, scene.rightSrc, "images/Landom.png?v=20260210-4");
     if (showLeftSupport && storyLeftSupportChar) setImageWithFallback(storyLeftSupportChar, scene.leftSupportSrc, "historia/Winchester2.png");
     if (showRightSupport && storyRightSupportChar) setImageWithFallback(storyRightSupportChar, scene.rightSupportSrc, "historia/Jane2.png");
+    storyLeftChar?.classList.toggle("mirror", scene.leftMirror === true);
+    storyLeftSupportChar?.classList.toggle("mirror", scene.leftSupportMirror === true);
     storyRightChar?.classList.toggle("no-mirror", scene.rightMirror === false);
     storyRightSupportChar?.classList.toggle("no-mirror", scene.rightSupportMirror === false);
     storyLeftChar?.classList.toggle("active", scene.active === "left");
@@ -4128,7 +4552,9 @@ document.addEventListener("DOMContentLoaded", () => {
     gameRoot.classList.add("hidden");
     resetViewportTop();
     if (storyMapState?.bossCompleted) {
-      startNextStoryMapRun();
+      storyPhase = "mappost";
+      storyStep = 0;
+      renderStoryStep();
       return;
     }
     storyPhase = "map";
@@ -4371,6 +4797,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderStoryStep() {
+    clearTimeout(storyAutoAdvanceTimer);
+    storyAutoAdvanceTimer = null;
     if (storyPhase === "map") {
       storyScreen?.classList.remove("story-mapintro");
       renderStoryMapLayer();
@@ -4406,6 +4834,22 @@ document.addEventListener("DOMContentLoaded", () => {
     if (storyMenuBtn) storyMenuBtn.classList.toggle("hidden", !(isFinalPhase && isLast));
     if (storyNextBtn) {
       storyNextBtn.textContent = isLast && isLastPage && isFinalPhase ? "Fin" : "Siguiente";
+      storyNextBtn.disabled = false;
+    }
+    const shouldAutoAdvance = !!(
+      scene &&
+      Number(scene.autoAdvanceMs) > 0 &&
+      isLastPage &&
+      storyStep < scenes.length - 1
+    );
+    if (shouldAutoAdvance) {
+      if (storyNextBtn) storyNextBtn.disabled = true;
+      const expectedPhase = storyPhase;
+      const expectedStep = storyStep;
+      storyAutoAdvanceTimer = setTimeout(() => {
+        if (storyPhase !== expectedPhase || storyStep !== expectedStep) return;
+        nextStoryStep();
+      }, Number(scene.autoAdvanceMs));
     }
   }
 
@@ -4585,7 +5029,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     if (storyPhase === "mappost") {
-      setIntroVisible();
+      startNextStoryMapRun();
     }
   }
 
@@ -6463,6 +6907,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function resetGame() {
+    clearTimeout(storyAutoAdvanceTimer);
+    storyAutoAdvanceTimer = null;
     stopMiniGameLoop();
     hideModal(missionModal);
     hideModal(rouletteModal);

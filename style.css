@@ -288,8 +288,14 @@ img{ max-width:100%; height:auto; }
   left: 3%;
   transform: scale(var(--char-scale));
 }
+.story-char.left.mirror{
+  transform: scaleX(-1) scale(var(--char-scale));
+}
 .story-char.left.support{
   left: 16%;
+}
+.story-char.left.support.mirror{
+  transform: scaleX(-1) scale(var(--char-scale));
 }
 .story-char.right{
   right: 3%;
@@ -309,6 +315,9 @@ img{ max-width:100%; height:auto; }
 }
 
 .story-char.right.active{
+  transform: scaleX(-1) scale(calc(var(--char-scale) * 1.03));
+}
+.story-char.left.mirror.active{
   transform: scaleX(-1) scale(calc(var(--char-scale) * 1.03));
 }
 .story-char.right.no-mirror.active{
