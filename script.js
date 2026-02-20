@@ -502,7 +502,37 @@ document.addEventListener("DOMContentLoaded", () => {
   const STORY_WORLD_INTRO_SCENES = [
     {
       speaker: "",
-      text: "¡Saludos, viajeros!\nOs damos la bienvenida al continente de Orbis, nuestro mundo. Orbis siempre fue una tierra de paz y prosperidad pero todo cambió con la Gran Guerra. Nuestro preciado continente se fragmentó y las cinco grandes regiones se volvieron más autónomas y desconfiadas que nunca. Muchos aprovecharon la situación para alzarse con el poder; lo que antaño fuera un mundo libre, ahora se encontraba bajo el control de personas que se autoproclamaron reyes. Y es que la pérdida de tecnología que sufrió Orbis tras innumerables batallas repercutió también en sus gentes y costumbres, volviendo a tradiciones y pensamientos de antaño. Todo esto ha creado un clima de inseguridad donde cada uno se gana la vida como puede y no es seguro andar solo por los caminos. Los grupos de mercenarios abundan, gente sin escrúpulos que hace de todo por dinero. Y nuestra historia comienza precisamente con uno de esos grupos, uno especialmente peculiar...",
+      text: "¡Saludos, viajeros!\nOs damos la bienvenida al continente de Orbis, nuestro mundo.",
+      background: "historia/mapaorbis.PNG",
+      showChars: false
+    },
+    {
+      speaker: "",
+      text: "Orbis siempre fue una tierra de paz y prosperidad pero todo cambió con la Gran Guerra. Nuestro preciado continente se fragmentó y las cinco grandes regiones se volvieron más autónomas y desconfiadas que nunca.",
+      background: "historia/mapaorbis.PNG",
+      showChars: false
+    },
+    {
+      speaker: "",
+      text: "Muchos aprovecharon la situación para alzarse con el poder; lo que antaño fuera un mundo libre, ahora se encontraba bajo el control de personas que se autoproclamaron reyes.",
+      background: "historia/mapaorbis.PNG",
+      showChars: false
+    },
+    {
+      speaker: "",
+      text: "Y es que la pérdida de tecnología que sufrió Orbis tras innumerables batallas repercutió también en sus gentes y costumbres, volviendo a tradiciones y pensamientos de antaño.",
+      background: "historia/mapaorbis.PNG",
+      showChars: false
+    },
+    {
+      speaker: "",
+      text: "Todo esto ha creado un clima de inseguridad donde cada uno se gana la vida como puede y no es seguro andar solo por los caminos. Los grupos de mercenarios abundan, gente sin escrúpulos que hace de todo por dinero.",
+      background: "historia/mapaorbis.PNG",
+      showChars: false
+    },
+    {
+      speaker: "",
+      text: "Y nuestra historia comienza precisamente con uno de esos grupos, uno especialmente peculiar...",
       background: "historia/mapaorbis.PNG",
       showChars: false
     },
