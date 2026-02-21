@@ -504,30 +504,35 @@ document.addEventListener("DOMContentLoaded", () => {
       speaker: "",
       text: "¡Saludos, viajeros!\nOs damos la bienvenida al continente de Orbis, nuestro mundo.",
       background: "historia/mapaorbis.PNG",
+      orbisFocus: "theryn",
       showChars: false
     },
     {
       speaker: "",
       text: "Orbis siempre fue una tierra de paz y prosperidad pero todo cambió con la Gran Guerra. Nuestro preciado continente se fragmentó y las cinco grandes regiones se volvieron más autónomas y desconfiadas que nunca.",
       background: "historia/mapaorbis.PNG",
+      orbisFocus: "lyssara",
       showChars: false
     },
     {
       speaker: "",
       text: "Muchos aprovecharon la situación para alzarse con el poder; lo que antaño fuera un mundo libre, ahora se encontraba bajo el control de personas que se autoproclamaron reyes.",
       background: "historia/mapaorbis.PNG",
+      orbisFocus: "aurelia",
       showChars: false
     },
     {
       speaker: "",
       text: "Y es que la pérdida de tecnología que sufrió Orbis tras innumerables batallas repercutió también en sus gentes y costumbres, volviendo a tradiciones y pensamientos de antaño.",
       background: "historia/mapaorbis.PNG",
+      orbisFocus: "varkhal",
       showChars: false
     },
     {
       speaker: "",
       text: "Todo esto ha creado un clima de inseguridad donde cada uno se gana la vida como puede y no es seguro andar solo por los caminos. Los grupos de mercenarios abundan, gente sin escrúpulos que hace de todo por dinero.",
       background: "historia/mapaorbis.PNG",
+      orbisFocus: "kardhun",
       showChars: false
     },
     {
@@ -4154,7 +4159,16 @@ document.addEventListener("DOMContentLoaded", () => {
           : 'url("images/portadainicio.PNG") center center / cover no-repeat';
       }
       storyScreen.classList.toggle("story-pan-group-mobile", isWidePanScene);
-      storyScreen.classList.toggle("story-pan-orbis-mobile", isOrbisMapScene);
+      storyScreen.classList.toggle("story-pan-orbis-mobile", isOrbisMapScene && !scene?.orbisFocus);
+      storyScreen.classList.toggle("story-orbis-focus", isOrbisMapScene && !!scene?.orbisFocus);
+      if (isOrbisMapScene && scene?.orbisFocus) {
+        const focus = getOrbisFocusStyle(scene.orbisFocus);
+        storyScreen.style.backgroundSize = focus.size;
+        storyScreen.style.backgroundPosition = focus.position;
+      } else if (!isOrbisMapScene) {
+        storyScreen.style.backgroundSize = "";
+        storyScreen.style.backgroundPosition = "";
+      }
     }
     if (storyStage) storyStage.style.background = "";
 
@@ -4190,6 +4204,35 @@ document.addEventListener("DOMContentLoaded", () => {
     storyLeftSupportChar?.classList.toggle("active", scene.active === "left-support");
     storyRightSupportChar?.classList.toggle("active", scene.active === "right-support");
     applyStoryCharacterNormalization();
+  }
+
+  function getOrbisFocusStyle(focus) {
+    const mobile = isMobileStoryViewport();
+    const table = {
+      theryn: {
+        desktop: { size: "165%", position: "9% 22%" },
+        mobile: { size: "235%", position: "6% 26%" }
+      },
+      lyssara: {
+        desktop: { size: "170%", position: "30% 46%" },
+        mobile: { size: "240%", position: "28% 48%" }
+      },
+      aurelia: {
+        desktop: { size: "165%", position: "47% 30%" },
+        mobile: { size: "235%", position: "46% 32%" }
+      },
+      varkhal: {
+        desktop: { size: "170%", position: "67% 42%" },
+        mobile: { size: "240%", position: "66% 44%" }
+      },
+      kardhun: {
+        desktop: { size: "185%", position: "86% 35%" },
+        mobile: { size: "255%", position: "84% 38%" }
+      }
+    };
+    const key = String(focus || "").toLowerCase();
+    const entry = table[key] || table.kardhun;
+    return mobile ? entry.mobile : entry.desktop;
   }
 
   function isMobileStoryViewport() {

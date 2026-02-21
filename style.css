@@ -257,6 +257,9 @@ img{ max-width:100%; height:auto; }
   background: url("images/portadainicio.PNG") center center / cover no-repeat;
   position: relative;
 }
+.story-screen.story-orbis-focus{
+  transition: background-size .9s ease, background-position .9s ease;
+}
 
 .story-stage{
   position: relative;
