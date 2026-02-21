@@ -4143,6 +4143,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const bgLower = String(scene.background || "").toLowerCase();
     const isWidePanScene = bgLower.includes("1grupocharla.png") || bgLower.includes("1combatebandidos.png");
     const isOrbisMapScene = bgLower.includes("mapaorbis.png");
+    const isOrbisCinematic = isOrbisMapScene && storyPhase === "worldintro" && !scene?.backgroundCss;
 
     if (storySpeaker) {
       storySpeaker.textContent = scene.speaker || "";
@@ -4159,13 +4160,14 @@ document.addEventListener("DOMContentLoaded", () => {
           : 'url("images/portadainicio.PNG") center center / cover no-repeat';
       }
       storyScreen.classList.toggle("story-pan-group-mobile", isWidePanScene);
-      storyScreen.classList.toggle("story-pan-orbis-mobile", isOrbisMapScene && !scene?.orbisFocus);
-      storyScreen.classList.toggle("story-orbis-focus", isOrbisMapScene && !!scene?.orbisFocus);
-      if (isOrbisMapScene && scene?.orbisFocus) {
+      storyScreen.classList.toggle("story-pan-orbis-cinematic", isOrbisCinematic);
+      storyScreen.classList.toggle("story-pan-orbis-mobile", isOrbisMapScene && !scene?.orbisFocus && !isOrbisCinematic);
+      storyScreen.classList.toggle("story-orbis-focus", isOrbisMapScene && !!scene?.orbisFocus && !isOrbisCinematic);
+      if (isOrbisMapScene && scene?.orbisFocus && !isOrbisCinematic) {
         const focus = getOrbisFocusStyle(scene.orbisFocus);
         storyScreen.style.backgroundSize = focus.size;
         storyScreen.style.backgroundPosition = focus.position;
-      } else if (!isOrbisMapScene) {
+      } else if (!isOrbisMapScene || isOrbisCinematic) {
         storyScreen.style.backgroundSize = "";
         storyScreen.style.backgroundPosition = "";
       }

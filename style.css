@@ -484,6 +484,27 @@ img{ max-width:100%; height:auto; }
   100% { background-position: right center; }
 }
 
+@keyframes storyPanOrbisCinematicDesktop {
+  0%   { background-size: 165% auto; background-position: 9% 22%; }
+  25%  { background-size: 170% auto; background-position: 30% 46%; }
+  50%  { background-size: 165% auto; background-position: 47% 30%; }
+  75%  { background-size: 170% auto; background-position: 67% 42%; }
+  100% { background-size: 185% auto; background-position: 86% 35%; }
+}
+
+@keyframes storyPanOrbisCinematicMobile {
+  0%   { background-size: 235% auto; background-position: 6% 26%; }
+  25%  { background-size: 240% auto; background-position: 28% 48%; }
+  50%  { background-size: 235% auto; background-position: 46% 32%; }
+  75%  { background-size: 240% auto; background-position: 66% 44%; }
+  100% { background-size: 255% auto; background-position: 84% 38%; }
+}
+
+.story-screen.story-pan-orbis-cinematic{
+  animation: storyPanOrbisCinematicDesktop 24s linear infinite alternate;
+  background-repeat: no-repeat !important;
+}
+
 /* ---------- RECLUTAR ---------- */
 .recruit-card{
   width: min(620px, 100%);
@@ -2175,6 +2196,10 @@ img{ max-width:100%; height:auto; }
     background-size: auto 100% !important;
     background-position: left center !important;
     animation: storyPanOrbisMobile 22s linear infinite alternate;
+  }
+  .story-screen.story-pan-orbis-cinematic{
+    animation: storyPanOrbisCinematicMobile 24s linear infinite alternate;
+    background-repeat: no-repeat !important;
   }
 
   #teamScreen .start-card{
