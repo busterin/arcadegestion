@@ -710,7 +710,103 @@ document.addEventListener("DOMContentLoaded", () => {
     },
     {
       speaker: "Evelyn",
-      text: "Tenemos que hablar de lo que ha pasado...",
+      text: "¿Que es esto?",
+      background: "historia/1fondopueblo.PNG",
+      active: "left",
+      leftSrc: "historia/evelyngema.PNG",
+      leftSupportSrc: "historia/Winchester2.png",
+      rightSrc: "historia/Camus2.png",
+      rightMirror: false,
+      rightSupportSrc: "historia/Jane2.png",
+      showChars: true
+    },
+    {
+      speaker: "Jane",
+      text: "Lo lleva uno de los bandidos, parecía apreciarlo más que a su vida.",
+      background: "historia/1fondopueblo.PNG",
+      active: "right-support",
+      leftSrc: "historia/evelyngema.PNG",
+      leftSupportSrc: "historia/Winchester2.png",
+      rightSrc: "historia/Camus2.png",
+      rightMirror: false,
+      rightSupportSrc: "historia/Jane2.png",
+      showChars: true
+    },
+    {
+      speaker: "Camus",
+      text: "Hace unos días se reportó el robo de una gema perteneciente al mísmisiomo Rey Leiran.",
+      background: "historia/1fondopueblo.PNG",
+      active: "right",
+      leftSrc: "historia/evelyngema.PNG",
+      leftSupportSrc: "historia/Winchester2.png",
+      rightSrc: "historia/Camus2.png",
+      rightMirror: false,
+      rightSupportSrc: "historia/Jane2.png",
+      showChars: true
+    },
+    {
+      speaker: "Winchester",
+      text: "¿El gobernante de Khar-Dhun?",
+      background: "historia/1fondopueblo.PNG",
+      active: "left-support",
+      leftSrc: "historia/evelyngema.PNG",
+      leftSupportSrc: "historia/Winchester2.png",
+      rightSrc: "historia/Camus2.png",
+      rightMirror: false,
+      rightSupportSrc: "historia/Jane2.png",
+      showChars: true
+    },
+    {
+      speaker: "Camus",
+      text: "Ese mismo. Y lo mnás probable es que se trate de esta, jamás había visto nada igual.",
+      background: "historia/1fondopueblo.PNG",
+      active: "right",
+      leftSrc: "historia/evelyngema.PNG",
+      leftSupportSrc: "historia/Winchester2.png",
+      rightSrc: "historia/Camus2.png",
+      rightMirror: false,
+      rightSupportSrc: "historia/Jane2.png",
+      showChars: true
+    },
+    {
+      speaker: "Evelyn",
+      text: "Pues llevemosla al castillo.",
+      background: "historia/1fondopueblo.PNG",
+      active: "left",
+      leftSrc: "historia/evelyngema.PNG",
+      leftSupportSrc: "historia/Winchester2.png",
+      rightSrc: "historia/Camus2.png",
+      rightMirror: false,
+      rightSupportSrc: "historia/Jane2.png",
+      showChars: true
+    },
+    {
+      speaker: "Jane",
+      text: "¿Un grupo de apestosos mercenarios en un castillo tan imponente? ¿No acabaremos en las mazmorras?",
+      background: "historia/1fondopueblo.PNG",
+      active: "right-support",
+      leftSrc: "historia/evelyngema.PNG",
+      leftSupportSrc: "historia/Winchester2.png",
+      rightSrc: "historia/Camus2.png",
+      rightMirror: false,
+      rightSupportSrc: "historia/Jane2.png",
+      showChars: true
+    },
+    {
+      speaker: "Winchester",
+      text: "Deja de quejarte y vamos.",
+      background: "historia/1fondopueblo.PNG",
+      active: "left-support",
+      leftSrc: "historia/evelyngema.PNG",
+      leftSupportSrc: "historia/Winchester2.png",
+      rightSrc: "historia/Camus2.png",
+      rightMirror: false,
+      rightSupportSrc: "historia/Jane2.png",
+      showChars: true
+    },
+    {
+      speaker: "Evelyn",
+      text: "Para poder llegar, debemos acceder al mapa del mundo.",
       background: "historia/1fondopueblo.PNG",
       active: "left",
       leftSrc: "images/Evelyn.png",
@@ -719,6 +815,13 @@ document.addEventListener("DOMContentLoaded", () => {
       rightMirror: false,
       rightSupportSrc: "historia/Jane2.png",
       showChars: true
+    },
+    {
+      speaker: "",
+      text: "",
+      background: "historia/mapaorbis.PNG",
+      showChars: false,
+      autoAdvanceMs: 2000
     }
   ];
   const STORY_MAP_POST_SCENES = [
