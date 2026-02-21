@@ -1834,8 +1834,32 @@ img{ max-width:100%; height:auto; }
   text-align: center;
 }
 @media (min-width: 821px){
+  #missionModal .section{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  #missionModal #charactersGrid{
+    width: min(100%, 640px);
+  }
+  #missionModal #pickHint{
+    width: min(100%, 640px);
+    text-align: center;
+  }
+  #missionModal .modal-actions{
+    justify-content: center;
+  }
+  #missionModal .modal-head > div{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
   .mission-img{
+    width: min(100%, 760px);
+    margin-left: auto;
+    margin-right: auto;
     max-height: 700px;
+    object-position: center;
   }
 }
 
