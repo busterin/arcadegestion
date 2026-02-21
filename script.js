@@ -558,7 +558,7 @@ document.addEventListener("DOMContentLoaded", () => {
     },
     {
       speaker: "Evelyn",
-      text: "Y ahí vamos otra vez... Ese sueño recurrente de nuevo...",
+      text: "...",
       active: "left",
       leftSrc: "images/Evelyn.png",
       rightSrc: "images/Landom.png?v=20260210-4",
@@ -576,7 +576,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const STORY_POST_COMBAT_SCENES = [
     {
       speaker: "Evelyn",
-      text: "¿Dónde estoy? ¿Landom? ¿Landom? No me abandones otra vez, por favor... No, otra vez, no... Niebla... Todo lo cubre la niebla...",
+      text: "¿Dónde estoy? ¿Landom? ¿Landom? No me abandones otra vez, por favor... No, otra vez no... Niebla... Todo lo cubre la niebla...",
       background: "historia/1nieblaevelyn.PNG",
       showChars: false
     },
