@@ -8027,7 +8027,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       cardInfoLevel.classList.toggle("hidden", !showLevel);
     }
-    cardInfoImg.src = isWinchester ? getWinchesterImage() : cardData.img;
+    cardInfoImg.src = (isWinchester && !previewOnly) ? getWinchesterImage() : cardData.img;
     cardInfoImg.alt = cardData.name;
     cardInfoActions?.classList.toggle("hidden", previewOnly);
     cardInfoInfoBtn?.classList.add("active");

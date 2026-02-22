@@ -444,12 +444,12 @@ img{ max-width:100%; height:auto; }
   text-align: center;
 }
 
-.story-roster-grid-main{
+#storyRosterModal .story-roster-grid-main{
   max-width: 100%;
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-.story-roster-grid-cards{
+#storyRosterModal .story-roster-grid-cards{
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
@@ -2600,11 +2600,11 @@ img{ max-width:100%; height:auto; }
     top: 60px;
   }
 
-  .story-roster-grid-main{
+  #storyRosterModal .story-roster-grid-main{
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .story-roster-grid-cards{
+  #storyRosterModal .story-roster-grid-cards{
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
