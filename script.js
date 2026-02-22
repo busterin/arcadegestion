@@ -5483,6 +5483,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function startNextStoryMapRun() {
+    const previousPointIcons = storyMapPointIcons && typeof storyMapPointIcons === "object"
+      ? { ...storyMapPointIcons }
+      : null;
     if (storyMapFlow && storyMapState) {
       storyMapRunHistory.push(storyMapFlow.normalizeState(storyMapState));
       if (storyMapRunHistory.length > 20) storyMapRunHistory.shift();
@@ -5491,7 +5494,7 @@ document.addEventListener("DOMContentLoaded", () => {
     pendingMonsterPostRewardPointId = null;
     pendingJaneFriendshipPointId = null;
     storyMapState = storyMapFlow ? storyMapFlow.createInitialState() : null;
-    resetStoryMapPointIcons();
+    storyMapPointIcons = previousPointIcons;
     ensureStoryMapPointIcons();
     storyPhase = "map";
     storyStep = 0;
