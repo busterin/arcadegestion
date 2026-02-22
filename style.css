@@ -2990,20 +2990,36 @@ img{ max-width:100%; height:auto; }
   text-align:left;
 }
 
-#cardInfoModal.story-roster-preview .modal-card{
-  width: min(900px, 100%);
-}
-
-#cardInfoModal.story-roster-preview .cardinfo-img{
-  height: clamp(340px, 68vh, 760px);
-}
-
 #cardInfoModal.story-roster-preview.preview-only .modal-card{
-  width: min(760px, 100%);
+  width: min(620px, 94vw);
+  max-height: none;
+  overflow: visible;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 6px 6px 10px;
+  backdrop-filter: none;
 }
 
 #cardInfoModal.story-roster-preview.preview-only .cardinfo-img{
-  height: clamp(420px, 76vh, 860px);
+  width: min(560px, 88vw);
+  height: auto;
+  max-height: 72vh;
+  margin: 0 auto;
+  display: block;
+}
+
+#cardInfoModal.story-roster-preview.preview-only .modal-head{
+  justify-content: center;
+}
+
+#cardInfoModal.story-roster-preview.preview-only .modal-head > div{
+  align-items: center;
+}
+
+#cardInfoModal.story-roster-preview.preview-only .modal-actions{
+  justify-content: center;
+  margin-top: 8px;
 }
 
 #tutorialModal .tutorial-head{

@@ -7858,6 +7858,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function getStoryRosterCharacterEntries() {
     const names = new Set((availableCharacters || []).map((ch) => String(ch?.name || "").trim()).filter(Boolean));
     return [...names]
+      .filter((name) => String(name || "").trim().toLowerCase() !== "reiner")
       .map((name) => {
         const cardData = getStoryRosterCardDataByName(name);
         if (!cardData) return null;
@@ -7873,6 +7874,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function getStoryRosterCardEntries() {
     const entries = (availableCards || []).map((card) => {
+      if (String(card?.name || "").trim().toLowerCase() === "reiner") return null;
       const battleArt = getStoryBattleCardArtByName(card.name);
       return {
         key: `card:${card.id}`,
