@@ -2065,6 +2065,52 @@ img{ max-width:100%; height:auto; }
   width: 100%;
 }
 
+.arcade-mode-picker{
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.arcade-mode-image-btn{
+  appearance: none;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.03);
+  border-radius: 14px;
+  padding: 6px;
+  cursor: pointer;
+  transition: transform .14s ease, border-color .14s ease, box-shadow .14s ease, background .14s ease;
+}
+
+.arcade-mode-image-btn img{
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+}
+
+.arcade-mode-image-btn:hover{
+  transform: translateY(-1px);
+  border-color: rgba(255,255,255,.28);
+  background: rgba(255,255,255,.06);
+}
+
+.arcade-mode-image-btn:focus,
+.arcade-mode-image-btn:focus-visible{
+  outline: none;
+  border-color: rgba(126,214,255,.9);
+  box-shadow: 0 0 0 2px rgba(126,214,255,.18), 0 0 0 4px rgba(126,214,255,.08);
+}
+
+.arcade-mode-back-row{
+  margin-top: 12px;
+}
+
+@media (max-width: 640px){
+  .arcade-mode-picker{
+    grid-template-columns: 1fr;
+  }
+}
+
 .story-load-panel{
   margin-top: 12px;
 }
