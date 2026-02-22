@@ -169,7 +169,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const ARCADE_BATTLE_DRAW_PER_TURN = 1;
   const ARCADE_BATTLE_ENEMY_MAX_HP = 20;
   const ARCADE_BATTLE_ENEMY_MAX_SHIELD = 0;
-  const ARCADE_BATTLE_ENEMY_ATTACK = 1;
+  const ARCADE_BATTLE_ENEMY_ATTACK = 3;
   const ARCADE_BATTLE_CARD_LIBRARY = [
     { id: "ab_camus", name: "Camus", img: "cartas/cartacamus.PNG", cost: 1, damage: 5 },
     { id: "ab_evelyn", name: "Evelyn", img: "cartas/cartaevelyn.PNG", cost: 1, damage: 5 },
