@@ -155,6 +155,50 @@ Sin existencias. Renovaremos la tienda pronto
 </div>
 </div>
 </section>
+<!-- MODO BATALLA (cartas) -->
+<section class="start hidden" id="arcadeBattleScreen">
+<div class="start-card arcade-battle-card">
+<div class="start-title">Modo Batalla</div>
+<div class="start-subtitle" id="arcadeBattleStatus">Arrastra una carta a un enemigo para hacer daño.</div>
+<div class="arcade-battle-board" id="arcadeBattleBoard">
+<div class="arcade-battle-top">
+<div class="arcade-battle-player-panel">
+<div class="arcade-battle-panel-title">Tu equipo</div>
+<div class="arcade-battle-stat">
+<span>Vida</span>
+<span id="arcadeBattlePlayerHpText">20/20</span>
+</div>
+<div class="arcade-battle-bar"><div class="arcade-battle-bar-fill hp" id="arcadeBattlePlayerHpFill"></div></div>
+<div class="arcade-battle-stat">
+<span>Escudo</span>
+<span id="arcadeBattlePlayerShieldText">0/20</span>
+</div>
+<div class="arcade-battle-bar"><div class="arcade-battle-bar-fill shield" id="arcadeBattlePlayerShieldFill"></div></div>
+<div class="arcade-battle-cost-line">
+<span>Coste</span>
+<b id="arcadeBattleCostText">3/3</b>
+<span class="arcade-battle-turn" id="arcadeBattleTurnText">Turno 1</span>
+</div>
+<div class="arcade-battle-deck-line">
+<span>Mazo: <b id="arcadeBattleDeckCount">0</b></span>
+<span>Reserva: <b id="arcadeBattleDiscardCount">0</b></span>
+<span>Mano: <b id="arcadeBattleHandCount">0</b></span>
+</div>
+<div class="modal-actions" style="margin-top:10px;">
+<button class="btn btn-ghost" id="arcadeBattleEndTurnBtn" type="button">Terminar turno</button>
+<button class="btn btn-ghost" id="arcadeBattleRestartBtn" type="button">Reiniciar</button>
+<button class="btn btn-ghost" id="arcadeBattleBackBtn" type="button">Volver al menú</button>
+</div>
+</div>
+<div class="arcade-battle-enemies" id="arcadeBattleEnemies"></div>
+</div>
+<div class="arcade-battle-hand-wrap">
+<div class="arcade-battle-hand-title">Cartas (arrastrables)</div>
+<div class="arcade-battle-hand" id="arcadeBattleHand"></div>
+</div>
+</div>
+</div>
+</section>
 <!-- SELECTOR AVATAR (solo arcade) -->
 <section class="start hidden" id="startScreen">
 <div class="start-card">
@@ -305,6 +349,24 @@ Sin existencias. Renovaremos la tienda pronto
 <div class="divider"></div>
 <div class="modal-actions">
 <button class="btn" id="playAgainBtn" type="button">Jugar otra vez</button>
+</div>
+</div>
+</div>
+<!-- MODAL SELECCIÓN ARCADE -->
+<div aria-hidden="true" class="modal" id="arcadeModeModal">
+<div aria-labelledby="arcadeModeTitle" aria-modal="true" class="modal-card modal-card-small" role="dialog">
+<div class="modal-head">
+<div>
+<div class="modal-title" id="arcadeModeTitle">ARCADE</div>
+<div class="modal-text">Elige el modo de juego.</div>
+</div>
+<button aria-label="Cerrar" class="icon-btn" id="arcadeModeCloseBtn" type="button">✕</button>
+</div>
+<div class="divider"></div>
+<div class="story-entry-actions">
+<button class="btn" id="arcadeModeAtalayaBtn" type="button">MODO ATALAYA</button>
+<button class="btn btn-ghost" id="arcadeModeBattleBtn" type="button">MODO BATALLA</button>
+<button class="btn btn-ghost" id="arcadeModeBackBtn" type="button">Atrás</button>
 </div>
 </div>
 </div>

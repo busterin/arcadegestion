@@ -1130,6 +1130,234 @@ img{ max-width:100%; height:auto; }
   letter-spacing: .4px;
 }
 
+/* ---------- ARCADE BATTLE (CARTAS) ---------- */
+.arcade-battle-card{
+  width: min(1100px, 100%);
+}
+
+.arcade-battle-board{
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.arcade-battle-top{
+  display: grid;
+  grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.arcade-battle-player-panel{
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(5,10,21,.38);
+  padding: 12px;
+}
+
+.arcade-battle-panel-title{
+  font-weight: 900;
+  margin-bottom: 8px;
+}
+
+.arcade-battle-stat{
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.arcade-battle-bar{
+  width: 100%;
+  height: 12px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.08);
+  margin: 5px 0 9px;
+}
+
+.arcade-battle-bar-fill{
+  height: 100%;
+  width: 0%;
+  transition: width .16s ease;
+}
+
+.arcade-battle-bar-fill.hp{
+  background: linear-gradient(90deg, #ff5f63, #ff9472);
+}
+
+.arcade-battle-bar-fill.shield{
+  background: linear-gradient(90deg, #65d7ff, #3aa8ff);
+}
+
+.arcade-battle-cost-line,
+.arcade-battle-deck-line{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+}
+
+.arcade-battle-cost-line{
+  margin-top: 4px;
+  font-size: 13px;
+}
+
+.arcade-battle-turn{
+  margin-left: auto;
+  font-weight: 900;
+  color: #ffe38a;
+}
+
+.arcade-battle-deck-line{
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.arcade-battle-enemies{
+  min-height: 330px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.14);
+  background:
+    linear-gradient(0deg, rgba(6,11,22,.42), rgba(6,11,22,.42)),
+    url("cartas/fondoruinas.PNG") center center / cover no-repeat;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 12px;
+}
+
+.arcade-battle-enemy{
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(0,0,0,.36);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-start;
+  cursor: pointer;
+  transition: transform .12s ease, border-color .12s ease, box-shadow .12s ease, opacity .12s ease;
+}
+
+.arcade-battle-enemy:hover{
+  transform: translateY(-1px);
+}
+
+.arcade-battle-enemy.is-target{
+  border-color: rgba(126,240,255,.85);
+  box-shadow: 0 0 0 2px rgba(126,240,255,.25) inset, 0 0 18px rgba(126,240,255,.22);
+}
+
+.arcade-battle-enemy.is-dead{
+  opacity: .28;
+  filter: grayscale(.85);
+  pointer-events: none;
+}
+
+.arcade-battle-enemy-name{
+  font-size: 13px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.arcade-battle-enemy-art{
+  width: min(150px, 100%);
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 16px rgba(0,0,0,.35));
+}
+
+.arcade-battle-enemy-stats{
+  width: 100%;
+}
+
+.arcade-battle-enemy-meta{
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.arcade-battle-hand-wrap{
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(5,10,21,.34);
+  padding: 10px;
+}
+
+.arcade-battle-hand-title{
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.arcade-battle-hand{
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.arcade-battle-hand-card{
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.04);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  cursor: grab;
+  transition: transform .12s ease, border-color .12s ease, box-shadow .12s ease, opacity .12s ease;
+}
+
+.arcade-battle-hand-card:hover{
+  transform: translateY(-1px);
+}
+
+.arcade-battle-hand-card.dragging{
+  opacity: .45;
+}
+
+.arcade-battle-hand-card.selected{
+  border-color: rgba(126,240,255,.85);
+  box-shadow: 0 0 0 2px rgba(126,240,255,.2) inset;
+}
+
+.arcade-battle-hand-card.disabled{
+  opacity: .35;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.arcade-battle-card-img{
+  width: 100%;
+  aspect-ratio: 0.72 / 1;
+  object-fit: contain;
+  border-radius: 10px;
+  background: rgba(255,255,255,.03);
+}
+
+.arcade-battle-card-name{
+  font-size: 12px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.arcade-battle-card-meta{
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
 /* ---------- GAME LAYOUT ---------- */
 .game{
   height: 100%;
@@ -2166,6 +2394,20 @@ img{ max-width:100%; height:auto; }
   }
 
   .carousel-center{ min-height: 300px; }
+
+  .arcade-battle-top{
+    grid-template-columns: 1fr;
+  }
+  .arcade-battle-enemies{
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+  .arcade-battle-hand{
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .arcade-battle-turn{
+    margin-left: 0;
+  }
 
   .stage{ padding-bottom: 10px; }
   .rival-team-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
