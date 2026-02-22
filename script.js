@@ -273,6 +273,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const miniGameBackBtn = document.getElementById("miniGameBackBtn");
   const arcadeBattleScreen = document.getElementById("arcadeBattleScreen");
   const arcadeBattleStatus = document.getElementById("arcadeBattleStatus");
+  const arcadeBattlePlayerPanel = document.getElementById("arcadeBattlePlayerPanel");
   const arcadeBattlePlayerHpText = document.getElementById("arcadeBattlePlayerHpText");
   const arcadeBattlePlayerHpFill = document.getElementById("arcadeBattlePlayerHpFill");
   const arcadeBattlePlayerShieldText = document.getElementById("arcadeBattlePlayerShieldText");
@@ -487,9 +488,15 @@ document.addEventListener("DOMContentLoaded", () => {
   let arcadeRiskoNoticePending = loadArcadeRiskoNoticePending();
   let arcadeBattleState = null;
   let arcadeBattleSelectedCardInstanceId = "";
+  let arcadeBattlePreviewCardInstanceId = "";
   let arcadeBattleDraggedCardInstanceId = "";
   let arcadeBattleEnemyHoverId = "";
+  let arcadeBattleSelectedEnemyId = "";
+  let arcadeBattleKeyboardZone = "cards";
   let arcadeBattleCardInstanceSeq = 1;
+  let arcadeBattleLongPressTimer = null;
+  let arcadeBattleLongPressInstanceId = "";
+  let arcadeBattleSuppressCardClickUntil = 0;
 
   const MINI_GAME_GOAL_KILLS = 10;
   const MINI_GAME_PLAYER_SPEED_PX_S = 340;
@@ -3957,8 +3964,115 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function clearArcadeBattleSelection() {
     arcadeBattleSelectedCardInstanceId = "";
+    arcadeBattlePreviewCardInstanceId = "";
     arcadeBattleDraggedCardInstanceId = "";
     arcadeBattleEnemyHoverId = "";
+    arcadeBattleSelectedEnemyId = "";
+    arcadeBattleKeyboardZone = "cards";
+  }
+
+  function closeArcadeBattlePreview() {
+    if (!arcadeBattlePreviewCardInstanceId) return;
+    arcadeBattlePreviewCardInstanceId = "";
+    renderArcadeBattleMode();
+  }
+
+  function openArcadeBattlePreview(instanceId) {
+    if (!instanceId) return;
+    const handCard = getArcadeBattleHandCardByInstance(instanceId);
+    if (!handCard) return;
+    arcadeBattlePreviewCardInstanceId = instanceId;
+    arcadeBattleSelectedCardInstanceId = instanceId;
+    renderArcadeBattleMode();
+  }
+
+  function getArcadeBattlePlayableHandInstances() {
+    if (!arcadeBattleState) return [];
+    return arcadeBattleState.hand
+      .map((card) => card.instanceId)
+      .filter((instanceId) => isArcadeBattleCardPlayable(instanceId));
+  }
+
+  function moveArcadeBattleSelection(step) {
+    const playable = getArcadeBattlePlayableHandInstances();
+    if (!playable.length) return;
+    const direction = step < 0 ? -1 : 1;
+    let idx = playable.findIndex((id) => id === arcadeBattleSelectedCardInstanceId);
+    if (idx < 0) idx = direction > 0 ? -1 : 0;
+    idx = (idx + direction + playable.length) % playable.length;
+    arcadeBattleSelectedCardInstanceId = playable[idx];
+    arcadeBattlePreviewCardInstanceId = "";
+    arcadeBattleKeyboardZone = "cards";
+    arcadeBattleSelectedEnemyId = "";
+    arcadeBattleEnemyHoverId = "";
+    renderArcadeBattleMode();
+  }
+
+  function getArcadeBattleAliveEnemyIds() {
+    return getArcadeBattleAliveEnemies().map((enemy) => enemy.id);
+  }
+
+  function moveArcadeBattleEnemySelection(step = 1) {
+    if (!arcadeBattleState) return;
+    const enemyIds = getArcadeBattleAliveEnemyIds();
+    if (!enemyIds.length) return;
+    const direction = step < 0 ? -1 : 1;
+    let idx = enemyIds.findIndex((id) => id === arcadeBattleSelectedEnemyId);
+    if (idx < 0) idx = direction > 0 ? -1 : 0;
+    idx = (idx + direction + enemyIds.length) % enemyIds.length;
+    arcadeBattleSelectedEnemyId = enemyIds[idx];
+    arcadeBattleEnemyHoverId = arcadeBattleSelectedEnemyId;
+    arcadeBattleKeyboardZone = "enemies";
+    renderArcadeBattleMode();
+  }
+
+  function focusArcadeBattleEnemySelection() {
+    if (!arcadeBattleSelectedCardInstanceId) {
+      const playable = getArcadeBattlePlayableHandInstances();
+      if (playable.length) arcadeBattleSelectedCardInstanceId = playable[0];
+      else return;
+    }
+    if (arcadeBattlePreviewCardInstanceId) arcadeBattlePreviewCardInstanceId = "";
+    if (!arcadeBattleSelectedEnemyId || !getArcadeBattleEnemyById(arcadeBattleSelectedEnemyId)?.alive) {
+      const firstAlive = getArcadeBattleAliveEnemyIds()[0] || "";
+      arcadeBattleSelectedEnemyId = firstAlive;
+    }
+    arcadeBattleEnemyHoverId = arcadeBattleSelectedEnemyId || "";
+    arcadeBattleKeyboardZone = "enemies";
+    renderArcadeBattleMode();
+  }
+
+  function focusArcadeBattleCardSelection() {
+    const playable = getArcadeBattlePlayableHandInstances();
+    if (playable.length && !playable.includes(arcadeBattleSelectedCardInstanceId)) {
+      arcadeBattleSelectedCardInstanceId = playable[0];
+    }
+    arcadeBattleKeyboardZone = "cards";
+    arcadeBattleSelectedEnemyId = "";
+    arcadeBattleEnemyHoverId = "";
+    renderArcadeBattleMode();
+  }
+
+  function triggerArcadeBattlePlayerHitFx() {
+    if (!arcadeBattleState?.player) return;
+    arcadeBattleState.player.hitFxUntil = Date.now() + 260;
+    renderArcadeBattleMode();
+    setTimeout(() => {
+      if (!arcadeBattleState?.player) return;
+      if ((arcadeBattleState.player.hitFxUntil || 0) <= Date.now()) renderArcadeBattleMode();
+    }, 280);
+  }
+
+  function triggerArcadeBattleEnemyHitFx(enemyId) {
+    const enemy = getArcadeBattleEnemyById(enemyId);
+    if (!enemy) return;
+    enemy.hitFxUntil = Date.now() + 260;
+    renderArcadeBattleMode();
+    setTimeout(() => {
+      const liveEnemy = getArcadeBattleEnemyById(enemyId);
+      if (!liveEnemy) return;
+      if ((liveEnemy.hitFxUntil || 0) <= Date.now()) renderArcadeBattleMode();
+    }, 280);
   }
 
   function getArcadeBattleEnemyById(enemyId) {
@@ -3986,6 +4100,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!arcadeBattleScreen) return;
     const state = arcadeBattleState;
     const player = state?.player;
+    const now = Date.now();
 
     if (arcadeBattleStatus) arcadeBattleStatus.textContent = state?.status || "Arrastra una carta a un enemigo para hacer daño.";
 
@@ -4002,15 +4117,20 @@ document.addEventListener("DOMContentLoaded", () => {
     if (arcadeBattleHandCount) arcadeBattleHandCount.textContent = String(state?.hand?.length || 0);
 
     if (arcadeBattleEndTurnBtn) arcadeBattleEndTurnBtn.disabled = !state || state.phase !== "playing";
+    if (arcadeBattlePlayerPanel) {
+      const isHit = !!(player && (player.hitFxUntil || 0) > now);
+      arcadeBattlePlayerPanel.classList.toggle("is-hit", isHit);
+    }
 
     if (arcadeBattleEnemies) {
       const enemiesHtml = (state?.enemies || []).map((enemy) => {
         const hpPct = (enemy.hp / Math.max(1, enemy.maxHp)) * 100;
         const shieldPct = enemy.maxShield > 0 ? (enemy.shield / Math.max(1, enemy.maxShield)) * 100 : 0;
-        const targetClass = arcadeBattleEnemyHoverId === enemy.id ? " is-target" : "";
+        const targetClass = (arcadeBattleEnemyHoverId === enemy.id || arcadeBattleSelectedEnemyId === enemy.id) ? " is-target" : "";
         const deadClass = !enemy.alive || enemy.hp <= 0 ? " is-dead" : "";
+        const hitClass = (enemy.hitFxUntil || 0) > now ? " is-hit" : "";
         return `
-          <article class="arcade-battle-enemy${targetClass}${deadClass}" data-enemy-id="${enemy.id}">
+          <article class="arcade-battle-enemy${targetClass}${deadClass}${hitClass}" data-enemy-id="${enemy.id}">
             <div class="arcade-battle-enemy-name">${enemy.name}</div>
             <img class="arcade-battle-enemy-art" src="cartas/bandidocartas.PNG" alt="${enemy.name}" />
             <div class="arcade-battle-enemy-stats">
@@ -4030,10 +4150,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const def = getArcadeBattleCardDef(cardInstance.cardId);
         if (!def) return "";
         const isSelected = arcadeBattleSelectedCardInstanceId === cardInstance.instanceId;
+        const isPreview = arcadeBattlePreviewCardInstanceId === cardInstance.instanceId;
         const isPlayable = isArcadeBattleCardPlayable(cardInstance.instanceId);
         const classes = [
           "arcade-battle-hand-card",
           isSelected ? "selected" : "",
+          isPreview ? "preview" : "",
           isPlayable ? "" : "disabled"
         ].filter(Boolean).join(" ");
         return `
@@ -4098,6 +4220,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     arcadeBattleState.player.cost -= cardDef.cost;
     const result = applyDamageToBattleUnit(enemy, cardDef.damage);
+    triggerArcadeBattleEnemyHitFx(enemy.id);
     if (enemy.hp <= 0) {
       enemy.hp = 0;
       enemy.shield = 0;
@@ -4119,6 +4242,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const incoming = aliveEnemies.length * ARCADE_BATTLE_ENEMY_ATTACK;
     if (incoming > 0) {
       applyDamageToBattleUnit(arcadeBattleState.player, incoming);
+      triggerArcadeBattlePlayerHitFx();
     }
     updateArcadeBattleOutcome();
     if (arcadeBattleState.phase !== "playing") {
@@ -4136,7 +4260,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function selectArcadeBattleCard(instanceId) {
     if (!instanceId || !isArcadeBattleCardPlayable(instanceId)) return;
-    arcadeBattleSelectedCardInstanceId = arcadeBattleSelectedCardInstanceId === instanceId ? "" : instanceId;
+    const nextId = arcadeBattleSelectedCardInstanceId === instanceId ? "" : instanceId;
+    arcadeBattleSelectedCardInstanceId = nextId;
+    if (arcadeBattlePreviewCardInstanceId && arcadeBattlePreviewCardInstanceId !== nextId) {
+      arcadeBattlePreviewCardInstanceId = "";
+    }
     renderArcadeBattleMode();
   }
 
@@ -7758,6 +7886,7 @@ document.addEventListener("DOMContentLoaded", () => {
   arcadeBattleEndTurnBtn?.addEventListener("click", endArcadeBattleTurn);
 
   arcadeBattleHand?.addEventListener("click", (e) => {
+    if (Date.now() < arcadeBattleSuppressCardClickUntil) return;
     const target = e.target;
     if (!(target instanceof HTMLElement)) return;
     const cardEl = target.closest(".arcade-battle-hand-card");
@@ -7766,6 +7895,31 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!instanceId) return;
     selectArcadeBattleCard(instanceId);
   });
+
+  arcadeBattleHand?.addEventListener("pointerdown", (e) => {
+    const target = e.target;
+    if (!(target instanceof HTMLElement)) return;
+    const cardEl = target.closest(".arcade-battle-hand-card");
+    if (!(cardEl instanceof HTMLElement)) return;
+    const instanceId = String(cardEl.dataset.cardInstanceId || "");
+    if (!instanceId || e.pointerType !== "touch") return;
+    clearTimeout(arcadeBattleLongPressTimer);
+    arcadeBattleLongPressInstanceId = instanceId;
+    arcadeBattleLongPressTimer = setTimeout(() => {
+      if (!arcadeBattleLongPressInstanceId) return;
+      arcadeBattleSuppressCardClickUntil = Date.now() + 300;
+      openArcadeBattlePreview(arcadeBattleLongPressInstanceId);
+    }, 520);
+  });
+
+  const cancelArcadeBattleLongPress = () => {
+    clearTimeout(arcadeBattleLongPressTimer);
+    arcadeBattleLongPressTimer = null;
+    arcadeBattleLongPressInstanceId = "";
+  };
+  arcadeBattleHand?.addEventListener("pointerup", cancelArcadeBattleLongPress);
+  arcadeBattleHand?.addEventListener("pointercancel", cancelArcadeBattleLongPress);
+  arcadeBattleHand?.addEventListener("pointerleave", cancelArcadeBattleLongPress);
 
   arcadeBattleHand?.addEventListener("dragstart", (e) => {
     const target = e.target;
@@ -7798,6 +7952,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const enemyEl = target.closest(".arcade-battle-enemy");
     if (!(enemyEl instanceof HTMLElement)) return;
     const enemyId = String(enemyEl.dataset.enemyId || "");
+    arcadeBattleSelectedEnemyId = enemyId;
+    arcadeBattleEnemyHoverId = enemyId;
+    arcadeBattleKeyboardZone = "enemies";
     if (!enemyId || !arcadeBattleSelectedCardInstanceId) return;
     tryPlayArcadeBattleCardOnEnemy(arcadeBattleSelectedCardInstanceId, enemyId);
   });
@@ -7871,6 +8028,56 @@ document.addEventListener("DOMContentLoaded", () => {
   nextAvatarBtn.addEventListener("click", nextAvatar);
 
   document.addEventListener("keydown", (e) => {
+    if (arcadeBattleScreen && !arcadeBattleScreen.classList.contains("hidden")) {
+      const key = String(e.key || "");
+      const keyLower = key.toLowerCase();
+      if (key === "ArrowUp") {
+        e.preventDefault();
+        focusArcadeBattleEnemySelection();
+        return;
+      }
+      if (key === "ArrowDown") {
+        e.preventDefault();
+        focusArcadeBattleCardSelection();
+        return;
+      }
+      if (key === "ArrowLeft") {
+        if (arcadeBattleKeyboardZone === "enemies") {
+          e.preventDefault();
+          moveArcadeBattleEnemySelection(-1);
+          return;
+        }
+        e.preventDefault();
+        moveArcadeBattleSelection(-1);
+        return;
+      }
+      if (key === "ArrowRight") {
+        if (arcadeBattleKeyboardZone === "enemies") {
+          e.preventDefault();
+          moveArcadeBattleEnemySelection(1);
+          return;
+        }
+        e.preventDefault();
+        moveArcadeBattleSelection(1);
+        return;
+      }
+      if (keyLower === "w") {
+        if (arcadeBattleSelectedCardInstanceId) {
+          e.preventDefault();
+          if (arcadeBattlePreviewCardInstanceId === arcadeBattleSelectedCardInstanceId) closeArcadeBattlePreview();
+          else openArcadeBattlePreview(arcadeBattleSelectedCardInstanceId);
+          return;
+        }
+      }
+      if (key === "Enter") {
+        if (arcadeBattleKeyboardZone === "enemies" && arcadeBattleSelectedCardInstanceId && arcadeBattleSelectedEnemyId) {
+          e.preventDefault();
+          tryPlayArcadeBattleCardOnEnemy(arcadeBattleSelectedCardInstanceId, arcadeBattleSelectedEnemyId);
+          return;
+        }
+      }
+    }
+
     if (e.key === "Escape") {
       if (missionPickFromBarActive) {
         e.preventDefault();
@@ -7929,6 +8136,11 @@ document.addEventListener("DOMContentLoaded", () => {
       if (storySavePromptModal?.classList.contains("show")) {
         e.preventDefault();
         hideModal(storySavePromptModal);
+        return;
+      }
+      if (arcadeBattlePreviewCardInstanceId) {
+        e.preventDefault();
+        closeArcadeBattlePreview();
         return;
       }
       if (arcadeBattleScreen && !arcadeBattleScreen.classList.contains("hidden")) {
