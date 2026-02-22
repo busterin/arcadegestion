@@ -163,7 +163,7 @@ document.addEventListener("DOMContentLoaded", () => {
     { id: "card_pendergast", charId: "c6", name: "Pendergast", img: "images/Pendergast.PNG", text: "Carta de apoyo: dinamiza equipos y formación." }
   ];
   const ARCADE_BATTLE_PLAYER_MAX_HP = 20;
-  const ARCADE_BATTLE_PLAYER_MAX_SHIELD = 20;
+  const ARCADE_BATTLE_PLAYER_MAX_SHIELD = 99;
   const ARCADE_BATTLE_COST_MAX = 3;
   const ARCADE_BATTLE_START_HAND = 5;
   const ARCADE_BATTLE_DRAW_PER_TURN = 1;
@@ -178,7 +178,7 @@ document.addEventListener("DOMContentLoaded", () => {
     { id: "ab_winchester", name: "Winchester", img: "cartas/cartawinchester.PNG", cost: 1, damage: 8, level: 1, abilityName: "Rayo fulminante" },
     { id: "ab_jane", name: "Jane", img: "cartas/cartajane.PNG", cost: 2, damage: 0, level: 1, abilityName: "Cubriendo la retaguardia", shieldGain: 5 },
     { id: "ab_lisa", name: "Lisa", img: "cartas/cartalisa.PNG", cost: 1, damage: 0, level: 1, abilityName: "Sanadora de batalla", healAmount: 15 },
-    { id: "ab_pendergast", name: "Pendergast", img: "cartas/cartapendergast.PNG", cost: 1, damage: 5, level: 1, abilityName: "Orden ofensiva" },
+    { id: "ab_pendergast", name: "Pendergast", img: "cartas/cartapendergast.PNG", cost: 1, damage: 0, level: 1, abilityName: "Invento improvisado" },
     { id: "ab_risko", name: "Risko", img: "cartas/cartarisko.PNG", cost: 2, damage: 0, level: 1, abilityName: "Ráfaga de distracción", shieldGain: 5 }
   ];
 
@@ -3877,7 +3877,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function arcadeBattleCardNeedsEnemyTarget(cardDef) {
     const id = String(cardDef?.id || "");
-    return !(id === "ab_camus" || id === "ab_winchester" || id === "ab_jane" || id === "ab_lisa");
+    return !(id === "ab_camus" || id === "ab_winchester" || id === "ab_jane" || id === "ab_lisa" || id === "ab_pendergast");
   }
 
   function createArcadeBattleEnemy(id, name) {
@@ -3904,7 +3904,8 @@ document.addEventListener("DOMContentLoaded", () => {
         shield: 0,
         maxShield: ARCADE_BATTLE_PLAYER_MAX_SHIELD,
         cost: ARCADE_BATTLE_COST_MAX,
-        costMax: ARCADE_BATTLE_COST_MAX
+        costMax: ARCADE_BATTLE_COST_MAX,
+        nextDamageToShieldCharges: 0
       },
       enemyTurnResolving: false,
       ongoingEffects: [],
@@ -3958,6 +3959,26 @@ document.addEventListener("DOMContentLoaded", () => {
     const hpDamage = Math.min(Math.max(0, unit.hp || 0), remaining);
     unit.hp = Math.max(0, (unit.hp || 0) - hpDamage);
     return { shieldAbsorb, hpDamage, totalDamage: shieldAbsorb + hpDamage };
+  }
+
+  function applyArcadeBattleDamageToPlayer(damage) {
+    if (!arcadeBattleState?.player) return { convertedToShield: false, amount: 0 };
+    const incoming = Math.max(0, Number(damage) || 0);
+    if (incoming <= 0) return { convertedToShield: false, amount: 0 };
+    const charges = Math.max(0, Number(arcadeBattleState.player.nextDamageToShieldCharges) || 0);
+    if (charges > 0) {
+      arcadeBattleState.player.nextDamageToShieldCharges = charges - 1;
+      arcadeBattleState.player.shield = clamp(
+        (arcadeBattleState.player.shield || 0) + incoming,
+        0,
+        arcadeBattleState.player.maxShield || ARCADE_BATTLE_PLAYER_MAX_SHIELD
+      );
+      triggerArcadeBattlePlayerHitFx("shield");
+      return { convertedToShield: true, amount: incoming };
+    }
+    applyDamageToBattleUnit(arcadeBattleState.player, incoming);
+    triggerArcadeBattlePlayerHitFx("damage");
+    return { convertedToShield: false, amount: incoming };
   }
 
   function getArcadeBattleHandCardByInstance(instanceId) {
@@ -4213,10 +4234,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (arcadeBattleEffects) {
       const effects = Array.isArray(state?.ongoingEffects) ? state.ongoingEffects.filter((fx) => (fx?.remainingTurns || 0) > 0) : [];
+      const guardCharges = Math.max(0, Number(state?.player?.nextDamageToShieldCharges) || 0);
+      if (guardCharges > 0) {
+        effects.push({ type: "pendergast_guard", charges: guardCharges });
+      }
       arcadeBattleEffects.classList.toggle("hidden", effects.length < 1);
       arcadeBattleEffects.innerHTML = effects.map((fx) => {
         if (fx.type === "camus_explosion") {
           return `<span class="arcade-battle-effect-chip">Explosión de energía <span class="turns">${fx.remainingTurns} turno${fx.remainingTurns === 1 ? "" : "s"}</span></span>`;
+        }
+        if (fx.type === "pendergast_guard") {
+          return `<span class="arcade-battle-effect-chip">Invento improvisado <span class="turns">${fx.charges} carga${fx.charges === 1 ? "" : "s"}</span></span>`;
         }
         return `<span class="arcade-battle-effect-chip">Efecto activo <span class="turns">${fx.remainingTurns} turno${fx.remainingTurns === 1 ? "" : "s"}</span></span>`;
       }).join("");
@@ -4225,7 +4253,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const playerHpPct = player ? ((player.hp / Math.max(1, player.maxHp)) * 100) : 0;
     const playerShieldPct = player ? ((player.shield / Math.max(1, player.maxShield)) * 100) : 0;
     if (arcadeBattlePlayerHpText) arcadeBattlePlayerHpText.textContent = player ? `${player.hp}/${player.maxHp}` : "0/0";
-    if (arcadeBattlePlayerShieldText) arcadeBattlePlayerShieldText.textContent = player ? `${player.shield}/${player.maxShield}` : "0/0";
+    if (arcadeBattlePlayerShieldText) arcadeBattlePlayerShieldText.textContent = player ? String(player.shield) : "0";
     if (arcadeBattlePlayerHpFill) arcadeBattlePlayerHpFill.style.width = `${clamp(playerHpPct, 0, 100)}%`;
     if (arcadeBattlePlayerShieldFill) arcadeBattlePlayerShieldFill.style.width = `${clamp(playerShieldPct, 0, 100)}%`;
     if (arcadeBattleCostText) arcadeBattleCostText.textContent = player ? `${player.cost}/${player.costMax}` : "0/0";
@@ -4396,6 +4424,8 @@ document.addEventListener("DOMContentLoaded", () => {
         0,
         arcadeBattleState.player.maxHp || ARCADE_BATTLE_PLAYER_MAX_HP
       );
+    } else if (cardDef.id === "ab_pendergast") {
+      arcadeBattleState.player.nextDamageToShieldCharges = Math.max(0, Number(arcadeBattleState.player.nextDamageToShieldCharges) || 0) + 1;
     } else if (cardDef.id === "ab_risko") {
       const dealtDamage = cardLevel;
       if (!enemy) return false;
@@ -4460,9 +4490,12 @@ document.addEventListener("DOMContentLoaded", () => {
           renderArcadeBattleMode();
           await waitArcadeBattleStep();
 
-          applyDamageToBattleUnit(arcadeBattleState.player, ARCADE_BATTLE_ENEMY_ATTACK);
-          triggerArcadeBattlePlayerHitFx("damage");
-          setArcadeBattleStatus(`${enemy.name} te hizo ${ARCADE_BATTLE_ENEMY_ATTACK} de daño.`);
+          const damageResult = applyArcadeBattleDamageToPlayer(ARCADE_BATTLE_ENEMY_ATTACK);
+          if (damageResult.convertedToShield) {
+            setArcadeBattleStatus(`${enemy.name} atacó, pero el daño se transformó en ${damageResult.amount} de escudo.`);
+          } else {
+            setArcadeBattleStatus(`${enemy.name} te hizo ${ARCADE_BATTLE_ENEMY_ATTACK} de daño.`);
+          }
           renderArcadeBattleMode();
           await waitArcadeBattleStep();
         } else {
