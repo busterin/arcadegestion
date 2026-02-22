@@ -375,9 +375,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const cardInfoOutfitAltBtn = document.getElementById("cardInfoOutfitAltBtn");
   const storyRosterModal = document.getElementById("storyRosterModal");
   const storyRosterCloseBtn = document.getElementById("storyRosterCloseBtn");
-  const storyRosterTabCharsBtn = document.getElementById("storyRosterTabCharsBtn");
-  const storyRosterTabCardsBtn = document.getElementById("storyRosterTabCardsBtn");
-  const storyRosterList = document.getElementById("storyRosterList");
+  const storyRosterCharsGrid = document.getElementById("storyRosterCharsGrid");
+  const storyRosterCardsGrid = document.getElementById("storyRosterCardsGrid");
+  const storyRosterEmpty = document.getElementById("storyRosterEmpty");
   const closeCardInfoBtn = document.getElementById("closeCardInfoBtn");
 
   const specialModal = document.getElementById("specialModal");
@@ -510,7 +510,6 @@ document.addEventListener("DOMContentLoaded", () => {
   let arcadeBattleLongPressTimer = null;
   let arcadeBattleLongPressInstanceId = "";
   let arcadeBattleSuppressCardClickUntil = 0;
-  let storyRosterTab = "chars";
 
   const MINI_GAME_GOAL_KILLS = 10;
   const MINI_GAME_PLAYER_SPEED_PX_S = 340;
@@ -7886,37 +7885,34 @@ document.addEventListener("DOMContentLoaded", () => {
       .sort((a, b) => a.cardData.name.localeCompare(b.cardData.name, "es", { sensitivity: "base" }));
   }
 
-  function renderStoryRosterModal() {
-    if (!storyRosterList) return;
-    const entries = storyRosterTab === "cards" ? getStoryRosterCardEntries() : getStoryRosterCharacterEntries();
-    storyRosterTabCharsBtn?.classList.toggle("active", storyRosterTab === "chars");
-    storyRosterTabCardsBtn?.classList.toggle("active", storyRosterTab === "cards");
-    if (!entries.length) {
-      storyRosterList.innerHTML = '<div class="story-roster-empty">No hay elementos disponibles.</div>';
-      return;
-    }
-    storyRosterList.innerHTML = entries.map((entry) => `
-      <button class="story-roster-item" type="button" data-roster-key="${entry.key}">
-        <img src="${entry.cardData.img || "images/mision.png"}" alt="${entry.cardData.name}" />
-        <span class="story-roster-item-main">
-          <span class="story-roster-item-name">${entry.cardData.name}</span>
-          <span class="story-roster-item-sub">${entry.subtitle}</span>
-        </span>
-      </button>
-    `).join("");
-    storyRosterList.querySelectorAll(".story-roster-item").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const key = String(btn.getAttribute("data-roster-key") || "");
-        const item = entries.find((entry) => entry.key === key);
-        if (!item?.cardData) return;
-        openCardInfo(item.cardData);
-      });
+  function renderStoryRosterGrid(targetGrid, entries) {
+    if (!(targetGrid instanceof HTMLElement)) return;
+    targetGrid.innerHTML = "";
+    entries.forEach((entry) => {
+      const item = document.createElement("button");
+      item.type = "button";
+      item.className = "user-char";
+      item.innerHTML = `<img src="${entry.cardData.img || "images/mision.png"}" alt="${entry.cardData.name}" />` +
+        `<div class="user-char-name">${entry.cardData.name}</div>`;
+      item.title = entry.subtitle;
+      item.addEventListener("click", () => openCardInfo(entry.cardData));
+      targetGrid.appendChild(item);
     });
+  }
+
+  function renderStoryRosterModal() {
+    const charEntries = getStoryRosterCharacterEntries();
+    const cardEntries = getStoryRosterCardEntries();
+    renderStoryRosterGrid(storyRosterCharsGrid, charEntries);
+    renderStoryRosterGrid(storyRosterCardsGrid, cardEntries);
+    const hasAny = charEntries.length > 0 || cardEntries.length > 0;
+    storyRosterEmpty?.classList.toggle("hidden", hasAny);
+    storyRosterCharsGrid?.classList.toggle("hidden", charEntries.length < 1);
+    storyRosterCardsGrid?.classList.toggle("hidden", cardEntries.length < 1);
   }
 
   function openStoryRosterModal() {
     if (!storyRosterModal) return;
-    storyRosterTab = "chars";
     renderStoryRosterModal();
     setGlobalPause(true);
     showModal(storyRosterModal);
@@ -8944,14 +8940,6 @@ document.addEventListener("DOMContentLoaded", () => {
   storyRosterCloseBtn?.addEventListener("click", closeStoryRosterModal);
   storyRosterModal?.addEventListener("click", (e) => {
     if (e.target === storyRosterModal) closeStoryRosterModal();
-  });
-  storyRosterTabCharsBtn?.addEventListener("click", () => {
-    storyRosterTab = "chars";
-    renderStoryRosterModal();
-  });
-  storyRosterTabCardsBtn?.addEventListener("click", () => {
-    storyRosterTab = "cards";
-    renderStoryRosterModal();
   });
   [storyContinueBtn, storyNewGameBtn, storyLoadGameBtn, storyEntryBackBtn].forEach((btn) => {
     btn?.addEventListener("mouseenter", () => {

@@ -49,8 +49,8 @@
 </div>
 <svg class="story-map-connections" id="storyMapConnections" preserveAspectRatio="none" viewBox="0 0 100 100"></svg>
 <div class="story-map-points" id="storyMapPoints"></div>
-<button aria-label="Consultar equipo" class="btn btn-ghost story-map-roster-btn hidden" id="storyMapRosterBtn" type="button">📚</button>
 <button class="btn btn-ghost story-map-menu-btn hidden" id="storyMapMenuBtn" type="button">Volver al menú</button>
+<button aria-label="Consultar equipo" class="btn btn-ghost story-map-roster-btn hidden" id="storyMapRosterBtn" type="button">📚</button>
 </div>
 <div class="story-dialog" id="storyDialog">
 <div class="story-speaker" id="storySpeaker">Risko</div>
@@ -429,16 +429,18 @@ Sin existencias. Renovaremos la tienda pronto
 <div class="modal-head">
 <div>
 <div class="modal-title" id="storyRosterTitle">Equipo actual</div>
-<div class="modal-text">Consulta fichas y cartas del grupo actual.</div>
+<div class="modal-text">Consulta tus personajes y cartas actuales.</div>
 </div>
 <button aria-label="Cerrar" class="icon-btn" id="storyRosterCloseBtn" type="button">✕</button>
 </div>
 <div class="divider"></div>
-<div class="cardinfo-actions story-roster-tabs">
-<button class="cardinfo-action active" id="storyRosterTabCharsBtn" type="button">Fichas</button>
-<button class="cardinfo-action" id="storyRosterTabCardsBtn" type="button">Cartas</button>
+<div class="user-section-title story-roster-section-title">Fichas</div>
+<div class="user-grid user-grid-main story-roster-grid-main" id="storyRosterCharsGrid"></div>
+<div class="user-section-title story-roster-section-title">Cartas</div>
+<div class="user-grid user-grid-secondary story-roster-grid-cards" id="storyRosterCardsGrid"></div>
+<div class="story-roster-empty hidden" id="storyRosterEmpty">
+No hay personajes disponibles todavía.
 </div>
-<div class="story-roster-list" id="storyRosterList"></div>
 </div>
 </div>
 <!-- HABILIDAD ESPECIAL -->

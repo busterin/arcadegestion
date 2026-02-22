@@ -421,7 +421,7 @@ img{ max-width:100%; height:auto; }
 .story-map-roster-btn{
   position: absolute;
   top: 12px;
-  left: 12px;
+  right: 142px;
   z-index: 6;
   width: 42px;
   height: 42px;
@@ -430,6 +430,30 @@ img{ max-width:100%; height:auto; }
   align-items: center;
   justify-content: center;
   font-size: 18px;
+}
+
+#storyRosterModal .modal-card{
+  width: min(760px, 100%);
+}
+
+.story-roster-section-title{
+  margin-top: 8px;
+}
+
+.story-roster-grid-main{
+  max-width: 100%;
+}
+
+.story-roster-grid-cards{
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+#storyRosterModal .user-char{
+  cursor: pointer;
+}
+
+#storyRosterModal .user-char:hover{
+  transform: translateY(-1px);
 }
 
 .story-map-connection{
@@ -2119,8 +2143,10 @@ img{ max-width:100%; height:auto; }
 
 .arcade-mode-picker{
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 220px));
   gap: 12px;
+  justify-content: center;
+  justify-items: stretch;
 }
 
 .arcade-mode-image-btn{
@@ -2129,6 +2155,7 @@ img{ max-width:100%; height:auto; }
   background: rgba(255,255,255,.03);
   border-radius: 14px;
   padding: 6px;
+  width: 100%;
   cursor: pointer;
   transition: transform .14s ease, border-color .14s ease, box-shadow .14s ease, background .14s ease;
 }
@@ -2556,6 +2583,17 @@ img{ max-width:100%; height:auto; }
   font-size: 13px;
   text-align: center;
   padding: 10px;
+}
+
+@media (max-width: 640px){
+  .story-map-roster-btn{
+    right: 12px;
+    top: 60px;
+  }
+
+  .story-roster-grid-cards{
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 /* ---------- TEAM SELECTION (6) ---------- */
