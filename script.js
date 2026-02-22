@@ -175,8 +175,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const ARCADE_BATTLE_CARD_LIBRARY = [
     { id: "ab_camus", name: "Camus", img: "cartas/cartacamus.PNG", cost: 1, damage: 5, level: 1, abilityName: "Ataque arcano" },
     { id: "ab_evelyn", name: "Evelyn", img: "cartas/cartaevelyn.PNG", cost: 2, damage: 10, level: 1, abilityName: "Golpe certero" },
-    { id: "ab_winchester", name: "Winchester", img: "cartas/cartawinchester.PNG", cost: 1, damage: 5, level: 1, abilityName: "Descarga táctica" },
-    { id: "ab_jane", name: "Jane", img: "cartas/cartajane.PNG", cost: 1, damage: 5, level: 1, abilityName: "Disparo preciso" },
+    { id: "ab_winchester", name: "Winchester", img: "cartas/cartawinchester.PNG", cost: 1, damage: 8, level: 1, abilityName: "Rayo fulminante" },
+    { id: "ab_jane", name: "Jane", img: "cartas/cartajane.PNG", cost: 2, damage: 0, level: 1, abilityName: "Cubriendo la retaguardia", shieldGain: 5 },
     { id: "ab_lisa", name: "Lisa", img: "cartas/cartalisa.PNG", cost: 1, damage: 5, level: 1, abilityName: "Pulso de apoyo" },
     { id: "ab_pendergast", name: "Pendergast", img: "cartas/cartapendergast.PNG", cost: 1, damage: 5, level: 1, abilityName: "Orden ofensiva" },
     { id: "ab_risko", name: "Risko", img: "cartas/cartarisko.PNG", cost: 1, damage: 5, level: 1, abilityName: "Impacto técnico" }
@@ -4297,18 +4297,48 @@ document.addEventListener("DOMContentLoaded", () => {
     const abilityName = String(cardDef.abilityName || "Habilidad");
     const cardLevel = Math.max(1, Number(cardDef.level) || 1);
     const baseDamage = Math.max(0, Number(cardDef.damage) || 0);
-    const dealtDamage = cardDef.id === "ab_evelyn"
-      ? (baseDamage + cardLevel)
-      : baseDamage;
+    const baseShieldGain = Math.max(0, Number(cardDef.shieldGain) || 0);
 
     arcadeBattleState.player.cost -= cardDef.cost;
-    applyDamageToBattleUnit(enemy, dealtDamage);
-    triggerArcadeBattleEnemyHitFx(enemy.id);
-    if (enemy.hp <= 0) {
-      enemy.hp = 0;
-      enemy.shield = 0;
-      enemy.alive = false;
+
+    if (cardDef.id === "ab_evelyn") {
+      const dealtDamage = baseDamage + cardLevel;
+      applyDamageToBattleUnit(enemy, dealtDamage);
+      triggerArcadeBattleEnemyHitFx(enemy.id, "damage");
+      if (enemy.hp <= 0) {
+        enemy.hp = 0;
+        enemy.shield = 0;
+        enemy.alive = false;
+      }
+    } else if (cardDef.id === "ab_winchester") {
+      const enemies = getArcadeBattleAliveEnemies();
+      enemies.forEach((target) => {
+        applyDamageToBattleUnit(target, baseDamage);
+        triggerArcadeBattleEnemyHitFx(target.id, "damage");
+        if (target.hp <= 0) {
+          target.hp = 0;
+          target.shield = 0;
+          target.alive = false;
+        }
+      });
+    } else if (cardDef.id === "ab_jane") {
+      const shieldAmount = baseShieldGain + cardLevel;
+      arcadeBattleState.player.shield = clamp(
+        (arcadeBattleState.player.shield || 0) + shieldAmount,
+        0,
+        arcadeBattleState.player.maxShield || ARCADE_BATTLE_PLAYER_MAX_SHIELD
+      );
+      triggerArcadeBattlePlayerHitFx("shield");
+    } else {
+      applyDamageToBattleUnit(enemy, baseDamage);
+      triggerArcadeBattleEnemyHitFx(enemy.id, "damage");
+      if (enemy.hp <= 0) {
+        enemy.hp = 0;
+        enemy.shield = 0;
+        enemy.alive = false;
+      }
     }
+
     arcadeBattleState.hand.splice(handIndex, 1);
     arcadeBattleState.discard.push(handCard.cardId);
 
