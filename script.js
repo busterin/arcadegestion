@@ -367,6 +367,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const cardInfoLevel = document.getElementById("cardInfoLevel");
   const cardInfoText = document.getElementById("cardInfoText");
   const cardInfoImg = document.getElementById("cardInfoImg");
+  const cardInfoActions = document.getElementById("cardInfoActions");
   const cardInfoInfoBtn = document.getElementById("cardInfoInfoBtn");
   const cardInfoSkillsBtn = document.getElementById("cardInfoSkillsBtn");
   const cardInfoOutfitsBtn = document.getElementById("cardInfoOutfitsBtn");
@@ -7847,9 +7848,14 @@ document.addEventListener("DOMContentLoaded", () => {
     return null;
   }
 
+  function getStoryBattleCardArtByName(name) {
+    const target = String(name || "").trim().toLowerCase();
+    const battleCard = ARCADE_BATTLE_CARD_LIBRARY.find((card) => String(card?.name || "").trim().toLowerCase() === target);
+    return battleCard ? { ...battleCard } : null;
+  }
+
   function getStoryRosterCharacterEntries() {
     const names = new Set((availableCharacters || []).map((ch) => String(ch?.name || "").trim()).filter(Boolean));
-    names.add("Evelyn");
     return [...names]
       .map((name) => {
         const cardData = getStoryRosterCardDataByName(name);
@@ -7865,18 +7871,26 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function getStoryRosterCardEntries() {
-    const entries = (availableCards || []).map((card) => ({
-      key: `card:${card.id}`,
-      cardData: { ...card },
-      subtitle: `Nivel ${Math.max(1, getCharacterStoryLevelByName(card.name))}`
-    }));
+    const entries = (availableCards || []).map((card) => {
+      const battleArt = getStoryBattleCardArtByName(card.name);
+      return {
+        key: `card:${card.id}`,
+        cardData: {
+          ...card,
+          img: battleArt?.img || card.img
+        },
+        subtitle: `Nivel ${Math.max(1, getCharacterStoryLevelByName(card.name))}`,
+        previewOnly: true
+      };
+    });
     if (!entries.some((entry) => String(entry.cardData?.name || "").toLowerCase() === "evelyn")) {
-      const evelynCard = getStoryRosterCardDataByName("Evelyn");
+      const evelynCard = getStoryBattleCardArtByName("Evelyn") || getStoryRosterCardDataByName("Evelyn");
       if (evelynCard) {
         entries.unshift({
           key: "card:evelyn",
-          cardData: evelynCard,
-          subtitle: `Nivel ${Math.max(1, getCharacterStoryLevelByName("Evelyn"))}`
+          cardData: { ...evelynCard },
+          subtitle: `Nivel ${Math.max(1, getCharacterStoryLevelByName("Evelyn"))}`,
+          previewOnly: true
         });
       }
     }
@@ -7885,17 +7899,21 @@ document.addEventListener("DOMContentLoaded", () => {
       .sort((a, b) => a.cardData.name.localeCompare(b.cardData.name, "es", { sensitivity: "base" }));
   }
 
-  function renderStoryRosterGrid(targetGrid, entries) {
+  function renderStoryRosterGrid(targetGrid, entries, options = {}) {
     if (!(targetGrid instanceof HTMLElement)) return;
+    const opts = { hideName: false, ...options };
     targetGrid.innerHTML = "";
     entries.forEach((entry) => {
       const item = document.createElement("button");
       item.type = "button";
       item.className = "user-char";
       item.innerHTML = `<img src="${entry.cardData.img || "images/mision.png"}" alt="${entry.cardData.name}" />` +
-        `<div class="user-char-name">${entry.cardData.name}</div>`;
+        (opts.hideName ? "" : `<div class="user-char-name">${entry.cardData.name}</div>`);
       item.title = entry.subtitle;
-      item.addEventListener("click", () => openCardInfo(entry.cardData));
+      item.addEventListener("click", () => {
+        hideModal(storyRosterModal);
+        openCardInfo(entry.cardData, { previewOnly: !!entry.previewOnly });
+      });
       targetGrid.appendChild(item);
     });
   }
@@ -7903,7 +7921,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderStoryRosterModal() {
     const charEntries = getStoryRosterCharacterEntries();
     const cardEntries = getStoryRosterCardEntries();
-    renderStoryRosterGrid(storyRosterCharsGrid, charEntries);
+    renderStoryRosterGrid(storyRosterCharsGrid, charEntries, { hideName: true });
     renderStoryRosterGrid(storyRosterCardsGrid, cardEntries);
     const hasAny = charEntries.length > 0 || cardEntries.length > 0;
     storyRosterEmpty?.classList.toggle("hidden", hasAny);
@@ -7923,8 +7941,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!isAnyModalOpen()) setGlobalPause(false);
   }
 
-  function openCardInfo(cardData) {
+  function openCardInfo(cardData, options = {}) {
     setGlobalPause(true);
+    const previewOnly = !!options.previewOnly;
     const cardName = String(cardData?.name || "").trim().toLowerCase();
     const SPECIAL_CARD_INFO = {
       camus: {
@@ -7994,8 +8013,9 @@ document.addEventListener("DOMContentLoaded", () => {
       winchesterAltOwned
     };
     cardInfoTitle.textContent = cardData.name;
+    cardInfoTitle.classList.toggle("hidden", previewOnly);
     if (cardInfoLevel) {
-      const showLevel = isStoryContextVisible();
+      const showLevel = isStoryContextVisible() && !previewOnly;
       if (showLevel) {
         cardInfoLevel.textContent = `Nivel ${getCharacterStoryLevelByName(cardData.name)}`;
       }
@@ -8003,9 +8023,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     cardInfoImg.src = isWinchester ? getWinchesterImage() : cardData.img;
     cardInfoImg.alt = cardData.name;
+    cardInfoActions?.classList.toggle("hidden", previewOnly);
     cardInfoInfoBtn?.classList.add("active");
     cardInfoSkillsBtn?.classList.remove("active");
-    cardInfoOutfitsBtn?.classList.toggle("hidden", !isWinchester);
+    cardInfoOutfitsBtn?.classList.toggle("hidden", previewOnly || !isWinchester);
     cardInfoOutfitsBtn?.classList.remove("active");
     cardInfoOutfitsPanel?.classList.add("hidden");
     if (cardInfoOutfitAltBtn) {
@@ -8018,7 +8039,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (cardInfoOutfitAltBtn) {
       cardInfoOutfitAltBtn.classList.toggle("active", selectedWinchesterOutfit === "alt");
     }
-    cardInfoText.textContent = currentCardInfoData.infoText;
+    cardInfoText.classList.toggle("hidden", previewOnly);
+    cardInfoText.textContent = previewOnly ? "" : currentCardInfoData.infoText;
     showModal(cardInfoModal);
   }
 
