@@ -3958,6 +3958,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     const pointId = arcadeBattleContext?.storyMapPointId || currentStoryMapPointId;
     if (win && pointId) {
+      arcadeBattleScreen?.classList.add("hidden");
+      arcadeBattleState = null;
       completeStoryMapBattle(pointId);
       return;
     }
@@ -3977,6 +3979,28 @@ document.addEventListener("DOMContentLoaded", () => {
     storyStep = 0;
     renderStoryStep();
     resetViewportTop();
+  }
+
+  function awardStoryChestBattleEnemyDefeatXp(sourceCardName) {
+    if (arcadeBattleContext?.source !== "story_map_chest") return;
+    const cardName = String(sourceCardName || "").trim();
+    if (!cardName) return;
+    const sourceChar = (availableCharacters || []).find((ch) => String(ch?.name || "") === cardName)
+      || CHARACTERS.find((ch) => String(ch?.name || "") === cardName)
+      || RECRUITABLE_CHARACTERS.find((ch) => String(ch?.name || "") === cardName);
+    if (!sourceChar?.id) return;
+    addStoryCharacterSuccessPoint(sourceChar.id);
+  }
+
+  function finalizeArcadeBattleEnemyAfterDamage(enemy, sourceCardName) {
+    if (!enemy) return false;
+    if (enemy.hp > 0) return false;
+    enemy.hp = 0;
+    enemy.shield = 0;
+    if (!enemy.alive) return false;
+    enemy.alive = false;
+    awardStoryChestBattleEnemyDefeatXp(sourceCardName);
+    return true;
   }
 
   function queueStoryArcadeBattleReturnIfFinished() {
@@ -4257,11 +4281,7 @@ document.addEventListener("DOMContentLoaded", () => {
             setArcadeBattleStatus(`Explosión de energía impactó a ${target.name}.`);
             applyDamageToBattleUnit(target, Math.max(0, Number(effect.damage) || 0));
             triggerArcadeBattleEnemyHitFx(target.id, "damage");
-            if (target.hp <= 0) {
-              target.hp = 0;
-              target.shield = 0;
-              target.alive = false;
-            }
+            finalizeArcadeBattleEnemyAfterDamage(target, effect.sourceName || "Camus");
             renderArcadeBattleMode();
             await waitArcadeBattleStep();
             updateArcadeBattleOutcome();
@@ -4494,27 +4514,20 @@ document.addEventListener("DOMContentLoaded", () => {
       const dealtDamage = baseDamage + cardLevel;
       applyDamageToBattleUnit(enemy, dealtDamage);
       triggerArcadeBattleEnemyHitFx(enemy.id, "damage");
-      if (enemy.hp <= 0) {
-        enemy.hp = 0;
-        enemy.shield = 0;
-        enemy.alive = false;
-      }
+      finalizeArcadeBattleEnemyAfterDamage(enemy, cardDef.name);
     } else if (cardDef.id === "ab_winchester") {
       const enemies = getArcadeBattleAliveEnemies();
       enemies.forEach((target) => {
         applyDamageToBattleUnit(target, baseDamage);
         triggerArcadeBattleEnemyHitFx(target.id, "damage");
-        if (target.hp <= 0) {
-          target.hp = 0;
-          target.shield = 0;
-          target.alive = false;
-        }
+        finalizeArcadeBattleEnemyAfterDamage(target, cardDef.name);
       });
     } else if (cardDef.id === "ab_camus") {
       arcadeBattleState.ongoingEffects = Array.isArray(arcadeBattleState.ongoingEffects) ? arcadeBattleState.ongoingEffects : [];
       arcadeBattleState.ongoingEffects.push({
         type: "camus_explosion",
         sourceId: cardDef.id,
+        sourceName: cardDef.name,
         remainingTurns: cardLevel,
         damage: baseDamage
       });
@@ -4540,11 +4553,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!enemy) return false;
       applyDamageToBattleUnit(enemy, dealtDamage);
       triggerArcadeBattleEnemyHitFx(enemy.id, "damage");
-      if (enemy.hp <= 0) {
-        enemy.hp = 0;
-        enemy.shield = 0;
-        enemy.alive = false;
-      }
+      finalizeArcadeBattleEnemyAfterDamage(enemy, cardDef.name);
       arcadeBattleState.player.shield = clamp(
         (arcadeBattleState.player.shield || 0) + baseShieldGain,
         0,
@@ -4554,11 +4563,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       applyDamageToBattleUnit(enemy, baseDamage);
       triggerArcadeBattleEnemyHitFx(enemy.id, "damage");
-      if (enemy.hp <= 0) {
-        enemy.hp = 0;
-        enemy.shield = 0;
-        enemy.alive = false;
-      }
+      finalizeArcadeBattleEnemyAfterDamage(enemy, cardDef.name);
     }
 
     arcadeBattleState.hand.splice(handIndex, 1);
@@ -5659,9 +5664,11 @@ document.addEventListener("DOMContentLoaded", () => {
     recruitScreen?.classList.add("hidden");
     storeScreen?.classList.add("hidden");
     userScreen?.classList.add("hidden");
+    miniGamesScreen?.classList.add("hidden");
     startScreen.classList.add("hidden");
     teamScreen.classList.add("hidden");
     gameRoot.classList.add("hidden");
+    arcadeBattleScreen?.classList.add("hidden");
     resetViewportTop();
     if (storyMapState?.bossCompleted) {
       storyPhase = "mappost";
