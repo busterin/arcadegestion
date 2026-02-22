@@ -5332,7 +5332,7 @@ document.addEventListener("DOMContentLoaded", () => {
     storyContinueSnapshot = loadStoryContinueSnapshot();
     storySaveSlots = loadStorySaveSlots();
     storyLoadPanel?.classList.add("hidden");
-    if (storyLoadGameBtn) storyLoadGameBtn.textContent = "Cargar partida";
+    storyLoadGameBtn?.classList.remove("is-active");
     storyContinueBtn?.classList.toggle("hidden", !hasStoryContinueSnapshot());
     showModal(storyEntryModal);
   }
@@ -5341,9 +5341,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!storyLoadPanel) return;
     const willShow = storyLoadPanel.classList.contains("hidden");
     storyLoadPanel.classList.toggle("hidden");
-    if (storyLoadGameBtn) {
-      storyLoadGameBtn.textContent = willShow ? "Ocultar archivos" : "Cargar partida";
-    }
+    storyLoadGameBtn?.classList.toggle("is-active", willShow);
     if (willShow) renderStoryLoadSlots();
   }
 
