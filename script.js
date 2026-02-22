@@ -493,6 +493,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let arcadeBattleEnemyHoverId = "";
   let arcadeBattleSelectedEnemyId = "";
   let arcadeBattleKeyboardZone = "cards";
+  let arcadeBattleSelectedActionIndex = 0;
   let arcadeBattleCardInstanceSeq = 1;
   let arcadeBattleLongPressTimer = null;
   let arcadeBattleLongPressInstanceId = "";
@@ -3969,6 +3970,7 @@ document.addEventListener("DOMContentLoaded", () => {
     arcadeBattleEnemyHoverId = "";
     arcadeBattleSelectedEnemyId = "";
     arcadeBattleKeyboardZone = "cards";
+    arcadeBattleSelectedActionIndex = 0;
   }
 
   function closeArcadeBattlePreview() {
@@ -4012,6 +4014,54 @@ document.addEventListener("DOMContentLoaded", () => {
     return getArcadeBattleAliveEnemies().map((enemy) => enemy.id);
   }
 
+  function getArcadeBattleActionButtons() {
+    return [arcadeBattleEndTurnBtn, arcadeBattleRestartBtn, arcadeBattleBackBtn].filter((btn) => btn instanceof HTMLButtonElement);
+  }
+
+  function syncArcadeBattleActionKeyboardUi() {
+    const buttons = getArcadeBattleActionButtons();
+    if (!buttons.length) return;
+    arcadeBattleSelectedActionIndex = clamp(arcadeBattleSelectedActionIndex, 0, Math.max(0, buttons.length - 1));
+    buttons.forEach((btn, idx) => {
+      const active = arcadeBattleKeyboardZone === "actions" && idx === arcadeBattleSelectedActionIndex;
+      btn.classList.toggle("is-kb-selected", active);
+    });
+  }
+
+  function focusArcadeBattleActionSelection() {
+    const buttons = getArcadeBattleActionButtons();
+    if (!buttons.length) return;
+    const enabledButtons = buttons.filter((btn) => !btn.disabled);
+    const selectedBtn = buttons[arcadeBattleSelectedActionIndex];
+    if (!selectedBtn || selectedBtn.disabled) {
+      const fallback = enabledButtons[0] || buttons[0];
+      arcadeBattleSelectedActionIndex = Math.max(0, buttons.indexOf(fallback));
+    }
+    arcadeBattleKeyboardZone = "actions";
+    arcadeBattleSelectedEnemyId = "";
+    arcadeBattleEnemyHoverId = "";
+    arcadeBattlePreviewCardInstanceId = "";
+    syncArcadeBattleActionKeyboardUi();
+    buttons[arcadeBattleSelectedActionIndex]?.focus({ preventScroll: true });
+  }
+
+  function moveArcadeBattleActionSelection(step = 1) {
+    const buttons = getArcadeBattleActionButtons();
+    if (!buttons.length) return;
+    const direction = step < 0 ? -1 : 1;
+    let idx = arcadeBattleSelectedActionIndex;
+    for (let tries = 0; tries < buttons.length; tries++) {
+      idx = (idx + direction + buttons.length) % buttons.length;
+      if (!buttons[idx].disabled) {
+        arcadeBattleSelectedActionIndex = idx;
+        break;
+      }
+    }
+    arcadeBattleKeyboardZone = "actions";
+    syncArcadeBattleActionKeyboardUi();
+    buttons[arcadeBattleSelectedActionIndex]?.focus({ preventScroll: true });
+  }
+
   function moveArcadeBattleEnemySelection(step = 1) {
     if (!arcadeBattleState) return;
     const enemyIds = getArcadeBattleAliveEnemyIds();
@@ -4023,15 +4073,12 @@ document.addEventListener("DOMContentLoaded", () => {
     arcadeBattleSelectedEnemyId = enemyIds[idx];
     arcadeBattleEnemyHoverId = arcadeBattleSelectedEnemyId;
     arcadeBattleKeyboardZone = "enemies";
+    syncArcadeBattleActionKeyboardUi();
     renderArcadeBattleMode();
   }
 
   function focusArcadeBattleEnemySelection() {
-    if (!arcadeBattleSelectedCardInstanceId) {
-      const playable = getArcadeBattlePlayableHandInstances();
-      if (playable.length) arcadeBattleSelectedCardInstanceId = playable[0];
-      else return;
-    }
+    if (!arcadeBattleSelectedCardInstanceId) return;
     if (arcadeBattlePreviewCardInstanceId) arcadeBattlePreviewCardInstanceId = "";
     if (!arcadeBattleSelectedEnemyId || !getArcadeBattleEnemyById(arcadeBattleSelectedEnemyId)?.alive) {
       const firstAlive = getArcadeBattleAliveEnemyIds()[0] || "";
@@ -4039,6 +4086,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     arcadeBattleEnemyHoverId = arcadeBattleSelectedEnemyId || "";
     arcadeBattleKeyboardZone = "enemies";
+    syncArcadeBattleActionKeyboardUi();
     renderArcadeBattleMode();
   }
 
@@ -4050,6 +4098,7 @@ document.addEventListener("DOMContentLoaded", () => {
     arcadeBattleKeyboardZone = "cards";
     arcadeBattleSelectedEnemyId = "";
     arcadeBattleEnemyHoverId = "";
+    syncArcadeBattleActionKeyboardUi();
     renderArcadeBattleMode();
   }
 
@@ -4173,6 +4222,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }).join("");
       arcadeBattleHand.innerHTML = handHtml;
     }
+
+    syncArcadeBattleActionKeyboardUi();
   }
 
   function openArcadeBattleMode() {
@@ -8033,18 +8084,32 @@ document.addEventListener("DOMContentLoaded", () => {
       const keyLower = key.toLowerCase();
       if (key === "ArrowUp") {
         e.preventDefault();
-        focusArcadeBattleEnemySelection();
+        if (arcadeBattleKeyboardZone === "actions") {
+          focusArcadeBattleCardSelection();
+        } else if (arcadeBattleKeyboardZone === "cards") {
+          if (!arcadeBattleSelectedCardInstanceId) return;
+          focusArcadeBattleEnemySelection();
+        }
         return;
       }
       if (key === "ArrowDown") {
         e.preventDefault();
-        focusArcadeBattleCardSelection();
+        if (arcadeBattleKeyboardZone === "enemies") {
+          focusArcadeBattleCardSelection();
+        } else if (arcadeBattleKeyboardZone === "cards") {
+          focusArcadeBattleActionSelection();
+        }
         return;
       }
       if (key === "ArrowLeft") {
         if (arcadeBattleKeyboardZone === "enemies") {
           e.preventDefault();
           moveArcadeBattleEnemySelection(-1);
+          return;
+        }
+        if (arcadeBattleKeyboardZone === "actions") {
+          e.preventDefault();
+          moveArcadeBattleActionSelection(-1);
           return;
         }
         e.preventDefault();
@@ -8055,6 +8120,11 @@ document.addEventListener("DOMContentLoaded", () => {
         if (arcadeBattleKeyboardZone === "enemies") {
           e.preventDefault();
           moveArcadeBattleEnemySelection(1);
+          return;
+        }
+        if (arcadeBattleKeyboardZone === "actions") {
+          e.preventDefault();
+          moveArcadeBattleActionSelection(1);
           return;
         }
         e.preventDefault();
@@ -8070,6 +8140,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
       if (key === "Enter") {
+        if (arcadeBattleKeyboardZone === "actions") {
+          const buttons = getArcadeBattleActionButtons();
+          const btn = buttons[arcadeBattleSelectedActionIndex];
+          if (btn && !btn.disabled) {
+            e.preventDefault();
+            btn.click();
+            return;
+          }
+        }
         if (arcadeBattleKeyboardZone === "enemies" && arcadeBattleSelectedCardInstanceId && arcadeBattleSelectedEnemyId) {
           e.preventDefault();
           tryPlayArcadeBattleCardOnEnemy(arcadeBattleSelectedCardInstanceId, arcadeBattleSelectedEnemyId);

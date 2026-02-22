@@ -1243,6 +1243,11 @@ img{ max-width:100%; height:auto; }
   flex-wrap: wrap;
 }
 
+.arcade-battle-actions .btn.is-kb-selected{
+  border-color: rgba(126,240,255,.9);
+  box-shadow: 0 0 0 2px rgba(126,240,255,.18) inset, 0 0 14px rgba(126,240,255,.2);
+}
+
 .arcade-battle-enemies{
   flex: 1 1 auto;
   min-height: 0;
