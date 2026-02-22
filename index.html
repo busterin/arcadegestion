@@ -158,43 +158,33 @@ Sin existencias. Renovaremos la tienda pronto
 <!-- MODO BATALLA (cartas) -->
 <section class="start hidden" id="arcadeBattleScreen">
 <div class="start-card arcade-battle-card">
-<div class="start-title">Modo Batalla</div>
-<div class="start-subtitle" id="arcadeBattleStatus">Arrastra una carta a un enemigo para hacer daño.</div>
 <div class="arcade-battle-board" id="arcadeBattleBoard">
-<div class="arcade-battle-top">
+<div class="arcade-battle-enemies" id="arcadeBattleEnemies"></div>
+<div class="arcade-battle-hand-wrap">
+<div class="arcade-battle-hand" id="arcadeBattleHand"></div>
+</div>
 <div class="arcade-battle-player-panel">
-<div class="arcade-battle-panel-title">Tu equipo</div>
-<div class="arcade-battle-stat">
-<span>Vida</span>
-<span id="arcadeBattlePlayerHpText">20/20</span>
-</div>
+<div class="arcade-battle-meter">
+<div class="arcade-battle-meter-label"><span>Vida</span><span id="arcadeBattlePlayerHpText">20/20</span></div>
 <div class="arcade-battle-bar"><div class="arcade-battle-bar-fill hp" id="arcadeBattlePlayerHpFill"></div></div>
-<div class="arcade-battle-stat">
-<span>Escudo</span>
-<span id="arcadeBattlePlayerShieldText">0/20</span>
 </div>
+<div class="arcade-battle-meter">
+<div class="arcade-battle-meter-label"><span>Escudo</span><span id="arcadeBattlePlayerShieldText">0/20</span></div>
 <div class="arcade-battle-bar"><div class="arcade-battle-bar-fill shield" id="arcadeBattlePlayerShieldFill"></div></div>
-<div class="arcade-battle-cost-line">
+</div>
+<div class="arcade-battle-cost-inline">
 <span>Coste</span>
 <b id="arcadeBattleCostText">3/3</b>
-<span class="arcade-battle-turn" id="arcadeBattleTurnText">Turno 1</span>
+<span class="hidden" id="arcadeBattleTurnText">Turno 1</span>
+<span class="hidden">Mazo: <b id="arcadeBattleDeckCount">0</b></span>
+<span class="hidden">Reserva: <b id="arcadeBattleDiscardCount">0</b></span>
+<span class="hidden">Mano: <b id="arcadeBattleHandCount">0</b></span>
 </div>
-<div class="arcade-battle-deck-line">
-<span>Mazo: <b id="arcadeBattleDeckCount">0</b></span>
-<span>Reserva: <b id="arcadeBattleDiscardCount">0</b></span>
-<span>Mano: <b id="arcadeBattleHandCount">0</b></span>
-</div>
-<div class="modal-actions" style="margin-top:10px;">
+<div class="arcade-battle-actions">
 <button class="btn btn-ghost" id="arcadeBattleEndTurnBtn" type="button">Pasar turno</button>
 <button class="btn btn-ghost" id="arcadeBattleRestartBtn" type="button">Reiniciar</button>
 <button class="btn btn-ghost" id="arcadeBattleBackBtn" type="button">Volver al menú</button>
 </div>
-</div>
-<div class="arcade-battle-enemies" id="arcadeBattleEnemies"></div>
-</div>
-<div class="arcade-battle-hand-wrap">
-<div class="arcade-battle-hand-title">Cartas (arrastrables)</div>
-<div class="arcade-battle-hand" id="arcadeBattleHand"></div>
 </div>
 </div>
 </div>

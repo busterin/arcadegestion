@@ -4046,7 +4046,6 @@ document.addEventListener("DOMContentLoaded", () => {
           >
             <img class="arcade-battle-card-img" src="${def.img}" alt="${def.name}" />
             <div class="arcade-battle-card-name">${def.name}</div>
-            <div class="arcade-battle-card-meta"><span>Coste ${def.cost}</span><span>Daño ${def.damage}</span></div>
           </button>
         `;
       }).join("");

@@ -1154,52 +1154,35 @@ img{ max-width:100%; height:auto; }
 }
 
 .arcade-battle-board{
-  margin-top: 6px;
+  margin-top: 0;
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   min-height: 0;
-  overflow: visible;
-}
-
-.arcade-battle-top{
-  display: grid;
-  grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
-  gap: 12px;
-  align-items: start;
-  min-height: 0;
-  flex: 1 1 auto;
+  justify-content: center;
 }
 
 .arcade-battle-player-panel{
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) auto auto;
+  gap: 10px;
+  align-items: center;
+  border: none;
+  background: rgba(0,0,0,.28);
   border-radius: 14px;
-  border: 1px solid rgba(255,255,255,.14);
-  background: rgba(5,10,21,.38);
-  padding: 12px;
-}
-
-.arcade-battle-panel-title{
-  font-weight: 900;
-  margin-bottom: 8px;
-}
-
-.arcade-battle-stat{
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 700;
+  padding: 10px 12px;
+  backdrop-filter: blur(4px);
 }
 
 .arcade-battle-bar{
   width: 100%;
-  height: 12px;
+  height: 10px;
   border-radius: 999px;
   overflow: hidden;
   background: rgba(255,255,255,.08);
   border: 1px solid rgba(255,255,255,.08);
-  margin: 5px 0 9px;
+  margin: 0;
 }
 
 .arcade-battle-bar-fill{
@@ -1216,39 +1199,51 @@ img{ max-width:100%; height:auto; }
   background: linear-gradient(90deg, #65d7ff, #3aa8ff);
 }
 
-.arcade-battle-cost-line,
-.arcade-battle-deck-line{
+.arcade-battle-meter{
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.arcade-battle-meter-label{
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px 12px;
+  justify-content: space-between;
+  gap: 8px;
   align-items: center;
-}
-
-.arcade-battle-cost-line{
-  margin-top: 4px;
-  font-size: 13px;
-}
-
-.arcade-battle-turn{
-  margin-left: auto;
-  font-weight: 900;
-  color: #ffe38a;
-}
-
-.arcade-battle-deck-line{
-  margin-top: 8px;
   font-size: 12px;
-  color: var(--muted);
+  font-weight: 800;
+}
+
+.arcade-battle-cost-inline{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.14);
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.arcade-battle-actions{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
 }
 
 .arcade-battle-enemies{
-  min-height: 50vh;
+  flex: 1 1 auto;
+  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   align-content: center;
-  gap: clamp(14px, 2vw, 34px);
-  padding: 0 12px;
+  gap: clamp(18px, 2.2vw, 40px);
+  padding: 0 8px;
   background: transparent;
   border: none;
   border-radius: 0;
@@ -1266,7 +1261,7 @@ img{ max-width:100%; height:auto; }
   justify-content: center;
   cursor: pointer;
   transition: transform .12s ease, box-shadow .12s ease, opacity .12s ease;
-  width: min(210px, 29%);
+  width: min(260px, 30%);
 }
 
 .arcade-battle-enemy:hover{
@@ -1292,14 +1287,14 @@ img{ max-width:100%; height:auto; }
 }
 
 .arcade-battle-enemy-art{
-  width: min(220px, 100%);
+  width: min(260px, 100%);
   aspect-ratio: 1 / 1;
   object-fit: contain;
   filter: drop-shadow(0 14px 22px rgba(0,0,0,.4));
 }
 
 .arcade-battle-enemy-stats{
-  width: min(220px, 100%);
+  width: min(240px, 100%);
   padding: 2px 4px;
 }
 
@@ -1314,25 +1309,23 @@ img{ max-width:100%; height:auto; }
 .arcade-battle-hand-wrap{
   border: none;
   background: transparent;
-  padding: 4px 2px 0;
+  padding: 0 2px;
   overflow: visible;
 }
 
 .arcade-battle-hand-title{
-  font-size: 12px;
-  font-weight: 800;
-  color: rgba(233,238,252,.9);
-  margin-bottom: 8px;
-  text-align: left;
-  text-shadow: 0 2px 8px rgba(0,0,0,.35);
+  display: none;
 }
 
 .arcade-battle-hand{
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 10px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
   align-items: end;
   overflow: visible;
+  min-height: 96px;
 }
 
 .arcade-battle-hand-card{
@@ -1348,6 +1341,7 @@ img{ max-width:100%; height:auto; }
   position: relative;
   overflow: visible;
   z-index: 1;
+  width: clamp(58px, 5.6vw, 82px);
 }
 
 .arcade-battle-hand-card:hover{
@@ -1359,9 +1353,14 @@ img{ max-width:100%; height:auto; }
 }
 
 .arcade-battle-hand-card.selected{
-  transform: translateY(-30px) scale(1.5);
-  z-index: 20;
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: min(260px, 42vw);
+  transform: translate(-50%, -50%);
+  z-index: 2000;
   filter: drop-shadow(0 18px 28px rgba(0,0,0,.45)) drop-shadow(0 0 14px rgba(126,240,255,.25));
+  box-shadow: 0 0 0 100vmax rgba(4,8,16,.42);
 }
 
 .arcade-battle-hand-card.disabled{
@@ -1380,19 +1379,14 @@ img{ max-width:100%; height:auto; }
 }
 
 .arcade-battle-card-name{
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 900;
   text-align: center;
   text-shadow: 0 2px 8px rgba(0,0,0,.45);
 }
 
 .arcade-battle-card-meta{
-  display: flex;
-  justify-content: space-between;
-  gap: 6px;
-  font-size: 11px;
-  color: rgba(233,238,252,.86);
-  text-shadow: 0 2px 8px rgba(0,0,0,.45);
+  display: none;
 }
 
 /* ---------- GAME LAYOUT ---------- */
@@ -2432,24 +2426,19 @@ img{ max-width:100%; height:auto; }
 
   .carousel-center{ min-height: 300px; }
 
-  .arcade-battle-top{
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
   .arcade-battle-enemies{
-    min-height: 40vh;
+    min-height: 0;
     flex-wrap: wrap;
     gap: 10px;
   }
   .arcade-battle-enemy{ width: min(170px, 48%); }
-  .arcade-battle-hand{
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .arcade-battle-player-panel{
+    grid-template-columns: 1fr;
+    gap: 8px;
+    align-items: stretch;
   }
   .arcade-battle-hand-card.selected{
-    transform: translateY(-10px) scale(1.12);
-  }
-  .arcade-battle-turn{
-    margin-left: 0;
+    width: min(220px, 62vw);
   }
 
   .stage{ padding-bottom: 10px; }
