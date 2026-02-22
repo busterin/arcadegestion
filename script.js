@@ -168,8 +168,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const ARCADE_BATTLE_START_HAND = 5;
   const ARCADE_BATTLE_DRAW_PER_TURN = 1;
   const ARCADE_BATTLE_ENEMY_MAX_HP = 20;
-  const ARCADE_BATTLE_ENEMY_MAX_SHIELD = 0;
+  const ARCADE_BATTLE_ENEMY_MAX_SHIELD = 20;
   const ARCADE_BATTLE_ENEMY_ATTACK = 3;
+  const ARCADE_BATTLE_ENEMY_SHIELD_GAIN = 3;
   const ARCADE_BATTLE_CARD_LIBRARY = [
     { id: "ab_camus", name: "Camus", img: "cartas/cartacamus.PNG", cost: 1, damage: 5 },
     { id: "ab_evelyn", name: "Evelyn", img: "cartas/cartaevelyn.PNG", cost: 1, damage: 5 },
@@ -3889,7 +3890,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return {
       phase: "playing",
       turn: 1,
-      status: "Arrastra una carta a un enemigo para hacer daño.",
+      status: "",
       player: {
         hp: ARCADE_BATTLE_PLAYER_MAX_HP,
         maxHp: ARCADE_BATTLE_PLAYER_MAX_HP,
@@ -4102,25 +4103,33 @@ document.addEventListener("DOMContentLoaded", () => {
     renderArcadeBattleMode();
   }
 
-  function triggerArcadeBattlePlayerHitFx() {
+  function triggerArcadeBattlePlayerHitFx(type = "damage") {
     if (!arcadeBattleState?.player) return;
-    arcadeBattleState.player.hitFxUntil = Date.now() + 260;
+    arcadeBattleState.player.hitFxUntil = Date.now() + (type === "shield" ? 420 : 300);
+    arcadeBattleState.player.hitFxType = type;
     renderArcadeBattleMode();
     setTimeout(() => {
       if (!arcadeBattleState?.player) return;
-      if ((arcadeBattleState.player.hitFxUntil || 0) <= Date.now()) renderArcadeBattleMode();
+      if ((arcadeBattleState.player.hitFxUntil || 0) <= Date.now()) {
+        arcadeBattleState.player.hitFxType = "";
+        renderArcadeBattleMode();
+      }
     }, 280);
   }
 
-  function triggerArcadeBattleEnemyHitFx(enemyId) {
+  function triggerArcadeBattleEnemyHitFx(enemyId, type = "damage") {
     const enemy = getArcadeBattleEnemyById(enemyId);
     if (!enemy) return;
-    enemy.hitFxUntil = Date.now() + 260;
+    enemy.hitFxUntil = Date.now() + (type === "shield" ? 420 : 300);
+    enemy.hitFxType = type;
     renderArcadeBattleMode();
     setTimeout(() => {
       const liveEnemy = getArcadeBattleEnemyById(enemyId);
       if (!liveEnemy) return;
-      if ((liveEnemy.hitFxUntil || 0) <= Date.now()) renderArcadeBattleMode();
+      if ((liveEnemy.hitFxUntil || 0) <= Date.now()) {
+        liveEnemy.hitFxType = "";
+        renderArcadeBattleMode();
+      }
     }, 280);
   }
 
@@ -4151,7 +4160,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const player = state?.player;
     const now = Date.now();
 
-    if (arcadeBattleStatus) arcadeBattleStatus.textContent = state?.status || "Arrastra una carta a un enemigo para hacer daño.";
+    if (arcadeBattleStatus) {
+      const text = String(state?.status || "").trim();
+      arcadeBattleStatus.textContent = text;
+      arcadeBattleStatus.classList.toggle("hidden", !text);
+    }
 
     const playerHpPct = player ? ((player.hp / Math.max(1, player.maxHp)) * 100) : 0;
     const playerShieldPct = player ? ((player.shield / Math.max(1, player.maxShield)) * 100) : 0;
@@ -4168,7 +4181,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (arcadeBattleEndTurnBtn) arcadeBattleEndTurnBtn.disabled = !state || state.phase !== "playing";
     if (arcadeBattlePlayerPanel) {
       const isHit = !!(player && (player.hitFxUntil || 0) > now);
+      const isHitDamage = !!(player && (player.hitFxUntil || 0) > now && player.hitFxType === "damage");
+      const isHitShield = !!(player && (player.hitFxUntil || 0) > now && player.hitFxType === "shield");
       arcadeBattlePlayerPanel.classList.toggle("is-hit", isHit);
+      arcadeBattlePlayerPanel.classList.toggle("is-hit-damage", isHitDamage);
+      arcadeBattlePlayerPanel.classList.toggle("is-hit-shield", isHitShield);
     }
 
     if (arcadeBattleEnemies) {
@@ -4178,8 +4195,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const targetClass = (arcadeBattleEnemyHoverId === enemy.id || arcadeBattleSelectedEnemyId === enemy.id) ? " is-target" : "";
         const deadClass = !enemy.alive || enemy.hp <= 0 ? " is-dead" : "";
         const hitClass = (enemy.hitFxUntil || 0) > now ? " is-hit" : "";
+        const hitDamageClass = (enemy.hitFxUntil || 0) > now && enemy.hitFxType === "damage" ? " is-hit-damage" : "";
+        const hitShieldClass = (enemy.hitFxUntil || 0) > now && enemy.hitFxType === "shield" ? " is-hit-shield" : "";
         return `
-          <article class="arcade-battle-enemy${targetClass}${deadClass}${hitClass}" data-enemy-id="${enemy.id}">
+          <article class="arcade-battle-enemy${targetClass}${deadClass}${hitClass}${hitDamageClass}${hitShieldClass}" data-enemy-id="${enemy.id}">
             <div class="arcade-battle-enemy-name">${enemy.name}</div>
             <img class="arcade-battle-enemy-art" src="cartas/bandidocartas.PNG" alt="${enemy.name}" />
             <div class="arcade-battle-enemy-stats">
@@ -4290,11 +4309,21 @@ document.addEventListener("DOMContentLoaded", () => {
   function endArcadeBattleTurn() {
     if (!arcadeBattleState || arcadeBattleState.phase !== "playing") return;
     const aliveEnemies = getArcadeBattleAliveEnemies();
-    const incoming = aliveEnemies.length * ARCADE_BATTLE_ENEMY_ATTACK;
-    if (incoming > 0) {
-      applyDamageToBattleUnit(arcadeBattleState.player, incoming);
-      triggerArcadeBattlePlayerHitFx();
-    }
+    const notices = [];
+    let totalIncoming = 0;
+    aliveEnemies.forEach((enemy) => {
+      const useAttack = Math.random() < 0.5;
+      if (useAttack) {
+        totalIncoming += ARCADE_BATTLE_ENEMY_ATTACK;
+        applyDamageToBattleUnit(arcadeBattleState.player, ARCADE_BATTLE_ENEMY_ATTACK);
+        triggerArcadeBattlePlayerHitFx("damage");
+        notices.push("Bandido utilizó Golpe a traición.");
+        return;
+      }
+      enemy.shield = clamp((enemy.shield || 0) + ARCADE_BATTLE_ENEMY_SHIELD_GAIN, 0, enemy.maxShield || ARCADE_BATTLE_ENEMY_MAX_SHIELD);
+      triggerArcadeBattleEnemyHitFx(enemy.id, "shield");
+      notices.push("Bandido utilizó Protección.");
+    });
     updateArcadeBattleOutcome();
     if (arcadeBattleState.phase !== "playing") {
       renderArcadeBattleMode();
@@ -4305,7 +4334,7 @@ document.addEventListener("DOMContentLoaded", () => {
     arcadeBattleState.player.cost = arcadeBattleState.player.costMax;
     const drawn = drawArcadeBattleCards(ARCADE_BATTLE_DRAW_PER_TURN);
     const drawText = drawn > 0 ? ` Robas ${drawn} carta.` : " No quedan cartas para robar.";
-    setArcadeBattleStatus(`Turno enemigo: recibes ${incoming} de daño.${drawText}`);
+    setArcadeBattleStatus(`${notices.join(" ")}${totalIncoming > 0 ? ` Recibes ${totalIncoming} de daño.` : ""}${drawText}`);
     renderArcadeBattleMode();
   }
 
