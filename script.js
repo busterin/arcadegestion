@@ -179,7 +179,7 @@ document.addEventListener("DOMContentLoaded", () => {
     { id: "ab_jane", name: "Jane", img: "cartas/cartajane.PNG", cost: 2, damage: 0, level: 1, abilityName: "Cubriendo la retaguardia", shieldGain: 5 },
     { id: "ab_lisa", name: "Lisa", img: "cartas/cartalisa.PNG", cost: 1, damage: 0, level: 1, abilityName: "Sanadora de batalla", healAmount: 15 },
     { id: "ab_pendergast", name: "Pendergast", img: "cartas/cartapendergast.PNG", cost: 1, damage: 5, level: 1, abilityName: "Orden ofensiva" },
-    { id: "ab_risko", name: "Risko", img: "cartas/cartarisko.PNG", cost: 1, damage: 5, level: 1, abilityName: "Impacto técnico" }
+    { id: "ab_risko", name: "Risko", img: "cartas/cartarisko.PNG", cost: 2, damage: 0, level: 1, abilityName: "Ráfaga de distracción", shieldGain: 5 }
   ];
 
   const REINER_BATTLE_CHARACTER = {
@@ -3875,6 +3875,11 @@ document.addEventListener("DOMContentLoaded", () => {
     return ARCADE_BATTLE_CARD_LIBRARY.find((card) => card.id === cardId) || null;
   }
 
+  function arcadeBattleCardNeedsEnemyTarget(cardDef) {
+    const id = String(cardDef?.id || "");
+    return !(id === "ab_camus" || id === "ab_winchester" || id === "ab_jane" || id === "ab_lisa");
+  }
+
   function createArcadeBattleEnemy(id, name) {
     return {
       id,
@@ -4324,14 +4329,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function tryPlayArcadeBattleCardOnEnemy(cardInstanceId, enemyId) {
     if (!arcadeBattleState || arcadeBattleState.phase !== "playing" || arcadeBattleState.enemyTurnResolving) return false;
-    const enemy = getArcadeBattleEnemyById(enemyId);
-    if (!enemy || !enemy.alive || enemy.hp <= 0) return false;
 
     const handIndex = arcadeBattleState.hand.findIndex((card) => card.instanceId === cardInstanceId);
     if (handIndex < 0) return false;
     const handCard = arcadeBattleState.hand[handIndex];
     const cardDef = getArcadeBattleCardDef(handCard.cardId);
     if (!cardDef) return false;
+    const needsEnemyTarget = arcadeBattleCardNeedsEnemyTarget(cardDef);
+    const enemy = needsEnemyTarget ? getArcadeBattleEnemyById(enemyId) : null;
+    if (needsEnemyTarget && (!enemy || !enemy.alive || enemy.hp <= 0)) return false;
 
     if (arcadeBattleState.player.cost < cardDef.cost) {
       setArcadeBattleStatus("No tienes coste suficiente para usar esa carta.");
@@ -4390,6 +4396,22 @@ document.addEventListener("DOMContentLoaded", () => {
         0,
         arcadeBattleState.player.maxHp || ARCADE_BATTLE_PLAYER_MAX_HP
       );
+    } else if (cardDef.id === "ab_risko") {
+      const dealtDamage = cardLevel;
+      if (!enemy) return false;
+      applyDamageToBattleUnit(enemy, dealtDamage);
+      triggerArcadeBattleEnemyHitFx(enemy.id, "damage");
+      if (enemy.hp <= 0) {
+        enemy.hp = 0;
+        enemy.shield = 0;
+        enemy.alive = false;
+      }
+      arcadeBattleState.player.shield = clamp(
+        (arcadeBattleState.player.shield || 0) + baseShieldGain,
+        0,
+        arcadeBattleState.player.maxShield || ARCADE_BATTLE_PLAYER_MAX_SHIELD
+      );
+      triggerArcadeBattlePlayerHitFx("shield");
     } else {
       applyDamageToBattleUnit(enemy, baseDamage);
       triggerArcadeBattleEnemyHitFx(enemy.id, "damage");
@@ -8103,6 +8125,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!(cardEl instanceof HTMLElement)) return;
     const instanceId = String(cardEl.dataset.cardInstanceId || "");
     if (!instanceId) return;
+    const handCard = getArcadeBattleHandCardByInstance(instanceId);
+    const cardDef = getArcadeBattleCardDef(handCard?.cardId);
+    if (arcadeBattleSelectedCardInstanceId === instanceId && !arcadeBattleCardNeedsEnemyTarget(cardDef)) {
+      tryPlayArcadeBattleCardOnEnemy(instanceId, "");
+      return;
+    }
     selectArcadeBattleCard(instanceId);
   });
 
@@ -8299,6 +8327,16 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
       if (key === "Enter") {
+        if (arcadeBattleSelectedCardInstanceId) {
+          const selectedHand = getArcadeBattleHandCardByInstance(arcadeBattleSelectedCardInstanceId);
+          const selectedCardDef = getArcadeBattleCardDef(selectedHand?.cardId);
+          const needsEnemy = arcadeBattleCardNeedsEnemyTarget(selectedCardDef);
+          if (!needsEnemy && (arcadeBattleKeyboardZone === "cards" || arcadeBattleKeyboardZone === "enemies")) {
+            e.preventDefault();
+            tryPlayArcadeBattleCardOnEnemy(arcadeBattleSelectedCardInstanceId, "");
+            return;
+          }
+        }
         if (arcadeBattleKeyboardZone === "actions") {
           const buttons = getArcadeBattleActionButtons();
           const btn = buttons[arcadeBattleSelectedActionIndex];
