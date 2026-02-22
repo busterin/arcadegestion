@@ -1180,6 +1180,35 @@ img{ max-width:100%; height:auto; }
   backdrop-filter: blur(4px);
 }
 
+.arcade-battle-effects{
+  width: min(780px, 100%);
+  margin: -2px auto 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.arcade-battle-effect-chip{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(9,16,30,.48);
+  border: 1px solid rgba(255,255,255,.12);
+  color: #e9f2ff;
+  font-size: 12px;
+  font-weight: 800;
+  text-shadow: 0 2px 6px rgba(0,0,0,.35);
+}
+
+.arcade-battle-effect-chip .turns{
+  color: #bfe7ff;
+  font-weight: 900;
+}
+
 .arcade-battle-player-panel{
   display: grid;
   grid-template-columns: auto auto auto auto;

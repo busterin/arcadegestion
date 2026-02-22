@@ -173,11 +173,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const ARCADE_BATTLE_ENEMY_SHIELD_GAIN = 3;
   const ARCADE_BATTLE_NOTICE_STEP_MS = 700;
   const ARCADE_BATTLE_CARD_LIBRARY = [
-    { id: "ab_camus", name: "Camus", img: "cartas/cartacamus.PNG", cost: 1, damage: 5, level: 1, abilityName: "Ataque arcano" },
+    { id: "ab_camus", name: "Camus", img: "cartas/cartacamus.PNG", cost: 1, damage: 6, level: 1, abilityName: "Explosión de energía" },
     { id: "ab_evelyn", name: "Evelyn", img: "cartas/cartaevelyn.PNG", cost: 2, damage: 10, level: 1, abilityName: "Golpe certero" },
     { id: "ab_winchester", name: "Winchester", img: "cartas/cartawinchester.PNG", cost: 1, damage: 8, level: 1, abilityName: "Rayo fulminante" },
     { id: "ab_jane", name: "Jane", img: "cartas/cartajane.PNG", cost: 2, damage: 0, level: 1, abilityName: "Cubriendo la retaguardia", shieldGain: 5 },
-    { id: "ab_lisa", name: "Lisa", img: "cartas/cartalisa.PNG", cost: 1, damage: 5, level: 1, abilityName: "Pulso de apoyo" },
+    { id: "ab_lisa", name: "Lisa", img: "cartas/cartalisa.PNG", cost: 1, damage: 0, level: 1, abilityName: "Sanadora de batalla", healAmount: 15 },
     { id: "ab_pendergast", name: "Pendergast", img: "cartas/cartapendergast.PNG", cost: 1, damage: 5, level: 1, abilityName: "Orden ofensiva" },
     { id: "ab_risko", name: "Risko", img: "cartas/cartarisko.PNG", cost: 1, damage: 5, level: 1, abilityName: "Impacto técnico" }
   ];
@@ -275,6 +275,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const miniGameBackBtn = document.getElementById("miniGameBackBtn");
   const arcadeBattleScreen = document.getElementById("arcadeBattleScreen");
   const arcadeBattleStatus = document.getElementById("arcadeBattleStatus");
+  const arcadeBattleEffects = document.getElementById("arcadeBattleEffects");
   const arcadeBattlePlayerPanel = document.getElementById("arcadeBattlePlayerPanel");
   const arcadeBattlePlayerHpText = document.getElementById("arcadeBattlePlayerHpText");
   const arcadeBattlePlayerHpFill = document.getElementById("arcadeBattlePlayerHpFill");
@@ -3901,6 +3902,7 @@ document.addEventListener("DOMContentLoaded", () => {
         costMax: ARCADE_BATTLE_COST_MAX
       },
       enemyTurnResolving: false,
+      ongoingEffects: [],
       enemies: [
         createArcadeBattleEnemy("enemy_1", "Bandido 1"),
         createArcadeBattleEnemy("enemy_2", "Bandido 2"),
@@ -4144,6 +4146,39 @@ document.addEventListener("DOMContentLoaded", () => {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
+  async function resolveArcadeBattleOngoingEffectsTurn() {
+    if (!arcadeBattleState || !Array.isArray(arcadeBattleState.ongoingEffects) || !arcadeBattleState.ongoingEffects.length) return;
+    const remainingEffects = [];
+    for (const effect of arcadeBattleState.ongoingEffects) {
+      if (!effect || (effect.remainingTurns || 0) <= 0) continue;
+      if (effect.type === "camus_explosion") {
+        const aliveEnemies = getArcadeBattleAliveEnemies();
+        if (aliveEnemies.length) {
+          const target = aliveEnemies[randInt(0, aliveEnemies.length - 1)];
+          if (target) {
+            setArcadeBattleStatus(`Explosión de energía impactó a ${target.name}.`);
+            applyDamageToBattleUnit(target, Math.max(0, Number(effect.damage) || 0));
+            triggerArcadeBattleEnemyHitFx(target.id, "damage");
+            if (target.hp <= 0) {
+              target.hp = 0;
+              target.shield = 0;
+              target.alive = false;
+            }
+            renderArcadeBattleMode();
+            await waitArcadeBattleStep();
+            updateArcadeBattleOutcome();
+            if (arcadeBattleState.phase !== "playing") {
+              effect.remainingTurns = 0;
+            }
+          }
+        }
+      }
+      effect.remainingTurns = Math.max(0, (effect.remainingTurns || 0) - 1);
+      if (effect.remainingTurns > 0) remainingEffects.push(effect);
+    }
+    arcadeBattleState.ongoingEffects = remainingEffects;
+  }
+
   function updateArcadeBattleOutcome() {
     if (!arcadeBattleState) return;
     const aliveEnemies = getArcadeBattleAliveEnemies();
@@ -4170,6 +4205,16 @@ document.addEventListener("DOMContentLoaded", () => {
       const text = String(state?.status || "").trim();
       arcadeBattleStatus.textContent = text;
       arcadeBattleStatus.classList.toggle("hidden", !text);
+    }
+    if (arcadeBattleEffects) {
+      const effects = Array.isArray(state?.ongoingEffects) ? state.ongoingEffects.filter((fx) => (fx?.remainingTurns || 0) > 0) : [];
+      arcadeBattleEffects.classList.toggle("hidden", effects.length < 1);
+      arcadeBattleEffects.innerHTML = effects.map((fx) => {
+        if (fx.type === "camus_explosion") {
+          return `<span class="arcade-battle-effect-chip">Explosión de energía <span class="turns">${fx.remainingTurns} turno${fx.remainingTurns === 1 ? "" : "s"}</span></span>`;
+        }
+        return `<span class="arcade-battle-effect-chip">Efecto activo <span class="turns">${fx.remainingTurns} turno${fx.remainingTurns === 1 ? "" : "s"}</span></span>`;
+      }).join("");
     }
 
     const playerHpPct = player ? ((player.hp / Math.max(1, player.maxHp)) * 100) : 0;
@@ -4298,6 +4343,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const cardLevel = Math.max(1, Number(cardDef.level) || 1);
     const baseDamage = Math.max(0, Number(cardDef.damage) || 0);
     const baseShieldGain = Math.max(0, Number(cardDef.shieldGain) || 0);
+    const baseHealAmount = Math.max(0, Number(cardDef.healAmount) || 0);
 
     arcadeBattleState.player.cost -= cardDef.cost;
 
@@ -4321,6 +4367,14 @@ document.addEventListener("DOMContentLoaded", () => {
           target.alive = false;
         }
       });
+    } else if (cardDef.id === "ab_camus") {
+      arcadeBattleState.ongoingEffects = Array.isArray(arcadeBattleState.ongoingEffects) ? arcadeBattleState.ongoingEffects : [];
+      arcadeBattleState.ongoingEffects.push({
+        type: "camus_explosion",
+        sourceId: cardDef.id,
+        remainingTurns: cardLevel,
+        damage: baseDamage
+      });
     } else if (cardDef.id === "ab_jane") {
       const shieldAmount = baseShieldGain + cardLevel;
       arcadeBattleState.player.shield = clamp(
@@ -4329,6 +4383,13 @@ document.addEventListener("DOMContentLoaded", () => {
         arcadeBattleState.player.maxShield || ARCADE_BATTLE_PLAYER_MAX_SHIELD
       );
       triggerArcadeBattlePlayerHitFx("shield");
+    } else if (cardDef.id === "ab_lisa") {
+      const healAmount = Math.max(0, baseHealAmount);
+      arcadeBattleState.player.hp = clamp(
+        (arcadeBattleState.player.hp || 0) + healAmount,
+        0,
+        arcadeBattleState.player.maxHp || ARCADE_BATTLE_PLAYER_MAX_HP
+      );
     } else {
       applyDamageToBattleUnit(enemy, baseDamage);
       triggerArcadeBattleEnemyHitFx(enemy.id, "damage");
@@ -4359,6 +4420,13 @@ document.addEventListener("DOMContentLoaded", () => {
     renderArcadeBattleMode();
 
     try {
+      await resolveArcadeBattleOngoingEffectsTurn();
+      updateArcadeBattleOutcome();
+      if (arcadeBattleState.phase !== "playing") {
+        renderArcadeBattleMode();
+        return;
+      }
+
       const enemyIds = getArcadeBattleAliveEnemyIds();
       for (const enemyId of enemyIds) {
         const enemy = getArcadeBattleEnemyById(enemyId);
