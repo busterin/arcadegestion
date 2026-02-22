@@ -171,14 +171,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const ARCADE_BATTLE_ENEMY_MAX_SHIELD = 20;
   const ARCADE_BATTLE_ENEMY_ATTACK = 3;
   const ARCADE_BATTLE_ENEMY_SHIELD_GAIN = 3;
+  const ARCADE_BATTLE_NOTICE_STEP_MS = 700;
   const ARCADE_BATTLE_CARD_LIBRARY = [
-    { id: "ab_camus", name: "Camus", img: "cartas/cartacamus.PNG", cost: 1, damage: 5 },
-    { id: "ab_evelyn", name: "Evelyn", img: "cartas/cartaevelyn.PNG", cost: 1, damage: 5 },
-    { id: "ab_winchester", name: "Winchester", img: "cartas/cartawinchester.PNG", cost: 1, damage: 5 },
-    { id: "ab_jane", name: "Jane", img: "cartas/cartajane.PNG", cost: 1, damage: 5 },
-    { id: "ab_lisa", name: "Lisa", img: "cartas/cartalisa.PNG", cost: 1, damage: 5 },
-    { id: "ab_pendergast", name: "Pendergast", img: "cartas/cartapendergast.PNG", cost: 1, damage: 5 },
-    { id: "ab_risko", name: "Risko", img: "cartas/cartarisko.PNG", cost: 1, damage: 5 }
+    { id: "ab_camus", name: "Camus", img: "cartas/cartacamus.PNG", cost: 1, damage: 5, level: 1, abilityName: "Ataque arcano" },
+    { id: "ab_evelyn", name: "Evelyn", img: "cartas/cartaevelyn.PNG", cost: 2, damage: 10, level: 1, abilityName: "Golpe certero" },
+    { id: "ab_winchester", name: "Winchester", img: "cartas/cartawinchester.PNG", cost: 1, damage: 5, level: 1, abilityName: "Descarga táctica" },
+    { id: "ab_jane", name: "Jane", img: "cartas/cartajane.PNG", cost: 1, damage: 5, level: 1, abilityName: "Disparo preciso" },
+    { id: "ab_lisa", name: "Lisa", img: "cartas/cartalisa.PNG", cost: 1, damage: 5, level: 1, abilityName: "Pulso de apoyo" },
+    { id: "ab_pendergast", name: "Pendergast", img: "cartas/cartapendergast.PNG", cost: 1, damage: 5, level: 1, abilityName: "Orden ofensiva" },
+    { id: "ab_risko", name: "Risko", img: "cartas/cartarisko.PNG", cost: 1, damage: 5, level: 1, abilityName: "Impacto técnico" }
   ];
 
   const REINER_BATTLE_CHARACTER = {
@@ -3899,6 +3900,7 @@ document.addEventListener("DOMContentLoaded", () => {
         cost: ARCADE_BATTLE_COST_MAX,
         costMax: ARCADE_BATTLE_COST_MAX
       },
+      enemyTurnResolving: false,
       enemies: [
         createArcadeBattleEnemy("enemy_1", "Bandido 1"),
         createArcadeBattleEnemy("enemy_2", "Bandido 2"),
@@ -3957,7 +3959,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function isArcadeBattleCardPlayable(instanceId) {
-    if (!arcadeBattleState || arcadeBattleState.phase !== "playing") return false;
+    if (!arcadeBattleState || arcadeBattleState.phase !== "playing" || arcadeBattleState.enemyTurnResolving) return false;
     const handCard = getArcadeBattleHandCardByInstance(instanceId);
     const cardDef = getArcadeBattleCardDef(handCard?.cardId);
     if (!cardDef) return false;
@@ -4138,6 +4140,10 @@ document.addEventListener("DOMContentLoaded", () => {
     return arcadeBattleState.enemies.find((enemy) => enemy.id === enemyId) || null;
   }
 
+  function waitArcadeBattleStep(ms = ARCADE_BATTLE_NOTICE_STEP_MS) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
   function updateArcadeBattleOutcome() {
     if (!arcadeBattleState) return;
     const aliveEnemies = getArcadeBattleAliveEnemies();
@@ -4178,7 +4184,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (arcadeBattleDiscardCount) arcadeBattleDiscardCount.textContent = String(state?.discard?.length || 0);
     if (arcadeBattleHandCount) arcadeBattleHandCount.textContent = String(state?.hand?.length || 0);
 
-    if (arcadeBattleEndTurnBtn) arcadeBattleEndTurnBtn.disabled = !state || state.phase !== "playing";
+    if (arcadeBattleEndTurnBtn) arcadeBattleEndTurnBtn.disabled = !state || state.phase !== "playing" || !!state.enemyTurnResolving;
     if (arcadeBattlePlayerPanel) {
       const isHit = !!(player && (player.hitFxUntil || 0) > now);
       const isHitDamage = !!(player && (player.hitFxUntil || 0) > now && player.hitFxType === "damage");
@@ -4272,7 +4278,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function tryPlayArcadeBattleCardOnEnemy(cardInstanceId, enemyId) {
-    if (!arcadeBattleState || arcadeBattleState.phase !== "playing") return false;
+    if (!arcadeBattleState || arcadeBattleState.phase !== "playing" || arcadeBattleState.enemyTurnResolving) return false;
     const enemy = getArcadeBattleEnemyById(enemyId);
     if (!enemy || !enemy.alive || enemy.hp <= 0) return false;
 
@@ -4288,8 +4294,15 @@ document.addEventListener("DOMContentLoaded", () => {
       return false;
     }
 
+    const abilityName = String(cardDef.abilityName || "Habilidad");
+    const cardLevel = Math.max(1, Number(cardDef.level) || 1);
+    const baseDamage = Math.max(0, Number(cardDef.damage) || 0);
+    const dealtDamage = cardDef.id === "ab_evelyn"
+      ? (baseDamage + cardLevel)
+      : baseDamage;
+
     arcadeBattleState.player.cost -= cardDef.cost;
-    const result = applyDamageToBattleUnit(enemy, cardDef.damage);
+    applyDamageToBattleUnit(enemy, dealtDamage);
     triggerArcadeBattleEnemyHitFx(enemy.id);
     if (enemy.hp <= 0) {
       enemy.hp = 0;
@@ -4300,42 +4313,61 @@ document.addEventListener("DOMContentLoaded", () => {
     arcadeBattleState.discard.push(handCard.cardId);
 
     clearArcadeBattleSelection();
-    setArcadeBattleStatus(`${cardDef.name} golpea a ${enemy.name} por ${result.totalDamage} de daño.`);
+    setArcadeBattleStatus(`${cardDef.name} usó ${abilityName}.`);
     updateArcadeBattleOutcome();
     renderArcadeBattleMode();
     return true;
   }
 
-  function endArcadeBattleTurn() {
-    if (!arcadeBattleState || arcadeBattleState.phase !== "playing") return;
-    const aliveEnemies = getArcadeBattleAliveEnemies();
-    const notices = [];
-    let totalIncoming = 0;
-    aliveEnemies.forEach((enemy) => {
-      const useAttack = Math.random() < 0.5;
-      if (useAttack) {
-        totalIncoming += ARCADE_BATTLE_ENEMY_ATTACK;
-        applyDamageToBattleUnit(arcadeBattleState.player, ARCADE_BATTLE_ENEMY_ATTACK);
-        triggerArcadeBattlePlayerHitFx("damage");
-        notices.push("Bandido utilizó Golpe a traición.");
-        return;
-      }
-      enemy.shield = clamp((enemy.shield || 0) + ARCADE_BATTLE_ENEMY_SHIELD_GAIN, 0, enemy.maxShield || ARCADE_BATTLE_ENEMY_MAX_SHIELD);
-      triggerArcadeBattleEnemyHitFx(enemy.id, "shield");
-      notices.push("Bandido utilizó Protección.");
-    });
-    updateArcadeBattleOutcome();
-    if (arcadeBattleState.phase !== "playing") {
-      renderArcadeBattleMode();
-      return;
-    }
-
-    arcadeBattleState.turn += 1;
-    arcadeBattleState.player.cost = arcadeBattleState.player.costMax;
-    const drawn = drawArcadeBattleCards(ARCADE_BATTLE_DRAW_PER_TURN);
-    const drawText = drawn > 0 ? ` Robas ${drawn} carta.` : " No quedan cartas para robar.";
-    setArcadeBattleStatus(`${notices.join(" ")}${totalIncoming > 0 ? ` Recibes ${totalIncoming} de daño.` : ""}${drawText}`);
+  async function endArcadeBattleTurn() {
+    if (!arcadeBattleState || arcadeBattleState.phase !== "playing" || arcadeBattleState.enemyTurnResolving) return;
+    arcadeBattleState.enemyTurnResolving = true;
+    arcadeBattlePreviewCardInstanceId = "";
+    arcadeBattleKeyboardZone = "cards";
+    arcadeBattleSelectedEnemyId = "";
+    arcadeBattleEnemyHoverId = "";
     renderArcadeBattleMode();
+
+    try {
+      const enemyIds = getArcadeBattleAliveEnemyIds();
+      for (const enemyId of enemyIds) {
+        const enemy = getArcadeBattleEnemyById(enemyId);
+        if (!enemy || !enemy.alive || enemy.hp <= 0) continue;
+
+        const useAttack = Math.random() < 0.5;
+        if (useAttack) {
+          setArcadeBattleStatus(`${enemy.name} utilizo Golpe a traicion.`);
+          renderArcadeBattleMode();
+          await waitArcadeBattleStep();
+
+          applyDamageToBattleUnit(arcadeBattleState.player, ARCADE_BATTLE_ENEMY_ATTACK);
+          triggerArcadeBattlePlayerHitFx("damage");
+          setArcadeBattleStatus(`${enemy.name} te hizo ${ARCADE_BATTLE_ENEMY_ATTACK} de daño.`);
+          renderArcadeBattleMode();
+          await waitArcadeBattleStep();
+        } else {
+          setArcadeBattleStatus(`${enemy.name} utilizo Protección.`);
+          enemy.shield = clamp((enemy.shield || 0) + ARCADE_BATTLE_ENEMY_SHIELD_GAIN, 0, enemy.maxShield || ARCADE_BATTLE_ENEMY_MAX_SHIELD);
+          triggerArcadeBattleEnemyHitFx(enemy.id, "shield");
+          renderArcadeBattleMode();
+          await waitArcadeBattleStep();
+        }
+
+        updateArcadeBattleOutcome();
+        if (arcadeBattleState.phase !== "playing") {
+          renderArcadeBattleMode();
+          return;
+        }
+      }
+
+      arcadeBattleState.turn += 1;
+      arcadeBattleState.player.cost = arcadeBattleState.player.costMax;
+      drawArcadeBattleCards(ARCADE_BATTLE_DRAW_PER_TURN);
+      renderArcadeBattleMode();
+    } finally {
+      if (arcadeBattleState) arcadeBattleState.enemyTurnResolving = false;
+      renderArcadeBattleMode();
+    }
   }
 
   function selectArcadeBattleCard(instanceId) {
