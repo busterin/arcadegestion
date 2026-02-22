@@ -2109,6 +2109,7 @@ img{ max-width:100%; height:auto; }
   display: grid;
   grid-template-columns: 1fr;
   gap: 10px;
+  justify-items: center;
 }
 
 .story-entry-image-btn{
@@ -2117,6 +2118,7 @@ img{ max-width:100%; height:auto; }
   background: rgba(255,255,255,.03);
   border-radius: 14px;
   padding: 6px;
+  width: min(300px, 100%);
   cursor: pointer;
   transition: transform .14s ease, border-color .14s ease, box-shadow .14s ease, background .14s ease;
 }
@@ -2144,6 +2146,12 @@ img{ max-width:100%; height:auto; }
 
 .story-entry-back-row{
   margin-top: 12px;
+  justify-content: center;
+}
+
+.story-entry-back-row .btn.is-kb-selected{
+  border-color: rgba(126,214,255,.9);
+  box-shadow: 0 0 0 2px rgba(126,214,255,.18), 0 0 0 4px rgba(126,214,255,.08);
 }
 
 @media (max-width: 640px){

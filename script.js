@@ -2188,6 +2188,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let storyMapState = storyMapFlow ? storyMapFlow.createInitialState() : null;
   let storyMapRunHistory = [];
   let storyMapPointIcons = null;
+  let storyEntryKeyboardIndex = 0;
   let storyMapBattleActive = false;
   let storyMapMonsterHuntActive = false;
   let storyMapReinerChallengeActive = false;
@@ -5335,6 +5336,7 @@ document.addEventListener("DOMContentLoaded", () => {
     storyLoadGameBtn?.classList.remove("is-active");
     storyContinueBtn?.classList.toggle("hidden", !hasStoryContinueSnapshot());
     showModal(storyEntryModal);
+    resetStoryEntryKeyboardSelection();
   }
 
   function toggleStoryLoadPanel() {
@@ -5342,7 +5344,44 @@ document.addEventListener("DOMContentLoaded", () => {
     const willShow = storyLoadPanel.classList.contains("hidden");
     storyLoadPanel.classList.toggle("hidden");
     storyLoadGameBtn?.classList.toggle("is-active", willShow);
-    if (willShow) renderStoryLoadSlots();
+    if (willShow) {
+      renderStoryLoadSlots();
+      storyLoadPanel.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+  }
+
+  function getStoryEntryKeyboardButtons() {
+    const items = [storyContinueBtn, storyNewGameBtn, storyLoadGameBtn, storyEntryBackBtn]
+      .filter((el) => el instanceof HTMLElement && !el.classList.contains("hidden"));
+    return items;
+  }
+
+  function syncStoryEntryKeyboardSelection() {
+    const items = getStoryEntryKeyboardButtons();
+    if (!items.length) return;
+    storyEntryKeyboardIndex = clamp(storyEntryKeyboardIndex, 0, items.length - 1);
+    items.forEach((el, idx) => {
+      el.classList.toggle("is-kb-selected", idx === storyEntryKeyboardIndex);
+    });
+  }
+
+  function resetStoryEntryKeyboardSelection() {
+    storyEntryKeyboardIndex = 0;
+    syncStoryEntryKeyboardSelection();
+  }
+
+  function moveStoryEntryKeyboardSelection(delta) {
+    const items = getStoryEntryKeyboardButtons();
+    if (!items.length) return;
+    storyEntryKeyboardIndex = (storyEntryKeyboardIndex + delta + items.length) % items.length;
+    syncStoryEntryKeyboardSelection();
+  }
+
+  function activateStoryEntryKeyboardSelection() {
+    const items = getStoryEntryKeyboardButtons();
+    const btn = items[storyEntryKeyboardIndex];
+    if (!(btn instanceof HTMLElement) || btn.hasAttribute("disabled")) return;
+    btn.click();
   }
 
   function openStorySavePrompt() {
@@ -8476,6 +8515,24 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
+    if (storyEntryModal?.classList.contains("show")) {
+      if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+        e.preventDefault();
+        moveStoryEntryKeyboardSelection(-1);
+        return;
+      }
+      if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+        e.preventDefault();
+        moveStoryEntryKeyboardSelection(1);
+        return;
+      }
+      if (e.key === "Enter") {
+        e.preventDefault();
+        activateStoryEntryKeyboardSelection();
+        return;
+      }
+    }
+
     if (!introScreen.classList.contains("hidden")) {
       if (e.key === "ArrowLeft") prevIntroMenuOption();
       if (e.key === "ArrowRight") nextIntroMenuOption();
@@ -8606,6 +8663,22 @@ document.addEventListener("DOMContentLoaded", () => {
   storyEntryBackBtn?.addEventListener("click", () => hideModal(storyEntryModal));
   storyEntryModal?.addEventListener("click", (e) => {
     if (e.target === storyEntryModal) hideModal(storyEntryModal);
+  });
+  [storyContinueBtn, storyNewGameBtn, storyLoadGameBtn, storyEntryBackBtn].forEach((btn) => {
+    btn?.addEventListener("mouseenter", () => {
+      const items = getStoryEntryKeyboardButtons();
+      const idx = items.indexOf(btn);
+      if (idx < 0) return;
+      storyEntryKeyboardIndex = idx;
+      syncStoryEntryKeyboardSelection();
+    });
+    btn?.addEventListener("focus", () => {
+      const items = getStoryEntryKeyboardButtons();
+      const idx = items.indexOf(btn);
+      if (idx < 0) return;
+      storyEntryKeyboardIndex = idx;
+      syncStoryEntryKeyboardSelection();
+    });
   });
   storySaveLaterBtn?.addEventListener("click", () => hideModal(storySavePromptModal));
   storySaveNowBtn?.addEventListener("click", () => {
