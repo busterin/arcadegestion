@@ -3890,6 +3890,15 @@ document.addEventListener("DOMContentLoaded", () => {
     return activePool.find((card) => card.id === cardId) || null;
   }
 
+  function getUnlockedArcadeBattleCardLibrary() {
+    return ARCADE_BATTLE_CARD_LIBRARY
+      .filter((card) => {
+        if (card.id !== "ab_risko") return true;
+        return unlockedRecruitCharIds.has("c5");
+      })
+      .map((card) => ({ ...card }));
+  }
+
   function arcadeBattleCardNeedsEnemyTarget(cardDef) {
     const id = String(cardDef?.id || "");
     return !(id === "ab_camus" || id === "ab_winchester" || id === "ab_jane" || id === "ab_lisa" || id === "ab_pendergast");
@@ -3950,13 +3959,14 @@ document.addEventListener("DOMContentLoaded", () => {
     ];
     const allowedNames = new Set(sourceNames);
     allowedNames.add("Evelyn");
-    const pool = ARCADE_BATTLE_CARD_LIBRARY
+    if (unlockedRecruitCharIds.has("c5") || storyRiskoJoined) allowedNames.add("Risko");
+    const pool = getUnlockedArcadeBattleCardLibrary()
       .filter((card) => allowedNames.has(card.name))
       .map((card) => ({
         ...card,
         level: Math.max(1, getCharacterStoryLevelByName(card.name))
       }));
-    return pool.length ? pool : ARCADE_BATTLE_CARD_LIBRARY.map((card) => ({ ...card, level: 1 }));
+    return pool.length ? pool : getUnlockedArcadeBattleCardLibrary().map((card) => ({ ...card, level: 1 }));
   }
 
   function returnFromArcadeBattleToStoryMap({ win = false } = {}) {
@@ -4445,7 +4455,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (config.hideArcadeModeModal !== false) hideModal(arcadeModeModal);
     const cardLibrary = Array.isArray(config.cardLibrary) && config.cardLibrary.length
       ? config.cardLibrary.map((card) => ({ ...card }))
-      : ARCADE_BATTLE_CARD_LIBRARY.map((card) => ({ ...card }));
+      : getUnlockedArcadeBattleCardLibrary();
     arcadeBattleCardLibraryActive = cardLibrary;
     arcadeBattleContext = {
       source: config.source === "story_map_chest" ? "story_map_chest" : "arcade",
@@ -7857,6 +7867,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function getStoryRosterCharacterEntries() {
     const names = new Set((availableCharacters || []).map((ch) => String(ch?.name || "").trim()).filter(Boolean));
+    if (unlockedRecruitCharIds.has("c5") || storyRiskoJoined) names.add("Risko");
     return [...names]
       .filter((name) => String(name || "").trim().toLowerCase() !== "reiner")
       .map((name) => {
@@ -7886,7 +7897,18 @@ document.addEventListener("DOMContentLoaded", () => {
         previewOnly: true
       };
     });
-    if (!entries.some((entry) => String(entry.cardData?.name || "").toLowerCase() === "evelyn")) {
+    if ((unlockedRecruitCharIds.has("c5") || storyRiskoJoined) && !entries.some((entry) => String(entry?.cardData?.name || "").toLowerCase() === "risko")) {
+      const riskoCard = getStoryBattleCardArtByName("Risko") || getStoryRosterCardDataByName("Risko");
+      if (riskoCard) {
+        entries.push({
+          key: "card:risko",
+          cardData: { ...riskoCard },
+          subtitle: `Nivel ${Math.max(1, getCharacterStoryLevelByName("Risko"))}`,
+          previewOnly: true
+        });
+      }
+    }
+    if (!entries.some((entry) => String(entry?.cardData?.name || "").toLowerCase() === "evelyn")) {
       const evelynCard = getStoryBattleCardArtByName("Evelyn") || getStoryRosterCardDataByName("Evelyn");
       if (evelynCard) {
         entries.unshift({
