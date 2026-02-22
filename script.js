@@ -490,6 +490,9 @@ document.addEventListener("DOMContentLoaded", () => {
   let miniGameStoryChallengeActive = false;
   let arcadeRiskoNoticePending = loadArcadeRiskoNoticePending();
   let arcadeBattleState = null;
+  let arcadeBattleCardLibraryActive = ARCADE_BATTLE_CARD_LIBRARY.map((card) => ({ ...card }));
+  let arcadeBattleContext = { source: "arcade", storyMapPointId: null };
+  let arcadeBattleOutcomeReturnTimer = null;
   let arcadeBattleSelectedCardInstanceId = "";
   let arcadeBattlePreviewCardInstanceId = "";
   let arcadeBattleDraggedCardInstanceId = "";
@@ -3873,7 +3876,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function getArcadeBattleCardDef(cardId) {
-    return ARCADE_BATTLE_CARD_LIBRARY.find((card) => card.id === cardId) || null;
+    const activePool = Array.isArray(arcadeBattleCardLibraryActive) && arcadeBattleCardLibraryActive.length
+      ? arcadeBattleCardLibraryActive
+      : ARCADE_BATTLE_CARD_LIBRARY;
+    return activePool.find((card) => card.id === cardId) || null;
   }
 
   function arcadeBattleCardNeedsEnemyTarget(cardDef) {
@@ -3893,8 +3899,9 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
-  function createArcadeBattleInitialState() {
-    const deck = shuffleList(ARCADE_BATTLE_CARD_LIBRARY.map((card) => card.id));
+  function createArcadeBattleInitialState(cardLibrary = null) {
+    const library = Array.isArray(cardLibrary) && cardLibrary.length ? cardLibrary : ARCADE_BATTLE_CARD_LIBRARY;
+    const deck = shuffleList(library.map((card) => card.id));
     return {
       phase: "playing",
       turn: 1,
@@ -3919,6 +3926,70 @@ document.addEventListener("DOMContentLoaded", () => {
       discard: [],
       hand: []
     };
+  }
+
+  function clearArcadeBattleOutcomeReturnTimer() {
+    clearTimeout(arcadeBattleOutcomeReturnTimer);
+    arcadeBattleOutcomeReturnTimer = null;
+  }
+
+  function getStoryArcadeBattleCardLibrary() {
+    const sourceNames = [
+      ...new Set([
+        ...(Array.isArray(availableCards) ? availableCards.map((card) => String(card?.name || "")) : []),
+        ...(Array.isArray(availableCharacters) ? availableCharacters.map((ch) => String(ch?.name || "")) : [])
+      ].filter(Boolean))
+    ];
+    const allowedNames = new Set(sourceNames);
+    const pool = ARCADE_BATTLE_CARD_LIBRARY
+      .filter((card) => allowedNames.has(card.name))
+      .map((card) => ({
+        ...card,
+        level: Math.max(1, getCharacterStoryLevelByName(card.name))
+      }));
+    return pool.length ? pool : ARCADE_BATTLE_CARD_LIBRARY.map((card) => ({ ...card, level: 1 }));
+  }
+
+  function returnFromArcadeBattleToStoryMap({ win = false } = {}) {
+    clearArcadeBattleOutcomeReturnTimer();
+    if (arcadeBattleContext?.source !== "story_map_chest") {
+      setIntroVisible();
+      return;
+    }
+    const pointId = arcadeBattleContext?.storyMapPointId || currentStoryMapPointId;
+    if (win && pointId) {
+      completeStoryMapBattle(pointId);
+      return;
+    }
+    stopGameLoops();
+    arcadeBattleState = null;
+    introScreen.classList.add("hidden");
+    storyScreen?.classList.remove("hidden");
+    recruitScreen?.classList.add("hidden");
+    storeScreen?.classList.add("hidden");
+    userScreen?.classList.add("hidden");
+    miniGamesScreen?.classList.add("hidden");
+    startScreen.classList.add("hidden");
+    teamScreen.classList.add("hidden");
+    gameRoot.classList.add("hidden");
+    arcadeBattleScreen?.classList.add("hidden");
+    storyPhase = "map";
+    storyStep = 0;
+    renderStoryStep();
+    resetViewportTop();
+  }
+
+  function queueStoryArcadeBattleReturnIfFinished() {
+    if (arcadeBattleContext?.source !== "story_map_chest" || !arcadeBattleState) return;
+    if (arcadeBattleState.phase !== "won" && arcadeBattleState.phase !== "lost") return;
+    if (arcadeBattleOutcomeReturnTimer) return;
+    const isWin = arcadeBattleState.phase === "won";
+    arcadeBattleOutcomeReturnTimer = setTimeout(() => {
+      arcadeBattleOutcomeReturnTimer = null;
+      if (!arcadeBattleState) return;
+      if (arcadeBattleState.phase !== (isWin ? "won" : "lost")) return;
+      returnFromArcadeBattleToStoryMap({ win: isWin });
+    }, 900);
   }
 
   function drawArcadeBattleCards(count = 1) {
@@ -4213,12 +4284,14 @@ document.addEventListener("DOMContentLoaded", () => {
       arcadeBattleState.phase = "won";
       setArcadeBattleStatus("Victoria. Has derrotado a todos los enemigos.");
       clearArcadeBattleSelection();
+      queueStoryArcadeBattleReturnIfFinished();
       return;
     }
     if (arcadeBattleState.player.hp <= 0) {
       arcadeBattleState.phase = "lost";
       setArcadeBattleStatus("Derrota. Tu vida ha llegado a cero.");
       clearArcadeBattleSelection();
+      queueStoryArcadeBattleReturnIfFinished();
     }
   }
 
@@ -4264,6 +4337,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (arcadeBattleHandCount) arcadeBattleHandCount.textContent = String(state?.hand?.length || 0);
 
     if (arcadeBattleEndTurnBtn) arcadeBattleEndTurnBtn.disabled = !state || state.phase !== "playing" || !!state.enemyTurnResolving;
+    if (arcadeBattleBackBtn) {
+      arcadeBattleBackBtn.textContent = arcadeBattleContext?.source === "story_map_chest" ? "Volver al mapa" : "Volver al menú";
+    }
     if (arcadeBattlePlayerPanel) {
       const isHit = !!(player && (player.hitFxUntil || 0) > now);
       const isHitDamage = !!(player && (player.hitFxUntil || 0) > now && player.hitFxType === "damage");
@@ -4319,6 +4395,7 @@ document.addEventListener("DOMContentLoaded", () => {
             draggable="${isPlayable ? "true" : "false"}"
             ${isPlayable ? "" : "disabled"}
           >
+            <div class="arcade-battle-card-level">Nv. ${Math.max(1, Number(def.level) || 1)}</div>
             <img class="arcade-battle-card-img" src="${def.img}" alt="${def.name}" />
             <div class="arcade-battle-card-name">${def.name}</div>
           </button>
@@ -4330,13 +4407,22 @@ document.addEventListener("DOMContentLoaded", () => {
     syncArcadeBattleActionKeyboardUi();
   }
 
-  function openArcadeBattleMode() {
+  function openArcadeBattleModeWithConfig(config = {}) {
     if (!arcadeBattleScreen) return;
     stopMiniGameLoop();
     stopGameLoops();
     clearMatchmakingState();
-    hideModal(arcadeModeModal);
-    arcadeBattleState = createArcadeBattleInitialState();
+    clearArcadeBattleOutcomeReturnTimer();
+    if (config.hideArcadeModeModal !== false) hideModal(arcadeModeModal);
+    const cardLibrary = Array.isArray(config.cardLibrary) && config.cardLibrary.length
+      ? config.cardLibrary.map((card) => ({ ...card }))
+      : ARCADE_BATTLE_CARD_LIBRARY.map((card) => ({ ...card }));
+    arcadeBattleCardLibraryActive = cardLibrary;
+    arcadeBattleContext = {
+      source: config.source === "story_map_chest" ? "story_map_chest" : "arcade",
+      storyMapPointId: config.source === "story_map_chest" ? (config.storyMapPointId || null) : null
+    };
+    arcadeBattleState = createArcadeBattleInitialState(cardLibrary);
     arcadeBattleCardInstanceSeq = 1;
     clearArcadeBattleSelection();
     drawArcadeBattleCards(ARCADE_BATTLE_START_HAND);
@@ -4354,6 +4440,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
     renderArcadeBattleMode();
     resetViewportTop();
+  }
+
+  function openArcadeBattleMode() {
+    openArcadeBattleModeWithConfig({ source: "arcade" });
+  }
+
+  function startStoryMapChestBattle(pointId) {
+    if (!pointId) return;
+    currentStoryMapPointId = pointId;
+    storyMapBattleActive = false;
+    storyMapMonsterHuntActive = false;
+    storyMapReinerChallengeActive = false;
+    storyCombatActive = false;
+    storyCombatStage = 0;
+    selectedMode = "arcade";
+    currentMode = "arcade";
+    openArcadeBattleModeWithConfig({
+      source: "story_map_chest",
+      storyMapPointId: pointId,
+      cardLibrary: getStoryArcadeBattleCardLibrary(),
+      hideArcadeModeModal: false
+    });
   }
 
   function tryPlayArcadeBattleCardOnEnemy(cardInstanceId, enemyId) {
@@ -5694,6 +5802,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const iconSrc = String(storyMapPointIcons?.[pointId] || "");
     const isConversationPoint = iconSrc.includes("iconomapaconversacion.png");
     const isQuestionPoint = iconSrc.includes("iconomapainterrogante.png");
+    const isChestPoint = iconSrc.includes("iconomapacofre.png");
     if (isConversationPoint && !storyRiskoJoined) {
       const riskoPhase = storyRiskoEncounterCount >= 2
         ? "mappointquestionchallenge"
@@ -5746,6 +5855,10 @@ document.addEventListener("DOMContentLoaded", () => {
       renderStoryStep();
       return;
       }
+    }
+    if (isChestPoint) {
+      startStoryMapChestBattle(pointId);
+      return;
     }
     resetGame();
     currentStoryMapPointId = pointId;
@@ -8195,8 +8308,25 @@ document.addEventListener("DOMContentLoaded", () => {
     setMiniGameMoveDirection(0);
   });
 
-  arcadeBattleBackBtn?.addEventListener("click", setIntroVisible);
-  arcadeBattleRestartBtn?.addEventListener("click", openArcadeBattleMode);
+  arcadeBattleBackBtn?.addEventListener("click", () => {
+    if (arcadeBattleContext?.source === "story_map_chest") {
+      returnFromArcadeBattleToStoryMap({ win: false });
+      return;
+    }
+    setIntroVisible();
+  });
+  arcadeBattleRestartBtn?.addEventListener("click", () => {
+    if (arcadeBattleContext?.source === "story_map_chest") {
+      openArcadeBattleModeWithConfig({
+        source: "story_map_chest",
+        storyMapPointId: arcadeBattleContext?.storyMapPointId || currentStoryMapPointId || null,
+        cardLibrary: getStoryArcadeBattleCardLibrary(),
+        hideArcadeModeModal: false
+      });
+      return;
+    }
+    openArcadeBattleMode();
+  });
   arcadeBattleEndTurnBtn?.addEventListener("click", endArcadeBattleTurn);
 
   arcadeBattleHand?.addEventListener("click", (e) => {
@@ -8503,7 +8633,11 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       if (arcadeBattleScreen && !arcadeBattleScreen.classList.contains("hidden")) {
         e.preventDefault();
-        setIntroVisible();
+        if (arcadeBattleContext?.source === "story_map_chest") {
+          returnFromArcadeBattleToStoryMap({ win: false });
+        } else {
+          setIntroVisible();
+        }
         return;
       }
       if (reinerRetryModal?.classList.contains("show")) {
@@ -8550,6 +8684,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (miniGamesScreen && !miniGamesScreen.classList.contains("hidden")) {
+      const keyLower = String(e.key || "").toLowerCase();
       if (e.key === "ArrowLeft") {
         e.preventDefault();
         miniGameMoveLeft = true;
@@ -8558,7 +8693,7 @@ document.addEventListener("DOMContentLoaded", () => {
         e.preventDefault();
         miniGameMoveRight = true;
       }
-      if (e.key === "Enter") {
+      if (keyLower === "w") {
         e.preventDefault();
         fireMiniGameBullet();
       }

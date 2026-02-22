@@ -1502,6 +1502,29 @@ img{ max-width:100%; height:auto; }
   pointer-events: none;
 }
 
+.arcade-battle-card-level{
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .02em;
+  color: #071420;
+  background: rgba(190,242,255,.94);
+  box-shadow: 0 6px 14px rgba(0,0,0,.28);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.arcade-battle-hand-card.preview .arcade-battle-card-level{
+  top: 16px;
+  font-size: 20px;
+  padding: 6px 16px;
+}
+
 .arcade-battle-card-name{
   font-size: 10px;
   font-weight: 900;
@@ -1932,6 +1955,21 @@ img{ max-width:100%; height:auto; }
   max-height: 70vh;
 }
 
+#arcadeModeModal .modal-card,
+#storyEntryModal .modal-card{
+  background: linear-gradient(180deg, rgba(11,18,35,.58), rgba(9,15,30,.52));
+  border: 1px solid rgba(255,255,255,.10);
+  backdrop-filter: blur(8px);
+}
+
+#arcadeModeModal .modal-card{
+  width: min(760px, 100%);
+}
+
+#storyEntryModal .modal-card{
+  width: min(980px, 100%);
+}
+
 .modal-head{ display:flex; gap: 12px; align-items:flex-start; justify-content:space-between; }
 .modal-title{ font-weight:900; font-size:18px; }
 .modal-text{ margin-top:6px; color: var(--muted); font-size:13px; line-height:1.35; }
@@ -2107,7 +2145,7 @@ img{ max-width:100%; height:auto; }
 
 .story-entry-image-picker{
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
   justify-items: center;
 }
@@ -2118,7 +2156,7 @@ img{ max-width:100%; height:auto; }
   background: rgba(255,255,255,.03);
   border-radius: 14px;
   padding: 6px;
-  width: min(300px, 100%);
+  width: min(220px, 100%);
   cursor: pointer;
   transition: transform .14s ease, border-color .14s ease, box-shadow .14s ease, background .14s ease;
 }
@@ -2156,6 +2194,14 @@ img{ max-width:100%; height:auto; }
 
 @media (max-width: 640px){
   .arcade-mode-picker{
+    grid-template-columns: 1fr;
+  }
+
+  #storyEntryModal .modal-card{
+    width: min(520px, 100%);
+  }
+
+  .story-entry-image-picker{
     grid-template-columns: 1fr;
   }
 }
