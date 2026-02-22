@@ -226,6 +226,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const storyMapConnections = document.getElementById("storyMapConnections");
   const storyMapPoints = document.getElementById("storyMapPoints");
   const storyMapRouteFill = document.getElementById("storyMapRouteFill");
+  const storyMapRosterBtn = document.getElementById("storyMapRosterBtn");
   const storyMapMenuBtn = document.getElementById("storyMapMenuBtn");
   const storyLeftChar = document.getElementById("storyLeftChar");
   const storyRightChar = document.getElementById("storyRightChar");
@@ -372,6 +373,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const cardInfoOutfitsPanel = document.getElementById("cardInfoOutfitsPanel");
   const cardInfoOutfitDefaultBtn = document.getElementById("cardInfoOutfitDefaultBtn");
   const cardInfoOutfitAltBtn = document.getElementById("cardInfoOutfitAltBtn");
+  const storyRosterModal = document.getElementById("storyRosterModal");
+  const storyRosterCloseBtn = document.getElementById("storyRosterCloseBtn");
+  const storyRosterTabCharsBtn = document.getElementById("storyRosterTabCharsBtn");
+  const storyRosterTabCardsBtn = document.getElementById("storyRosterTabCardsBtn");
+  const storyRosterList = document.getElementById("storyRosterList");
   const closeCardInfoBtn = document.getElementById("closeCardInfoBtn");
 
   const specialModal = document.getElementById("specialModal");
@@ -504,6 +510,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let arcadeBattleLongPressTimer = null;
   let arcadeBattleLongPressInstanceId = "";
   let arcadeBattleSuppressCardClickUntil = 0;
+  let storyRosterTab = "chars";
 
   const MINI_GAME_GOAL_KILLS = 10;
   const MINI_GAME_PLAYER_SPEED_PX_S = 340;
@@ -3941,6 +3948,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ].filter(Boolean))
     ];
     const allowedNames = new Set(sourceNames);
+    allowedNames.add("Evelyn");
     const pool = ARCADE_BATTLE_CARD_LIBRARY
       .filter((card) => allowedNames.has(card.name))
       .map((card) => ({
@@ -4690,6 +4698,7 @@ document.addEventListener("DOMContentLoaded", () => {
       tutorialModal.classList.contains("show") ||
       rivalTeamModal.classList.contains("show") ||
       storyEntryModal?.classList.contains("show") ||
+      storyRosterModal?.classList.contains("show") ||
       storySavePromptModal?.classList.contains("show") ||
       reinerRetryModal?.classList.contains("show") ||
       storyLevelUpModal?.classList.contains("show")
@@ -5943,9 +5952,11 @@ document.addEventListener("DOMContentLoaded", () => {
       renderStoryMapLayer();
       if (storySkipBtn) storySkipBtn.classList.add("hidden");
       if (storyMenuBtn) storyMenuBtn.classList.add("hidden");
+      storyMapRosterBtn?.classList.remove("hidden");
       storyMapMenuBtn?.classList.remove("hidden");
       return;
     }
+    storyMapRosterBtn?.classList.add("hidden");
     storyMapMenuBtn?.classList.add("hidden");
     if (storyPhase === "mapintro") {
       storyScreen?.classList.add("story-mapintro");
@@ -5954,9 +5965,13 @@ document.addEventListener("DOMContentLoaded", () => {
       storyScreen?.classList.remove("story-mapintro");
       storyMapLayer?.classList.add("hidden");
     }
-    storyDialog?.classList.remove("hidden");
     const scenes = getStorySceneList();
     const scene = scenes[storyStep] || scenes[0];
+    const hideDialogForScene = !!(
+      scene?.hideDialog ||
+      (Number(scene?.autoAdvanceMs) > 0 && !String(scene?.text || "").trim() && !String(scene?.speaker || "").trim())
+    );
+    storyDialog?.classList.toggle("hidden", hideDialogForScene);
     const sceneKey = `${storyPhase}:${storyStep}`;
     if (sceneKey !== lastRenderedStorySceneKey) {
       storySceneTextPageIndex = 0;
@@ -7807,6 +7822,111 @@ document.addEventListener("DOMContentLoaded", () => {
     }, true);
   }
 
+  function getStoryRosterCardDataByName(name) {
+    const targetName = String(name || "").trim();
+    if (!targetName) return null;
+    const lower = targetName.toLowerCase();
+    const baseCard = [...availableCards, ...CARDS, ...RECRUITABLE_CARDS].find((card) => String(card?.name || "").trim().toLowerCase() === lower);
+    if (baseCard) return { ...baseCard };
+    if (lower === "evelyn") {
+      return {
+        id: "story_evelyn_roster",
+        name: "Evelyn",
+        img: "cartas/cartaevelyn.PNG",
+        text: "Líder del grupo de mercenarios Atalaya."
+      };
+    }
+    const avatar = AVATARS.find((a) => String(a?.name || "").trim().toLowerCase() === lower);
+    if (avatar) {
+      return {
+        id: `story_roster_${lower}`,
+        name: avatar.name,
+        img: avatar.src,
+        text: "Ficha de personaje."
+      };
+    }
+    return null;
+  }
+
+  function getStoryRosterCharacterEntries() {
+    const names = new Set((availableCharacters || []).map((ch) => String(ch?.name || "").trim()).filter(Boolean));
+    names.add("Evelyn");
+    return [...names]
+      .map((name) => {
+        const cardData = getStoryRosterCardDataByName(name);
+        if (!cardData) return null;
+        return {
+          key: `char:${name}`,
+          cardData,
+          subtitle: `Nivel ${Math.max(1, getCharacterStoryLevelByName(name))}`
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => a.cardData.name.localeCompare(b.cardData.name, "es", { sensitivity: "base" }));
+  }
+
+  function getStoryRosterCardEntries() {
+    const entries = (availableCards || []).map((card) => ({
+      key: `card:${card.id}`,
+      cardData: { ...card },
+      subtitle: `Nivel ${Math.max(1, getCharacterStoryLevelByName(card.name))}`
+    }));
+    if (!entries.some((entry) => String(entry.cardData?.name || "").toLowerCase() === "evelyn")) {
+      const evelynCard = getStoryRosterCardDataByName("Evelyn");
+      if (evelynCard) {
+        entries.unshift({
+          key: "card:evelyn",
+          cardData: evelynCard,
+          subtitle: `Nivel ${Math.max(1, getCharacterStoryLevelByName("Evelyn"))}`
+        });
+      }
+    }
+    return entries
+      .filter((entry) => !!entry.cardData)
+      .sort((a, b) => a.cardData.name.localeCompare(b.cardData.name, "es", { sensitivity: "base" }));
+  }
+
+  function renderStoryRosterModal() {
+    if (!storyRosterList) return;
+    const entries = storyRosterTab === "cards" ? getStoryRosterCardEntries() : getStoryRosterCharacterEntries();
+    storyRosterTabCharsBtn?.classList.toggle("active", storyRosterTab === "chars");
+    storyRosterTabCardsBtn?.classList.toggle("active", storyRosterTab === "cards");
+    if (!entries.length) {
+      storyRosterList.innerHTML = '<div class="story-roster-empty">No hay elementos disponibles.</div>';
+      return;
+    }
+    storyRosterList.innerHTML = entries.map((entry) => `
+      <button class="story-roster-item" type="button" data-roster-key="${entry.key}">
+        <img src="${entry.cardData.img || "images/mision.png"}" alt="${entry.cardData.name}" />
+        <span class="story-roster-item-main">
+          <span class="story-roster-item-name">${entry.cardData.name}</span>
+          <span class="story-roster-item-sub">${entry.subtitle}</span>
+        </span>
+      </button>
+    `).join("");
+    storyRosterList.querySelectorAll(".story-roster-item").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const key = String(btn.getAttribute("data-roster-key") || "");
+        const item = entries.find((entry) => entry.key === key);
+        if (!item?.cardData) return;
+        openCardInfo(item.cardData);
+      });
+    });
+  }
+
+  function openStoryRosterModal() {
+    if (!storyRosterModal) return;
+    storyRosterTab = "chars";
+    renderStoryRosterModal();
+    setGlobalPause(true);
+    showModal(storyRosterModal);
+  }
+
+  function closeStoryRosterModal() {
+    hideModal(storyRosterModal);
+    if (!isAnyModalOpen()) setGlobalPause(false);
+  }
+
   function openCardInfo(cardData) {
     setGlobalPause(true);
     const cardName = String(cardData?.name || "").trim().toLowerCase();
@@ -8223,6 +8343,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setIntroVisible();
   });
   storySkipBtn?.addEventListener("click", skipStoryPhase);
+  storyMapRosterBtn?.addEventListener("click", openStoryRosterModal);
   storyMapMenuBtn?.addEventListener("click", setIntroVisible);
   userBackBtn?.addEventListener("click", setIntroVisible);
   miniGameBackBtn?.addEventListener("click", () => {
@@ -8663,6 +8784,11 @@ document.addEventListener("DOMContentLoaded", () => {
         hideModal(storyEntryModal);
         return;
       }
+      if (storyRosterModal?.classList.contains("show")) {
+        e.preventDefault();
+        closeStoryRosterModal();
+        return;
+      }
     }
 
     if (storyEntryModal?.classList.contains("show")) {
@@ -8814,6 +8940,18 @@ document.addEventListener("DOMContentLoaded", () => {
   storyEntryBackBtn?.addEventListener("click", () => hideModal(storyEntryModal));
   storyEntryModal?.addEventListener("click", (e) => {
     if (e.target === storyEntryModal) hideModal(storyEntryModal);
+  });
+  storyRosterCloseBtn?.addEventListener("click", closeStoryRosterModal);
+  storyRosterModal?.addEventListener("click", (e) => {
+    if (e.target === storyRosterModal) closeStoryRosterModal();
+  });
+  storyRosterTabCharsBtn?.addEventListener("click", () => {
+    storyRosterTab = "chars";
+    renderStoryRosterModal();
+  });
+  storyRosterTabCardsBtn?.addEventListener("click", () => {
+    storyRosterTab = "cards";
+    renderStoryRosterModal();
   });
   [storyContinueBtn, storyNewGameBtn, storyLoadGameBtn, storyEntryBackBtn].forEach((btn) => {
     btn?.addEventListener("mouseenter", () => {

@@ -418,6 +418,20 @@ img{ max-width:100%; height:auto; }
   z-index: 6;
 }
 
+.story-map-roster-btn{
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 6;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
 .story-map-connection{
   stroke: rgba(196,204,219,.26);
   stroke-width: 0.8;
@@ -2476,6 +2490,72 @@ img{ max-width:100%; height:auto; }
   border: 1px solid rgba(58,208,255,.95);
   background: linear-gradient(180deg, #b8f4ff, #6fdbff);
   box-shadow: 0 6px 16px rgba(58,208,255,.35);
+}
+
+.story-roster-tabs{
+  margin-bottom: 10px;
+}
+
+.story-roster-list{
+  display: grid;
+  gap: 8px;
+  max-height: 46vh;
+  overflow: auto;
+}
+
+.story-roster-item{
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.03);
+  border-radius: 12px;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.story-roster-item:hover{
+  border-color: rgba(255,255,255,.22);
+  background: rgba(255,255,255,.05);
+}
+
+.story-roster-item:focus,
+.story-roster-item:focus-visible{
+  outline: none;
+  border-color: rgba(126,214,255,.9);
+  box-shadow: 0 0 0 2px rgba(126,214,255,.14);
+}
+
+.story-roster-item img{
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: rgba(255,255,255,.03);
+  flex: 0 0 auto;
+}
+
+.story-roster-item-main{
+  min-width: 0;
+}
+
+.story-roster-item-name{
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.story-roster-item-sub{
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.story-roster-empty{
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+  padding: 10px;
 }
 
 /* ---------- TEAM SELECTION (6) ---------- */
