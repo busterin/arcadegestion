@@ -5851,6 +5851,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (storySkipBtn) storySkipBtn.classList.toggle("hidden", !(storyPhase === "pre" || storyPhase === "post"));
     const isFinalPhase = storyPhase === "mappost";
     if (storyMenuBtn) storyMenuBtn.classList.toggle("hidden", !(isFinalPhase && isLast));
+    if (storyMenuBtn) {
+      storyMenuBtn.textContent = isFinalPhase && isLast ? "Volver al mapa" : "Volver al menú";
+    }
     if (storyNextBtn) {
       storyNextBtn.textContent = isLast && isLastPage && isFinalPhase ? "Fin" : "Siguiente";
       storyNextBtn.disabled = false;
@@ -8092,7 +8095,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (isEditingUserName) endUserNameEdit(true);
   });
   storyNextBtn?.addEventListener("click", nextStoryStep);
-  storyMenuBtn?.addEventListener("click", setIntroVisible);
+  storyMenuBtn?.addEventListener("click", () => {
+    if (storyPhase === "mappost") {
+      startNextStoryMapRun();
+      return;
+    }
+    setIntroVisible();
+  });
   storySkipBtn?.addEventListener("click", skipStoryPhase);
   storyMapMenuBtn?.addEventListener("click", setIntroVisible);
   userBackBtn?.addEventListener("click", setIntroVisible);
