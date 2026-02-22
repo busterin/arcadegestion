@@ -434,18 +434,23 @@ img{ max-width:100%; height:auto; }
 
 #storyRosterModal .modal-card{
   width: min(760px, 100%);
+  background: linear-gradient(180deg, rgba(11,18,35,.18), rgba(9,15,30,.14));
+  border: 1px solid rgba(255,255,255,.06);
+  backdrop-filter: blur(5px);
 }
 
 .story-roster-section-title{
   margin-top: 8px;
+  text-align: center;
 }
 
 .story-roster-grid-main{
   max-width: 100%;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .story-roster-grid-cards{
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 #storyRosterModal .user-char{
@@ -454,6 +459,10 @@ img{ max-width:100%; height:auto; }
 
 #storyRosterModal .user-char:hover{
   transform: translateY(-1px);
+}
+
+#storyRosterModal .user-char-name{
+  text-align: center;
 }
 
 .story-map-connection{
@@ -2591,6 +2600,10 @@ img{ max-width:100%; height:auto; }
     top: 60px;
   }
 
+  .story-roster-grid-main{
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .story-roster-grid-cards{
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -2975,6 +2988,22 @@ img{ max-width:100%; height:auto; }
 #cardInfoModal .modal-text{
   width:100%;
   text-align:left;
+}
+
+#cardInfoModal.story-roster-preview .modal-card{
+  width: min(900px, 100%);
+}
+
+#cardInfoModal.story-roster-preview .cardinfo-img{
+  height: clamp(340px, 68vh, 760px);
+}
+
+#cardInfoModal.story-roster-preview.preview-only .modal-card{
+  width: min(760px, 100%);
+}
+
+#cardInfoModal.story-roster-preview.preview-only .cardinfo-img{
+  height: clamp(420px, 76vh, 860px);
 }
 
 #tutorialModal .tutorial-head{

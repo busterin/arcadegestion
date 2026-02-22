@@ -511,6 +511,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let arcadeBattleLongPressTimer = null;
   let arcadeBattleLongPressInstanceId = "";
   let arcadeBattleSuppressCardClickUntil = 0;
+  let storyRosterResumeAfterCardInfo = false;
 
   const MINI_GAME_GOAL_KILLS = 10;
   const MINI_GAME_PLAYER_SPEED_PX_S = 340;
@@ -7912,7 +7913,7 @@ document.addEventListener("DOMContentLoaded", () => {
       item.title = entry.subtitle;
       item.addEventListener("click", () => {
         hideModal(storyRosterModal);
-        openCardInfo(entry.cardData, { previewOnly: !!entry.previewOnly });
+        openCardInfo(entry.cardData, { previewOnly: !!entry.previewOnly, returnToStoryRoster: true });
       });
       targetGrid.appendChild(item);
     });
@@ -7944,6 +7945,9 @@ document.addEventListener("DOMContentLoaded", () => {
   function openCardInfo(cardData, options = {}) {
     setGlobalPause(true);
     const previewOnly = !!options.previewOnly;
+    storyRosterResumeAfterCardInfo = !!options.returnToStoryRoster;
+    cardInfoModal?.classList.toggle("story-roster-preview", !!options.returnToStoryRoster);
+    cardInfoModal?.classList.toggle("preview-only", previewOnly);
     const cardName = String(cardData?.name || "").trim().toLowerCase();
     const SPECIAL_CARD_INFO = {
       camus: {
@@ -8047,6 +8051,14 @@ document.addEventListener("DOMContentLoaded", () => {
   function closeCardInfo() {
     currentCardInfoData = null;
     hideModal(cardInfoModal);
+    cardInfoModal?.classList.remove("story-roster-preview", "preview-only");
+    if (storyRosterResumeAfterCardInfo) {
+      storyRosterResumeAfterCardInfo = false;
+      renderStoryRosterModal();
+      showModal(storyRosterModal);
+      setGlobalPause(true);
+      return;
+    }
     if (!isAnyModalOpen()) setGlobalPause(false);
   }
 
