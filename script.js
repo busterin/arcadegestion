@@ -167,8 +167,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const ARCADE_BATTLE_COST_MAX = 3;
   const ARCADE_BATTLE_START_HAND = 5;
   const ARCADE_BATTLE_DRAW_PER_TURN = 1;
-  const ARCADE_BATTLE_ENEMY_MAX_HP = 20;
-  const ARCADE_BATTLE_ENEMY_MAX_SHIELD = 20;
+  const ARCADE_BATTLE_ENEMY_MAX_HP = 10;
+  const ARCADE_BATTLE_ENEMY_MAX_SHIELD = 99;
   const ARCADE_BATTLE_ENEMY_ATTACK = 3;
   const ARCADE_BATTLE_ENEMY_SHIELD_GAIN = 3;
   const ARCADE_BATTLE_NOTICE_STEP_MS = 700;
@@ -3886,7 +3886,7 @@ document.addEventListener("DOMContentLoaded", () => {
       name,
       hp: ARCADE_BATTLE_ENEMY_MAX_HP,
       maxHp: ARCADE_BATTLE_ENEMY_MAX_HP,
-      shield: ARCADE_BATTLE_ENEMY_MAX_SHIELD,
+      shield: 0,
       maxShield: Math.max(0, ARCADE_BATTLE_ENEMY_MAX_SHIELD || 0),
       alive: true
     };
@@ -4288,7 +4288,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <div class="arcade-battle-enemy-stats">
               <div class="arcade-battle-enemy-meta"><span>Vida</span><span>${enemy.hp}/${enemy.maxHp}</span></div>
               <div class="arcade-battle-bar"><div class="arcade-battle-bar-fill hp" style="width:${clamp(hpPct, 0, 100)}%"></div></div>
-              <div class="arcade-battle-enemy-meta"><span>Escudo</span><span>${enemy.shield}/${Math.max(0, enemy.maxShield || 0)}</span></div>
+              <div class="arcade-battle-enemy-meta"><span>Escudo</span><span>${enemy.shield}</span></div>
               <div class="arcade-battle-bar"><div class="arcade-battle-bar-fill shield" style="width:${clamp(shieldPct, 0, 100)}%"></div></div>
             </div>
           </article>
