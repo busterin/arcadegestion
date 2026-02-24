@@ -431,7 +431,8 @@ img{ max-width:100%; height:auto; }
   align-items: center;
   justify-content: center;
   font-size: 0;
-  background-image: url("historia/iconoequipo.PNG");
+  background-color: transparent !important;
+  background-image: url("historia/iconoequipo.PNG") !important;
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
