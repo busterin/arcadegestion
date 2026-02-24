@@ -371,6 +371,7 @@ img{ max-width:100%; height:auto; }
   position: absolute;
   inset: 14px 14px 40px 14px;
   z-index: 5;
+  overflow: hidden;
 }
 .story-map-layer.preview{
   z-index: 0;

@@ -2226,7 +2226,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let lastRenderedStorySceneKey = "";
   let storyAutoAdvanceTimer = null;
   let storyPhase = "pre";
-  let storyMapState = storyMapFlow ? storyMapFlow.createInitialState() : null;
+  let storyMapState = storyMapFlow ? storyMapFlow.createInitialState("map1") : null;
   let storyMapRunHistory = [];
   let storyMapPointIcons = null;
   let storyEntryKeyboardIndex = 0;
@@ -2239,6 +2239,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let storyReinerFailedOnce = false;
   let storyReinerCompleted = false;
   let storyMonsterEventCompleted = false;
+  let storySwordsBanditsEventSeen = false;
+  let storySwordsTurukEventSeen = false;
   let storyJaneConversationCompleted = false;
   let storyJaneFriendshipLevel = 0;
   let storyJaneFortitudeUnlocked = false;
@@ -2525,6 +2527,8 @@ document.addEventListener("DOMContentLoaded", () => {
       "mappointreinerretry",
       "mappointreinerpost",
       "mappointreinerfailed",
+      "mappointswordsbanditsintro",
+      "mappointswordsturukintro",
       "mappost",
       "map",
       "combat"
@@ -2549,6 +2553,8 @@ document.addEventListener("DOMContentLoaded", () => {
         storyReinerFailedOnce: !!raw?.state?.storyReinerFailedOnce,
         storyReinerCompleted: !!raw?.state?.storyReinerCompleted,
         storyMonsterEventCompleted: !!raw?.state?.storyMonsterEventCompleted,
+        storySwordsBanditsEventSeen: !!raw?.state?.storySwordsBanditsEventSeen,
+        storySwordsTurukEventSeen: !!raw?.state?.storySwordsTurukEventSeen,
         storyJaneConversationCompleted: !!raw?.state?.storyJaneConversationCompleted || Number(raw?.state?.storyJaneFriendshipLevel) > 0,
         storyJaneFriendshipLevel: Math.max(0, Math.floor(Number(raw?.state?.storyJaneFriendshipLevel) || 0)),
         storyJaneFortitudeUnlocked: !!raw?.state?.storyJaneFortitudeUnlocked,
@@ -2622,6 +2628,8 @@ document.addEventListener("DOMContentLoaded", () => {
       storyReinerFailedOnce,
       storyReinerCompleted,
       storyMonsterEventCompleted,
+      storySwordsBanditsEventSeen,
+      storySwordsTurukEventSeen,
       storyJaneConversationCompleted,
       storyJaneFriendshipLevel,
       storyJaneFortitudeUnlocked,
@@ -2655,6 +2663,8 @@ document.addEventListener("DOMContentLoaded", () => {
       storyReinerFailedOnce = !!payload.storyReinerFailedOnce;
       storyReinerCompleted = !!payload.storyReinerCompleted;
       storyMonsterEventCompleted = !!payload.storyMonsterEventCompleted;
+      storySwordsBanditsEventSeen = !!payload.storySwordsBanditsEventSeen;
+      storySwordsTurukEventSeen = !!payload.storySwordsTurukEventSeen;
       storyJaneConversationCompleted = !!payload.storyJaneConversationCompleted || Math.max(0, Math.floor(Number(payload.storyJaneFriendshipLevel) || 0)) > 0;
       storyJaneFriendshipLevel = Math.max(0, Math.floor(Number(payload.storyJaneFriendshipLevel) || 0));
       storyJaneFortitudeUnlocked = !!payload.storyJaneFortitudeUnlocked;
@@ -2684,6 +2694,8 @@ document.addEventListener("DOMContentLoaded", () => {
     storyReinerFailedOnce = !!payload.storyReinerFailedOnce;
     storyReinerCompleted = !!payload.storyReinerCompleted;
     storyMonsterEventCompleted = !!payload.storyMonsterEventCompleted;
+    storySwordsBanditsEventSeen = !!payload.storySwordsBanditsEventSeen;
+    storySwordsTurukEventSeen = !!payload.storySwordsTurukEventSeen;
     storyJaneConversationCompleted = !!payload.storyJaneConversationCompleted || Math.max(0, Math.floor(Number(payload.storyJaneFriendshipLevel) || 0)) > 0;
     storyJaneFriendshipLevel = Math.max(0, Math.floor(Number(payload.storyJaneFriendshipLevel) || 0));
     storyJaneFortitudeUnlocked = !!payload.storyJaneFortitudeUnlocked;
@@ -2830,6 +2842,8 @@ document.addEventListener("DOMContentLoaded", () => {
           storyReinerFailedOnce,
           storyReinerCompleted,
           storyMonsterEventCompleted,
+          storySwordsBanditsEventSeen,
+          storySwordsTurukEventSeen,
           storyJaneConversationCompleted,
           storyJaneFriendshipLevel,
           storyJaneFortitudeUnlocked,
@@ -2864,6 +2878,8 @@ document.addEventListener("DOMContentLoaded", () => {
         storyReinerFailedOnce,
         storyReinerCompleted,
         storyMonsterEventCompleted,
+        storySwordsBanditsEventSeen,
+        storySwordsTurukEventSeen,
         storyJaneConversationCompleted,
         storyJaneFriendshipLevel,
         storyJaneFortitudeUnlocked,
@@ -2917,6 +2933,8 @@ document.addEventListener("DOMContentLoaded", () => {
     storyReinerFailedOnce = !!state?.storyReinerFailedOnce;
     storyReinerCompleted = !!state?.storyReinerCompleted;
     storyMonsterEventCompleted = !!state?.storyMonsterEventCompleted;
+    storySwordsBanditsEventSeen = !!state?.storySwordsBanditsEventSeen;
+    storySwordsTurukEventSeen = !!state?.storySwordsTurukEventSeen;
     storyJaneConversationCompleted = !!state?.storyJaneConversationCompleted || Math.max(0, Math.floor(Number(state?.storyJaneFriendshipLevel) || 0)) > 0;
     storyJaneFriendshipLevel = Math.max(0, Math.floor(Number(state?.storyJaneFriendshipLevel) || 0));
     storyJaneFortitudeUnlocked = !!state?.storyJaneFortitudeUnlocked;
@@ -2969,6 +2987,8 @@ document.addEventListener("DOMContentLoaded", () => {
     storyReinerFailedOnce = !!state?.storyReinerFailedOnce;
     storyReinerCompleted = !!state?.storyReinerCompleted;
     storyMonsterEventCompleted = !!state?.storyMonsterEventCompleted;
+    storySwordsBanditsEventSeen = !!state?.storySwordsBanditsEventSeen;
+    storySwordsTurukEventSeen = !!state?.storySwordsTurukEventSeen;
     storyJaneConversationCompleted = !!state?.storyJaneConversationCompleted || Math.max(0, Math.floor(Number(state?.storyJaneFriendshipLevel) || 0)) > 0;
     storyJaneFriendshipLevel = Math.max(0, Math.floor(Number(state?.storyJaneFriendshipLevel) || 0));
     storyJaneFortitudeUnlocked = !!state?.storyJaneFortitudeUnlocked;
@@ -5001,7 +5021,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function ensureStoryMapPointIcons() {
     if (!storyMapFlow) return;
     if (!storyMapPointIcons) storyMapPointIcons = {};
-    const points = storyMapFlow.getPoints();
+    const points = storyMapFlow.getPoints(storyMapState);
     points.forEach((point) => {
       if (!point || point.id === "boss") return;
       if (storyMapPointIcons[point.id]) return;
@@ -5695,17 +5715,19 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     if (!storyMapLayer || !storyMapPoints || !storyMapRouteFill || !storyMapFlow) return;
     ensureStoryMapPointIcons();
+    const mapLayoutId = String(storyMapFlow.getLayoutId(storyMapState) || "map1");
+    const mapHeightUnits = Math.max(100, Number(storyMapFlow.getMapHeightUnits(storyMapState)) || 100);
     const isMobileMap = isMobileStoryViewport();
     const getProjectedPoint = (point) => {
       if (!point) return { x: 50, y: 50 };
-      if (!isMobileMap) return point;
+      if (!isMobileMap || mapLayoutId !== "map1") return point;
       if (point.id === "boss") return { ...point, x: 50, y: 16 };
-      const tier = storyMapFlow.getTierIndexForPoint(point.id);
+      const tier = storyMapFlow.getTierIndexForPoint(storyMapState, point.id);
       if (tier < 0) return point;
       const tierYBase = [95, 66, 37];
       const tierCenterYOffset = [2, 2, 2];
       const tierXByIndex = [20, 50, 80];
-      const tierPointIndex = (storyMapFlow.getTiers()[tier] || []).findIndex((p) => p.id === point.id);
+      const tierPointIndex = (storyMapFlow.getTiers(storyMapState)[tier] || []).findIndex((p) => p.id === point.id);
       const x = tierXByIndex[Math.max(0, tierPointIndex)] ?? point.x;
       const y = tierYBase[tier] + (tierPointIndex === 1 ? tierCenterYOffset[tier] : 0);
       return { ...point, x, y };
@@ -5719,22 +5741,44 @@ document.addEventListener("DOMContentLoaded", () => {
       storyLeftSupportChar?.classList.add("hidden");
       storyRightSupportChar?.classList.add("hidden");
     }
-    storyScreen.style.background = 'url("historia/mapa1.png") center center / cover no-repeat';
+    const mapBgSrc = mapLayoutId === "map2" ? "historia/mapa2.png" : "historia/mapa1.png";
+    storyScreen.style.backgroundImage = `url("${mapBgSrc}")`;
+    storyScreen.style.backgroundRepeat = "no-repeat";
+    storyScreen.style.backgroundSize = "cover";
+    const tierCountForPan = Math.max(1, (storyMapFlow.getTiers(storyMapState) || []).length);
+    const tierIndexForPan = clamp(Number(storyMapState?.tierIndex) || 0, 0, tierCountForPan);
+    const panProgress = tierCountForPan > 1 ? (tierIndexForPan / (tierCountForPan - 1)) : 0;
+    storyScreen.style.backgroundPosition = mapLayoutId === "map2"
+      ? `center ${Math.round(clamp(panProgress * 100, 0, 100))}%`
+      : "center center";
+    const overflowUnits = Math.max(0, mapHeightUnits - 100);
+    const offsetUnits = overflowUnits * clamp(panProgress, 0, 1);
+    const translatePct = mapHeightUnits > 0 ? ((offsetUnits / mapHeightUnits) * 100) : 0;
+    if (storyMapConnections) {
+      storyMapConnections.setAttribute("viewBox", `0 0 100 ${mapHeightUnits}`);
+      storyMapConnections.style.inset = mapHeightUnits > 100 ? "0 0 auto 0" : "0";
+      storyMapConnections.style.height = `${mapHeightUnits}%`;
+      storyMapConnections.style.transform = mapHeightUnits > 100 ? `translateY(-${translatePct}%)` : "";
+    }
+    storyMapPoints.style.inset = mapHeightUnits > 100 ? "0 0 auto 0" : "0";
+    storyMapPoints.style.height = `${mapHeightUnits}%`;
+    storyMapPoints.style.transform = mapHeightUnits > 100 ? `translateY(-${translatePct}%)` : "";
     storyMapPoints.innerHTML = "";
     if (storyMapConnections) {
       storyMapConnections.innerHTML = "";
-      const tiers = storyMapFlow.getTiers();
-      const boss = storyMapFlow.getBoss();
+      const tiers = storyMapFlow.getTiers(storyMapState);
+      const boss = storyMapFlow.getBoss(storyMapState);
       const chosenByTier = Array.isArray(storyMapState?.chosenByTier) ? storyMapState.chosenByTier : [];
       const getTierPointIndex = (pointId) => {
-        const tier = storyMapFlow.getTierIndexForPoint(pointId);
+        const tier = storyMapFlow.getTierIndexForPoint(storyMapState, pointId);
         if (tier < 0) return -1;
         return (tiers[tier] || []).findIndex((p) => p.id === pointId);
       };
       const getAllowedNextIndices = (fromIndex) => {
-        if (fromIndex === 0) return [0, 1];
-        if (fromIndex === 2) return [1, 2];
-        return [0, 1, 2];
+        const width = Math.max(1, (tiers[0] || []).length);
+        const out = [];
+        for (let idx = Math.max(0, fromIndex - 1); idx <= Math.min(width - 1, fromIndex + 1); idx++) out.push(idx);
+        return out;
       };
       const isTransitionAllowed = (fromId, toId) => {
         const fromIdx = getTierPointIndex(fromId);
@@ -5744,7 +5788,7 @@ document.addEventListener("DOMContentLoaded", () => {
       };
 
       const isConnectionActive = (fromId, toId) => {
-        const fromTier = storyMapFlow.getTierIndexForPoint(fromId);
+        const fromTier = storyMapFlow.getTierIndexForPoint(storyMapState, fromId);
         if (fromTier < 0) return false;
         if (chosenByTier[fromTier] !== fromId) return false;
         if (fromTier === tiers.length - 1) return toId === boss.id;
@@ -5783,7 +5827,7 @@ document.addEventListener("DOMContentLoaded", () => {
         storyMapConnections.appendChild(line);
       });
     }
-    const points = storyMapFlow.getPoints();
+    const points = storyMapFlow.getPoints(storyMapState);
     points.forEach((point) => {
       const pointPos = getProjectedPoint(point);
       const completed = storyMapFlow.isPointCompleted(storyMapState, point.id);
@@ -5814,6 +5858,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function startNextStoryMapRun() {
+    const previousLayoutId = storyMapFlow ? String(storyMapFlow.getLayoutId(storyMapState) || "map1") : "map1";
     const previousPointIcons = storyMapPointIcons && typeof storyMapPointIcons === "object"
       ? { ...storyMapPointIcons }
       : null;
@@ -5826,8 +5871,9 @@ document.addEventListener("DOMContentLoaded", () => {
     pendingStorySwordBattleRewardPointId = null;
     pendingStoryTurukRewardPointId = null;
     pendingJaneFriendshipPointId = null;
-    storyMapState = storyMapFlow ? storyMapFlow.createInitialState() : null;
-    storyMapPointIcons = previousPointIcons;
+    const nextLayoutId = storyMapRunHistory.length >= 1 ? "map2" : "map1";
+    storyMapState = storyMapFlow ? storyMapFlow.createInitialState(nextLayoutId) : null;
+    storyMapPointIcons = previousLayoutId === nextLayoutId ? previousPointIcons : null;
     ensureStoryMapPointIcons();
     storyPhase = "map";
     storyStep = 0;
@@ -6048,14 +6094,29 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
     if (isSwordsPoint) {
-      const swordsEventPhases = ["mappointswordsbanditsintro", "mappointswordsturukintro"];
+      const swordsEventPhasesAll = [
+        { phase: "mappointswordsbanditsintro", seenKey: "bandits" },
+        { phase: "mappointswordsturukintro", seenKey: "turuk" }
+      ];
+      const swordsEventPhases = swordsEventPhasesAll.filter((item) => {
+        if (item.seenKey === "bandits") return !storySwordsBanditsEventSeen;
+        if (item.seenKey === "turuk") return !storySwordsTurukEventSeen;
+        return true;
+      });
       currentStoryMapPointId = pointId;
       storyMapBattleActive = false;
       storyMapMonsterHuntActive = false;
       storyMapReinerChallengeActive = false;
       storyCombatActive = false;
       storyCombatStage = 0;
-      storyPhase = swordsEventPhases[randInt(0, swordsEventPhases.length - 1)];
+      if (!swordsEventPhases.length) {
+        startStoryMapChestBattle(pointId, { encounterId: "swords_bandits" });
+        return;
+      }
+      const picked = swordsEventPhases[randInt(0, swordsEventPhases.length - 1)];
+      storyPhase = picked.phase;
+      if (picked.seenKey === "bandits") storySwordsBanditsEventSeen = true;
+      if (picked.seenKey === "turuk") storySwordsTurukEventSeen = true;
       storyStep = 0;
       renderStoryStep();
       return;
@@ -6092,7 +6153,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function startStoryMapMode() {
-    if (storyMapFlow && !storyMapState) storyMapState = storyMapFlow.createInitialState();
+    if (storyMapFlow && !storyMapState) storyMapState = storyMapFlow.createInitialState("map1");
     resetStoryMapPointIcons();
     ensureStoryMapPointIcons();
     storyPhase = "mapintro";
@@ -6221,7 +6282,7 @@ document.addEventListener("DOMContentLoaded", () => {
     storyMapMonsterHuntActive = false;
     storyMapReinerChallengeActive = false;
     currentStoryMapPointId = null;
-    storyMapState = storyMapFlow ? storyMapFlow.createInitialState() : null;
+    storyMapState = storyMapFlow ? storyMapFlow.createInitialState("map1") : null;
     storyMapRunHistory = [];
     resetStoryMapPointIcons();
     storyRiskoEncounterCount = 0;
@@ -6229,6 +6290,8 @@ document.addEventListener("DOMContentLoaded", () => {
     storyReinerFailedOnce = false;
     storyReinerCompleted = false;
     storyMonsterEventCompleted = false;
+    storySwordsBanditsEventSeen = false;
+    storySwordsTurukEventSeen = false;
     storyJaneConversationCompleted = false;
     storyJaneFortitudeUnlocked = false;
     storyJackUnlocked = false;
