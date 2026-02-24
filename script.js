@@ -5748,11 +5748,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const tierCountForPan = Math.max(1, (storyMapFlow.getTiers(storyMapState) || []).length);
     const tierIndexForPan = clamp(Number(storyMapState?.tierIndex) || 0, 0, tierCountForPan);
     const panProgress = tierCountForPan > 1 ? (tierIndexForPan / (tierCountForPan - 1)) : 0;
+    const panProgressFromBottom = 1 - clamp(panProgress, 0, 1);
     storyScreen.style.backgroundPosition = mapLayoutId === "map2"
-      ? `center ${Math.round(clamp(panProgress * 100, 0, 100))}%`
+      ? `center ${Math.round(clamp(panProgressFromBottom * 100, 0, 100))}%`
       : "center center";
     const overflowUnits = Math.max(0, mapHeightUnits - 100);
-    const offsetUnits = overflowUnits * clamp(panProgress, 0, 1);
+    const offsetUnits = overflowUnits * panProgressFromBottom;
     const translatePct = mapHeightUnits > 0 ? ((offsetUnits / mapHeightUnits) * 100) : 0;
     if (storyMapConnections) {
       storyMapConnections.setAttribute("viewBox", `0 0 100 ${mapHeightUnits}`);
