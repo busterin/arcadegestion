@@ -421,16 +421,21 @@ img{ max-width:100%; height:auto; }
 
 .story-map-roster-btn{
   position: absolute;
-  top: 12px;
-  right: 142px;
+  top: 6px;
+  right: 132px;
   z-index: 6;
-  width: 42px;
-  height: 42px;
+  width: 76px;
+  height: 76px;
   padding: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: 0;
+  background-image: url("historia/iconoequipo.PNG");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  border-color: rgba(255,255,255,.16);
 }
 
 #storyRosterModal .modal-card{
@@ -2598,7 +2603,9 @@ img{ max-width:100%; height:auto; }
 @media (max-width: 640px){
   .story-map-roster-btn{
     right: 12px;
-    top: 60px;
+    top: 56px;
+    width: 64px;
+    height: 64px;
   }
 
   #storyRosterModal .story-roster-grid-main{
