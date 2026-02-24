@@ -22,8 +22,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const STORY_MAP_POINT_ICONS = [
     "historia/iconomapabatalla.png",
     "historia/iconomapacofre.png",
+    "historia/iconogestion.png",
     "historia/iconomapaconversacion.png",
     "historia/iconomapainterrogante.png"
+  ];
+  const STORY_MAP_POINT_ICON_WEIGHTS = [
+    { src: "historia/iconomapabatalla.png", weight: 3 },
+    { src: "historia/iconomapacofre.png", weight: 1 },
+    { src: "historia/iconogestion.png", weight: 3 },
+    { src: "historia/iconomapaconversacion.png", weight: 3 },
+    { src: "historia/iconomapainterrogante.png", weight: 3 }
   ];
   const STORY_JACK_MISSION_ID = "m5";
   const STORY_JACK_DELAY_MS = 2 * 60 * 1000;
@@ -171,6 +179,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const ARCADE_BATTLE_ENEMY_MAX_SHIELD = 99;
   const ARCADE_BATTLE_ENEMY_ATTACK = 3;
   const ARCADE_BATTLE_ENEMY_SHIELD_GAIN = 3;
+  const ARCADE_BATTLE_TURUK_MAX_HP = 40;
+  const ARCADE_BATTLE_TURUK_ATTACK = 10;
+  const ARCADE_BATTLE_TURUK_SHIELD_GAIN = 20;
+  const ARCADE_BATTLE_TURUK_HEAL = 5;
   const ARCADE_BATTLE_NOTICE_STEP_MS = 700;
   const ARCADE_BATTLE_CARD_LIBRARY = [
     { id: "ab_camus", name: "Camus", img: "cartas/cartacamus.PNG", cost: 1, damage: 6, level: 1, abilityName: "Explosión de energía" },
@@ -512,6 +524,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let arcadeBattleLongPressInstanceId = "";
   let arcadeBattleSuppressCardClickUntil = 0;
   let storyRosterResumeAfterCardInfo = false;
+  let storyRosterMode = "browse";
+  let storyRosterRewardPointId = null;
 
   const MINI_GAME_GOAL_KILLS = 10;
   const MINI_GAME_PLAYER_SPEED_PX_S = 340;
@@ -1494,6 +1508,22 @@ document.addEventListener("DOMContentLoaded", () => {
       showChars: true
     }
   ];
+  const STORY_MAP_SWORDS_EVENT_BANDITS_SCENES = [
+    {
+      speaker: "",
+      text: "Llegamos a un humilde pueblo de la región con intención de descansar de un largo camino, cuando descubrimos que estaba siendo asaltado por un grupo de bandidos de mala muerte. No pudimos evitar intervenir.",
+      background: "historia/batallabandidos.PNG",
+      showChars: false
+    }
+  ];
+  const STORY_MAP_SWORDS_EVENT_TURUK_SCENES = [
+    {
+      speaker: "",
+      text: "Vaya, de todos los seres que podíamos encontrarnos tuvo que ser este. Turuk es un viejo \"amigo\". Hemos combatido en varias ocasiones pero el muy miserable no se quiere morir nunca. Es sanguinario como el que más y con el raciociono básico para orinarse encima. Está obsesionado conmigo. Puede ser por que le gusto o porque se siente atraído por mi espada luminosa. Dicho en voz alta suena peor de lo que imaginaba... Ay, ahí viene, como siempre...",
+      background: "historia/orcobatalla.PNG",
+      showChars: false
+    }
+  ];
   const STORY_MAP_QUESTION_CHALLENGE_SCENES = [
     {
       speaker: "Risko",
@@ -2213,6 +2243,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let storyJaneFriendshipLevel = 0;
   let storyJaneFortitudeUnlocked = false;
   let pendingMonsterPostRewardPointId = null;
+  let pendingStorySwordBattleRewardPointId = null;
+  let pendingStoryTurukRewardPointId = null;
   let pendingJaneFriendshipNotice = false;
   let pendingJaneFriendshipPointId = null;
   let storyCombatActive = false;
@@ -2353,6 +2385,18 @@ document.addEventListener("DOMContentLoaded", () => {
       completeStoryMapBattle(pointId);
       return;
     }
+    if (pendingStorySwordBattleRewardPointId) {
+      const pointId = pendingStorySwordBattleRewardPointId;
+      pendingStorySwordBattleRewardPointId = null;
+      completeStoryMapBattle(pointId);
+      return;
+    }
+    if (pendingStoryTurukRewardPointId) {
+      const pointId = pendingStoryTurukRewardPointId;
+      pendingStoryTurukRewardPointId = null;
+      completeStoryMapBattle(pointId);
+      return;
+    }
     if (pendingJaneFriendshipNotice) {
       pendingJaneFriendshipNotice = false;
       showJaneFriendshipNotice();
@@ -2401,6 +2445,28 @@ document.addEventListener("DOMContentLoaded", () => {
     const pointsToNextLevel = Math.max(1, (current.level * 3) - current.points);
     addStoryCharacterSuccessPoints(pickedId, pointsToNextLevel);
     return true;
+  }
+
+  function grantStoryCharacterOneLevel(charId) {
+    if (!charId || !storyCharacterProgress?.[charId]) return false;
+    const current = storyCharacterProgress[charId];
+    const pointsToNextLevel = Math.max(1, (current.level * 3) - current.points);
+    addStoryCharacterSuccessPoints(charId, pointsToNextLevel);
+    return true;
+  }
+
+  function rewardRandomCharacterLevelAfterSwordsBanditsEvent() {
+    const storyBattleCards = getStoryArcadeBattleCardLibrary();
+    const validIds = [...new Set(
+      storyBattleCards
+        .map((card) => storyProgress.getCharacterByName(card?.name)?.id)
+        .filter((charId) => !!charId && !!storyCharacterProgress?.[charId])
+    )];
+    if (!validIds.length) return false;
+    const pickedId = validIds[randInt(0, validIds.length - 1)];
+    const current = storyCharacterProgress[pickedId];
+    if (!current) return false;
+    return grantStoryCharacterOneLevel(pickedId);
   }
 
   function addStoryCharacterSuccessPoint(charId) {
@@ -2857,7 +2923,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ensureRiskoUnlockedIfJoined();
     storyMapState = storyMapFlow ? storyMapFlow.normalizeState(state?.storyMapState) : null;
     storyCharacterProgress = storyProgress.normalizeProgress(state?.storyCharacterProgress);
-    storyPhase = ["worldintro", "pre", "post", "epilogue", "mapintro", "mappointquestion", "mappointquestionrepeat", "mappointquestionchallenge", "mappointquestionchallengepost", "mappointjane", "mappointmonsterintro", "mappointmonsterpost", "mappointreinerintro", "mappointreinerretry", "mappointreinerpost", "mappointreinerfailed", "map", "mappost"].includes(state?.storyPhase) ? state.storyPhase : "pre";
+    storyPhase = ["worldintro", "pre", "post", "epilogue", "mapintro", "mappointquestion", "mappointquestionrepeat", "mappointquestionchallenge", "mappointquestionchallengepost", "mappointjane", "mappointmonsterintro", "mappointmonsterpost", "mappointreinerintro", "mappointreinerretry", "mappointreinerpost", "mappointreinerfailed", "mappointswordsbanditsintro", "mappointswordsturukintro", "map", "mappost"].includes(state?.storyPhase) ? state.storyPhase : "pre";
     storyStep = Math.max(0, Math.floor(Number(state?.storyStep) || 0));
 
     introScreen.classList.add("hidden");
@@ -3904,16 +3970,39 @@ document.addEventListener("DOMContentLoaded", () => {
     return !(id === "ab_camus" || id === "ab_winchester" || id === "ab_jane" || id === "ab_lisa" || id === "ab_pendergast");
   }
 
-  function createArcadeBattleEnemy(id, name) {
+  function createArcadeBattleEnemy(id, name, config = {}) {
+    const maxHp = Math.max(1, Number(config.maxHp) || ARCADE_BATTLE_ENEMY_MAX_HP);
+    const maxShield = Math.max(0, Number(config.maxShield) || ARCADE_BATTLE_ENEMY_MAX_SHIELD || 0);
     return {
       id,
       name,
-      hp: ARCADE_BATTLE_ENEMY_MAX_HP,
-      maxHp: ARCADE_BATTLE_ENEMY_MAX_HP,
-      shield: 0,
-      maxShield: Math.max(0, ARCADE_BATTLE_ENEMY_MAX_SHIELD || 0),
-      alive: true
+      hp: maxHp,
+      maxHp,
+      shield: Math.max(0, Number(config.startShield) || 0),
+      maxShield,
+      alive: true,
+      art: String(config.art || "cartas/bandidocartas.PNG"),
+      aiType: String(config.aiType || "bandit")
     };
+  }
+
+  function createArcadeBattleEnemiesForContext() {
+    if (arcadeBattleContext?.encounterId === "swords_turuk") {
+      return [
+        createArcadeBattleEnemy("enemy_turuk", "Turuk", {
+          maxHp: ARCADE_BATTLE_TURUK_MAX_HP,
+          maxShield: ARCADE_BATTLE_ENEMY_MAX_SHIELD,
+          startShield: 0,
+          art: "cartas/turuk.PNG",
+          aiType: "turuk"
+        })
+      ];
+    }
+    return [
+      createArcadeBattleEnemy("enemy_1", "Bandido 1"),
+      createArcadeBattleEnemy("enemy_2", "Bandido 2"),
+      createArcadeBattleEnemy("enemy_3", "Bandido 3")
+    ];
   }
 
   function createArcadeBattleInitialState(cardLibrary = null) {
@@ -3934,11 +4023,7 @@ document.addEventListener("DOMContentLoaded", () => {
       },
       enemyTurnResolving: false,
       ongoingEffects: [],
-      enemies: [
-        createArcadeBattleEnemy("enemy_1", "Bandido 1"),
-        createArcadeBattleEnemy("enemy_2", "Bandido 2"),
-        createArcadeBattleEnemy("enemy_3", "Bandido 3")
-      ],
+      enemies: createArcadeBattleEnemiesForContext(),
       deck,
       discard: [],
       hand: []
@@ -3975,10 +4060,23 @@ document.addEventListener("DOMContentLoaded", () => {
       setIntroVisible();
       return;
     }
+    pendingStorySwordBattleRewardPointId = null;
+    pendingStoryTurukRewardPointId = null;
     const pointId = arcadeBattleContext?.storyMapPointId || currentStoryMapPointId;
     if (win && pointId) {
       arcadeBattleScreen?.classList.add("hidden");
       arcadeBattleState = null;
+      if (storyPhase === "mappointswordsbanditsintro") {
+        const rewarded = rewardRandomCharacterLevelAfterSwordsBanditsEvent();
+        if (rewarded && storyLevelUpQueue.length) {
+          pendingStorySwordBattleRewardPointId = pointId;
+          return;
+        }
+      }
+      if (storyPhase === "mappointswordsturukintro") {
+        openStoryTurukLevelRewardModal(pointId);
+        return;
+      }
       completeStoryMapBattle(pointId);
       return;
     }
@@ -4316,6 +4414,19 @@ document.addEventListener("DOMContentLoaded", () => {
     arcadeBattleState.ongoingEffects = remainingEffects;
   }
 
+  function discardRandomArcadeBattleHandCard() {
+    if (!arcadeBattleState || !Array.isArray(arcadeBattleState.hand) || arcadeBattleState.hand.length < 1) return null;
+    const idx = randInt(0, arcadeBattleState.hand.length - 1);
+    const [discarded] = arcadeBattleState.hand.splice(idx, 1);
+    if (!discarded) return null;
+    arcadeBattleState.discard.push(discarded.cardId);
+    const def = getArcadeBattleCardDef(discarded.cardId);
+    return {
+      cardId: discarded.cardId,
+      name: String(def?.name || "Carta")
+    };
+  }
+
   function updateArcadeBattleOutcome() {
     if (!arcadeBattleState) return;
     const aliveEnemies = getArcadeBattleAliveEnemies();
@@ -4400,7 +4511,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return `
           <article class="arcade-battle-enemy${targetClass}${deadClass}${hitClass}${hitDamageClass}${hitShieldClass}" data-enemy-id="${enemy.id}">
             <div class="arcade-battle-enemy-name">${enemy.name}</div>
-            <img class="arcade-battle-enemy-art" src="cartas/bandidocartas.PNG" alt="${enemy.name}" />
+            <img class="arcade-battle-enemy-art" src="${enemy.art || "cartas/bandidocartas.PNG"}" alt="${enemy.name}" />
             <div class="arcade-battle-enemy-stats">
               <div class="arcade-battle-enemy-meta"><span>Vida</span><span>${enemy.hp}/${enemy.maxHp}</span></div>
               <div class="arcade-battle-bar"><div class="arcade-battle-bar-fill hp" style="width:${clamp(hpPct, 0, 100)}%"></div></div>
@@ -4459,7 +4570,8 @@ document.addEventListener("DOMContentLoaded", () => {
     arcadeBattleCardLibraryActive = cardLibrary;
     arcadeBattleContext = {
       source: config.source === "story_map_chest" ? "story_map_chest" : "arcade",
-      storyMapPointId: config.source === "story_map_chest" ? (config.storyMapPointId || null) : null
+      storyMapPointId: config.source === "story_map_chest" ? (config.storyMapPointId || null) : null,
+      encounterId: String(config.encounterId || "")
     };
     arcadeBattleState = createArcadeBattleInitialState(cardLibrary);
     arcadeBattleCardInstanceSeq = 1;
@@ -4485,7 +4597,7 @@ document.addEventListener("DOMContentLoaded", () => {
     openArcadeBattleModeWithConfig({ source: "arcade" });
   }
 
-  function startStoryMapChestBattle(pointId) {
+  function startStoryMapChestBattle(pointId, options = {}) {
     if (!pointId) return;
     currentStoryMapPointId = pointId;
     storyMapBattleActive = false;
@@ -4498,6 +4610,7 @@ document.addEventListener("DOMContentLoaded", () => {
     openArcadeBattleModeWithConfig({
       source: "story_map_chest",
       storyMapPointId: pointId,
+      encounterId: String(options.encounterId || ""),
       cardLibrary: getStoryArcadeBattleCardLibrary(),
       hideArcadeModeModal: false
     });
@@ -4616,27 +4729,60 @@ document.addEventListener("DOMContentLoaded", () => {
       for (const enemyId of enemyIds) {
         const enemy = getArcadeBattleEnemyById(enemyId);
         if (!enemy || !enemy.alive || enemy.hp <= 0) continue;
+        if (enemy.aiType === "turuk") {
+          const actionRoll = randInt(0, 2);
+          if (actionRoll === 0) {
+            setArcadeBattleStatus(`${enemy.name} utilizo Golpe demoledor.`);
+            renderArcadeBattleMode();
+            await waitArcadeBattleStep();
 
-        const useAttack = Math.random() < 0.5;
-        if (useAttack) {
-          setArcadeBattleStatus(`${enemy.name} utilizo Golpe a traicion.`);
-          renderArcadeBattleMode();
-          await waitArcadeBattleStep();
+            const damageResult = applyArcadeBattleDamageToPlayer(ARCADE_BATTLE_TURUK_ATTACK);
+            renderArcadeBattleMode();
+            await waitArcadeBattleStep();
 
-          const damageResult = applyArcadeBattleDamageToPlayer(ARCADE_BATTLE_ENEMY_ATTACK);
-          if (damageResult.convertedToShield) {
-            setArcadeBattleStatus(`${enemy.name} atacó, pero el daño se transformó en ${damageResult.amount} de escudo.`);
+            const discarded = discardRandomArcadeBattleHandCard();
+            const discardText = discarded ? `descartó ${discarded.name}.` : "no pudo descartar ninguna carta.";
+            if (damageResult.convertedToShield) {
+              setArcadeBattleStatus(`${enemy.name} convirtió el daño en ${damageResult.amount} de escudo y ${discardText}`);
+            } else {
+              setArcadeBattleStatus(`${enemy.name} te hizo ${ARCADE_BATTLE_TURUK_ATTACK} de daño y ${discardText}`);
+            }
+            renderArcadeBattleMode();
+            await waitArcadeBattleStep();
+          } else if (actionRoll === 1) {
+            setArcadeBattleStatus(`${enemy.name} utilizo Protección extrema.`);
+            enemy.shield = clamp((enemy.shield || 0) + ARCADE_BATTLE_TURUK_SHIELD_GAIN, 0, enemy.maxShield || ARCADE_BATTLE_ENEMY_MAX_SHIELD);
+            triggerArcadeBattleEnemyHitFx(enemy.id, "shield");
+            renderArcadeBattleMode();
+            await waitArcadeBattleStep();
           } else {
-            setArcadeBattleStatus(`${enemy.name} te hizo ${ARCADE_BATTLE_ENEMY_ATTACK} de daño.`);
+            setArcadeBattleStatus(`${enemy.name} utilizo Recuperación de batalla.`);
+            enemy.hp = clamp((enemy.hp || 0) + ARCADE_BATTLE_TURUK_HEAL, 0, enemy.maxHp || ARCADE_BATTLE_TURUK_MAX_HP);
+            renderArcadeBattleMode();
+            await waitArcadeBattleStep();
           }
-          renderArcadeBattleMode();
-          await waitArcadeBattleStep();
         } else {
-          setArcadeBattleStatus(`${enemy.name} utilizo Protección.`);
-          enemy.shield = clamp((enemy.shield || 0) + ARCADE_BATTLE_ENEMY_SHIELD_GAIN, 0, enemy.maxShield || ARCADE_BATTLE_ENEMY_MAX_SHIELD);
-          triggerArcadeBattleEnemyHitFx(enemy.id, "shield");
-          renderArcadeBattleMode();
-          await waitArcadeBattleStep();
+          const useAttack = Math.random() < 0.5;
+          if (useAttack) {
+            setArcadeBattleStatus(`${enemy.name} utilizo Golpe a traicion.`);
+            renderArcadeBattleMode();
+            await waitArcadeBattleStep();
+
+            const damageResult = applyArcadeBattleDamageToPlayer(ARCADE_BATTLE_ENEMY_ATTACK);
+            if (damageResult.convertedToShield) {
+              setArcadeBattleStatus(`${enemy.name} atacó, pero el daño se transformó en ${damageResult.amount} de escudo.`);
+            } else {
+              setArcadeBattleStatus(`${enemy.name} te hizo ${ARCADE_BATTLE_ENEMY_ATTACK} de daño.`);
+            }
+            renderArcadeBattleMode();
+            await waitArcadeBattleStep();
+          } else {
+            setArcadeBattleStatus(`${enemy.name} utilizo Protección.`);
+            enemy.shield = clamp((enemy.shield || 0) + ARCADE_BATTLE_ENEMY_SHIELD_GAIN, 0, enemy.maxShield || ARCADE_BATTLE_ENEMY_MAX_SHIELD);
+            triggerArcadeBattleEnemyHitFx(enemy.id, "shield");
+            renderArcadeBattleMode();
+            await waitArcadeBattleStep();
+          }
         }
 
         updateArcadeBattleOutcome();
@@ -4827,6 +4973,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (storyPhase === "mappointreinerretry") return STORY_MAP_REINER_RETRY_SCENES;
     if (storyPhase === "mappointreinerpost") return STORY_MAP_REINER_SUCCESS_SCENES;
     if (storyPhase === "mappointreinerfailed") return STORY_MAP_REINER_FAIL_SCENES;
+    if (storyPhase === "mappointswordsbanditsintro") return STORY_MAP_SWORDS_EVENT_BANDITS_SCENES;
+    if (storyPhase === "mappointswordsturukintro") return STORY_MAP_SWORDS_EVENT_TURUK_SCENES;
     if (storyPhase === "mappost") return STORY_MAP_POST_SCENES;
     if (storyPhase === "post") return STORY_POST_COMBAT_SCENES;
     if (storyPhase === "epilogue") return STORY_EPILOGUE_SCENES;
@@ -4837,6 +4985,19 @@ document.addEventListener("DOMContentLoaded", () => {
     storyMapPointIcons = null;
   }
 
+  function pickRandomStoryMapPointIcon() {
+    const pool = STORY_MAP_POINT_ICON_WEIGHTS.filter((item) => item && item.weight > 0 && item.src);
+    if (!pool.length) return STORY_MAP_POINT_ICONS[0];
+    const totalWeight = pool.reduce((acc, item) => acc + Math.max(0, Number(item.weight) || 0), 0);
+    if (totalWeight <= 0) return pool[0].src;
+    let roll = Math.random() * totalWeight;
+    for (const item of pool) {
+      roll -= Math.max(0, Number(item.weight) || 0);
+      if (roll <= 0) return item.src;
+    }
+    return pool[pool.length - 1].src;
+  }
+
   function ensureStoryMapPointIcons() {
     if (!storyMapFlow) return;
     if (!storyMapPointIcons) storyMapPointIcons = {};
@@ -4844,7 +5005,7 @@ document.addEventListener("DOMContentLoaded", () => {
     points.forEach((point) => {
       if (!point || point.id === "boss") return;
       if (storyMapPointIcons[point.id]) return;
-      storyMapPointIcons[point.id] = STORY_MAP_POINT_ICONS[randInt(0, STORY_MAP_POINT_ICONS.length - 1)];
+      storyMapPointIcons[point.id] = pickRandomStoryMapPointIcon();
     });
   }
 
@@ -5662,6 +5823,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     pendingJaneFriendshipNotice = false;
     pendingMonsterPostRewardPointId = null;
+    pendingStorySwordBattleRewardPointId = null;
+    pendingStoryTurukRewardPointId = null;
     pendingJaneFriendshipPointId = null;
     storyMapState = storyMapFlow ? storyMapFlow.createInitialState() : null;
     storyMapPointIcons = previousPointIcons;
@@ -5829,7 +5992,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const iconSrc = String(storyMapPointIcons?.[pointId] || "");
     const isConversationPoint = iconSrc.includes("iconomapaconversacion.png");
     const isQuestionPoint = iconSrc.includes("iconomapainterrogante.png");
-    const isChestPoint = iconSrc.includes("iconomapacofre.png");
+    const isGestionPoint = iconSrc.includes("iconogestion.png");
+    const isSwordsPoint = iconSrc.includes("iconomapabatalla.png");
     if (isConversationPoint && !storyRiskoJoined) {
       const riskoPhase = storyRiskoEncounterCount >= 2
         ? "mappointquestionchallenge"
@@ -5883,9 +6047,21 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
       }
     }
-    if (isChestPoint) {
-      startStoryMapChestBattle(pointId);
+    if (isSwordsPoint) {
+      const swordsEventPhases = ["mappointswordsbanditsintro", "mappointswordsturukintro"];
+      currentStoryMapPointId = pointId;
+      storyMapBattleActive = false;
+      storyMapMonsterHuntActive = false;
+      storyMapReinerChallengeActive = false;
+      storyCombatActive = false;
+      storyCombatStage = 0;
+      storyPhase = swordsEventPhases[randInt(0, swordsEventPhases.length - 1)];
+      storyStep = 0;
+      renderStoryStep();
       return;
+    }
+    if (isGestionPoint) {
+      // iconogestion usa el flujo normal de mapa (gestión/Atalaya)
     }
     resetGame();
     currentStoryMapPointId = pointId;
@@ -6026,6 +6202,8 @@ document.addEventListener("DOMContentLoaded", () => {
     storyLevelUpQueue = [];
     storyJaneFriendshipLevel = 0;
     pendingMonsterPostRewardPointId = null;
+    pendingStorySwordBattleRewardPointId = null;
+    pendingStoryTurukRewardPointId = null;
     pendingJaneFriendshipNotice = false;
     pendingJaneFriendshipPointId = null;
     introScreen.classList.add("hidden");
@@ -6199,6 +6377,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (storyPhase === "mappointjane") {
       storyJaneConversationCompleted = true;
       grantJaneConversationRewards();
+      return;
+    }
+    if (storyPhase === "mappointswordsbanditsintro") {
+      startStoryMapChestBattle(currentStoryMapPointId, { encounterId: "swords_bandits" });
+      return;
+    }
+    if (storyPhase === "mappointswordsturukintro") {
+      startStoryMapChestBattle(currentStoryMapPointId, { encounterId: "swords_turuk" });
       return;
     }
     if (storyPhase === "mappost") {
@@ -7875,6 +8061,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!cardData) return null;
         return {
           key: `char:${name}`,
+          charId: storyProgress.getCharacterByName(name)?.id || null,
           cardData,
           subtitle: `Nivel ${Math.max(1, getCharacterStoryLevelByName(name))}`
         };
@@ -7926,7 +8113,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderStoryRosterGrid(targetGrid, entries, options = {}) {
     if (!(targetGrid instanceof HTMLElement)) return;
-    const opts = { hideName: false, ...options };
+    const opts = { hideName: false, onSelect: null, ...options };
     targetGrid.innerHTML = "";
     entries.forEach((entry) => {
       const item = document.createElement("button");
@@ -7936,6 +8123,10 @@ document.addEventListener("DOMContentLoaded", () => {
         (opts.hideName ? "" : `<div class="user-char-name">${entry.cardData.name}</div>`);
       item.title = entry.subtitle;
       item.addEventListener("click", () => {
+        if (typeof opts.onSelect === "function") {
+          opts.onSelect(entry);
+          return;
+        }
         hideModal(storyRosterModal);
         openCardInfo(entry.cardData, { previewOnly: !!entry.previewOnly, returnToStoryRoster: true });
       });
@@ -7944,24 +8135,84 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderStoryRosterModal() {
+    const modalTitle = storyRosterModal?.querySelector("#storyRosterTitle");
+    const modalText = storyRosterModal?.querySelector(".modal-head .modal-text");
+    const sectionTitles = storyRosterModal ? [...storyRosterModal.querySelectorAll(".story-roster-section-title")] : [];
     const charEntries = getStoryRosterCharacterEntries();
     const cardEntries = getStoryRosterCardEntries();
-    renderStoryRosterGrid(storyRosterCharsGrid, charEntries, { hideName: true });
+    const isRewardMode = storyRosterMode === "turuk_reward";
+    if (isRewardMode && !charEntries.some((entry) => String(entry?.cardData?.name || "").toLowerCase() === "evelyn")) {
+      const evelynData = getStoryRosterCardDataByName("Evelyn");
+      const evelynCharId = storyProgress.getCharacterByName("Evelyn")?.id || null;
+      if (evelynData && evelynCharId) {
+        charEntries.unshift({
+          key: "char:Evelyn",
+          charId: evelynCharId,
+          cardData: evelynData,
+          subtitle: `Nivel ${Math.max(1, getCharacterStoryLevelByName("Evelyn"))}`
+        });
+      }
+    }
+    if (modalTitle) modalTitle.textContent = isRewardMode ? "Escoge un personaje para subir de nivel" : "Equipo actual";
+    if (modalText) modalText.textContent = isRewardMode ? "Selecciona una ficha para aplicar la subida de nivel." : "Consulta tus personajes y cartas actuales.";
+    if (storyRosterCloseBtn) storyRosterCloseBtn.classList.toggle("hidden", isRewardMode);
+    if (sectionTitles[0]) sectionTitles[0].textContent = "Fichas";
+    if (sectionTitles[1]) {
+      sectionTitles[1].textContent = "Cartas";
+      sectionTitles[1].classList.toggle("hidden", isRewardMode);
+    }
+
+    renderStoryRosterGrid(storyRosterCharsGrid, charEntries, {
+      hideName: true,
+      onSelect: isRewardMode ? (entry) => {
+        const charId = entry?.charId || storyProgress.getCharacterByName(entry?.cardData?.name)?.id || null;
+        if (!charId || !grantStoryCharacterOneLevel(charId)) return;
+        const pointId = storyRosterRewardPointId || currentStoryMapPointId;
+        storyRosterMode = "browse";
+        storyRosterRewardPointId = null;
+        hideModal(storyRosterModal);
+        if (storyLevelUpQueue.length) {
+          pendingStoryTurukRewardPointId = pointId;
+          maybeShowNextStoryLevelUp();
+        } else {
+          completeStoryMapBattle(pointId);
+        }
+      } : null
+    });
     renderStoryRosterGrid(storyRosterCardsGrid, cardEntries);
-    const hasAny = charEntries.length > 0 || cardEntries.length > 0;
+    const hasAny = charEntries.length > 0 || (!isRewardMode && cardEntries.length > 0);
     storyRosterEmpty?.classList.toggle("hidden", hasAny);
+    if (storyRosterEmpty) {
+      storyRosterEmpty.textContent = isRewardMode ? "No hay personajes disponibles." : "No hay personajes disponibles todavía.";
+    }
     storyRosterCharsGrid?.classList.toggle("hidden", charEntries.length < 1);
-    storyRosterCardsGrid?.classList.toggle("hidden", cardEntries.length < 1);
+    storyRosterCardsGrid?.classList.toggle("hidden", isRewardMode || cardEntries.length < 1);
   }
 
   function openStoryRosterModal() {
     if (!storyRosterModal) return;
+    storyRosterMode = "browse";
+    storyRosterRewardPointId = null;
+    renderStoryRosterModal();
+    setGlobalPause(true);
+    showModal(storyRosterModal);
+  }
+
+  function openStoryTurukLevelRewardModal(pointId) {
+    if (!storyRosterModal || !pointId) {
+      completeStoryMapBattle(pointId);
+      return;
+    }
+    storyRosterMode = "turuk_reward";
+    storyRosterRewardPointId = pointId;
+    pendingStoryTurukRewardPointId = null;
     renderStoryRosterModal();
     setGlobalPause(true);
     showModal(storyRosterModal);
   }
 
   function closeStoryRosterModal() {
+    if (storyRosterMode === "turuk_reward") return;
     hideModal(storyRosterModal);
     if (!isAnyModalOpen()) setGlobalPause(false);
   }
@@ -8284,6 +8535,8 @@ document.addEventListener("DOMContentLoaded", () => {
     miniGameStoryChallengeActive = false;
     storyLevelUpQueue = [];
     pendingMonsterPostRewardPointId = null;
+    pendingStorySwordBattleRewardPointId = null;
+    pendingStoryTurukRewardPointId = null;
     pendingJaneFriendshipNotice = false;
     pendingJaneFriendshipPointId = null;
     storyJackUnlocked = false;
@@ -8502,6 +8755,7 @@ document.addEventListener("DOMContentLoaded", () => {
       openArcadeBattleModeWithConfig({
         source: "story_map_chest",
         storyMapPointId: arcadeBattleContext?.storyMapPointId || currentStoryMapPointId || null,
+        encounterId: arcadeBattleContext?.encounterId || "",
         cardLibrary: getStoryArcadeBattleCardLibrary(),
         hideArcadeModeModal: false
       });
