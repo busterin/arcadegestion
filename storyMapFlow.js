@@ -126,10 +126,6 @@
         const pickedIdx = candidates.find((idx) => completedSet.has(tier[idx]?.id)) ?? candidates[0];
         chosenByTier[i] = Number.isInteger(pickedIdx) ? (tier[pickedIdx]?.id || null) : null;
       }
-      const tierIndexRaw = Number(raw.tierIndex);
-      const tierIndex = Number.isFinite(tierIndexRaw)
-        ? Math.max(0, Math.min(inferredLayout.tiers.length, Math.floor(tierIndexRaw)))
-        : 0;
       const contiguousTierProgress = (() => {
         let idx = 0;
         while (idx < inferredLayout.tiers.length) {
