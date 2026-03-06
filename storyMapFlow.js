@@ -96,6 +96,7 @@
       const completed = Array.isArray(raw.completedIds)
         ? raw.completedIds.filter((id) => validIds.has(id))
         : [];
+      const completedSet = new Set(completed);
       const chosenByTierRaw = Array.isArray(raw.chosenByTier) ? raw.chosenByTier : [];
       const chosenByTier = Array.from({ length: inferredLayout.tiers.length }, (_, idx) => {
         const id = chosenByTierRaw[idx];
@@ -103,16 +104,44 @@
         const tierPointIds = new Set((inferredLayout.tiers[idx] || []).map((point) => point.id));
         return tierPointIds.has(id) ? id : null;
       });
+      for (let i = 0; i < inferredLayout.tiers.length; i++) {
+        if (chosenByTier[i]) continue;
+        const tier = inferredLayout.tiers[i] || [];
+        const tierIds = tier.map((p) => p.id);
+        const tierCompleted = tierIds.length > 0 && tierIds.every((id) => completedSet.has(id));
+        if (!tierCompleted) continue;
+        if (i === 0) {
+          const fallback = tier[Math.floor((tier.length - 1) / 2)];
+          chosenByTier[i] = fallback ? fallback.id : null;
+          continue;
+        }
+        const prevChoiceId = chosenByTier[i - 1];
+        const prevTier = inferredLayout.tiers[i - 1] || [];
+        const prevIdx = prevTier.findIndex((p) => p.id === prevChoiceId);
+        if (prevIdx < 0) continue;
+        const candidates = [];
+        for (let idx = Math.max(0, prevIdx - 1); idx <= Math.min(tier.length - 1, prevIdx + 1); idx++) {
+          candidates.push(idx);
+        }
+        const pickedIdx = candidates.find((idx) => completedSet.has(tier[idx]?.id)) ?? candidates[0];
+        chosenByTier[i] = Number.isInteger(pickedIdx) ? (tier[pickedIdx]?.id || null) : null;
+      }
       const tierIndexRaw = Number(raw.tierIndex);
       const tierIndex = Number.isFinite(tierIndexRaw)
         ? Math.max(0, Math.min(inferredLayout.tiers.length, Math.floor(tierIndexRaw)))
         : 0;
       const contiguousTierProgress = (() => {
         let idx = 0;
-        while (idx < inferredLayout.tiers.length && chosenByTier[idx]) idx += 1;
+        while (idx < inferredLayout.tiers.length) {
+          const tier = inferredLayout.tiers[idx] || [];
+          const tierCompleted = tier.length > 0 && tier.every((point) => completedSet.has(point.id));
+          if (!tierCompleted) break;
+          if (!chosenByTier[idx]) break;
+          idx += 1;
+        }
         return idx;
       })();
-      const normalizedTierIndex = Math.min(tierIndex, contiguousTierProgress);
+      const normalizedTierIndex = Math.max(0, Math.min(inferredLayout.tiers.length, contiguousTierProgress));
       for (let i = normalizedTierIndex; i < chosenByTier.length; i++) {
         chosenByTier[i] = null;
       }
