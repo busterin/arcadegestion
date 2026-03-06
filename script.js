@@ -5714,6 +5714,16 @@ document.addEventListener("DOMContentLoaded", () => {
       ...options
     };
     if (!storyMapLayer || !storyMapPoints || !storyMapRouteFill || !storyMapFlow) return;
+    storyMapState = storyMapFlow.normalizeState(storyMapState);
+    const nonBossPoints = storyMapFlow
+      .getPoints(storyMapState)
+      .filter((point) => point && point.id !== "boss");
+    const hasAnyUnlockedPoint = nonBossPoints.some((point) => storyMapFlow.isPointUnlocked(storyMapState, point.id));
+    const isBossCompleted = !!storyMapState?.bossCompleted;
+    if (!isBossCompleted && !hasAnyUnlockedPoint) {
+      const fallbackLayoutId = String(storyMapFlow.getLayoutId(storyMapState) || "map1");
+      storyMapState = storyMapFlow.createInitialState(fallbackLayoutId);
+    }
     ensureStoryMapPointIcons();
     const mapLayoutId = String(storyMapFlow.getLayoutId(storyMapState) || "map1");
     const mapHeightUnits = Math.max(100, Number(storyMapFlow.getMapHeightUnits(storyMapState)) || 100);
@@ -6234,12 +6244,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const isLastPage = storySceneTextPageIndex >= storySceneTextPages.length - 1;
     if (storySkipBtn) storySkipBtn.classList.toggle("hidden", !(storyPhase === "pre" || storyPhase === "post"));
     const isFinalPhase = storyPhase === "mappost";
-    if (storyMenuBtn) storyMenuBtn.classList.toggle("hidden", !(isFinalPhase && isLast));
-    if (storyMenuBtn) {
-      storyMenuBtn.textContent = isFinalPhase && isLast ? "Volver al mapa" : "Volver al menú";
-    }
+    if (storyMenuBtn) storyMenuBtn.classList.add("hidden");
+    if (storyMenuBtn) storyMenuBtn.textContent = "Volver al menú";
     if (storyNextBtn) {
-      storyNextBtn.textContent = isLast && isLastPage && isFinalPhase ? "Fin" : "Siguiente";
+      storyNextBtn.textContent = isLast && isLastPage && isFinalPhase ? "Continuar" : "Siguiente";
       storyNextBtn.disabled = false;
     }
     const shouldAutoAdvance = !!(
