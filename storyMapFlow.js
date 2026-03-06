@@ -99,20 +99,31 @@
       const chosenByTierRaw = Array.isArray(raw.chosenByTier) ? raw.chosenByTier : [];
       const chosenByTier = Array.from({ length: inferredLayout.tiers.length }, (_, idx) => {
         const id = chosenByTierRaw[idx];
-        return validIds.has(id) ? id : null;
+        if (!validIds.has(id)) return null;
+        const tierPointIds = new Set((inferredLayout.tiers[idx] || []).map((point) => point.id));
+        return tierPointIds.has(id) ? id : null;
       });
       const tierIndexRaw = Number(raw.tierIndex);
       const tierIndex = Number.isFinite(tierIndexRaw)
         ? Math.max(0, Math.min(inferredLayout.tiers.length, Math.floor(tierIndexRaw)))
         : 0;
-      const bossUnlocked = !!raw.bossUnlocked || tierIndex >= inferredLayout.tiers.length;
+      const contiguousTierProgress = (() => {
+        let idx = 0;
+        while (idx < inferredLayout.tiers.length && chosenByTier[idx]) idx += 1;
+        return idx;
+      })();
+      const normalizedTierIndex = Math.min(tierIndex, contiguousTierProgress);
+      for (let i = normalizedTierIndex; i < chosenByTier.length; i++) {
+        chosenByTier[i] = null;
+      }
+      const bossUnlocked = !!raw.bossUnlocked || normalizedTierIndex >= inferredLayout.tiers.length;
       const bossCompleted = !!raw.bossCompleted || completed.includes(inferredLayout.boss.id);
       return {
         layoutId: inferredLayout.id,
-        tierIndex,
+        tierIndex: normalizedTierIndex,
         completedIds: [...new Set(completed)],
         chosenByTier,
-        bossUnlocked,
+        bossUnlocked: !!bossUnlocked || normalizedTierIndex >= inferredLayout.tiers.length,
         bossCompleted
       };
     }
